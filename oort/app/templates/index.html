@@ -54,6 +54,17 @@
         {% endif %}
       </div>
 
+      <div>
+        <table class="table table-striped">
+          {% for upload in uploads %}
+          <tr>
+            <td>Upload:</td>
+            <td>{{upload}}</td>
+          </tr>
+          {% endfor %}
+        </table>
+      </div>
+
       <div class="progress" style="width: 50%; margin: 50px;">
         <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"
              style="width: 0%">
