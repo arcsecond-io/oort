@@ -1,19 +1,19 @@
 """
  Oort server for managing and uploading all your files to arcsecond.io cloud storage.
 """
-# import ast
-# import re
+import ast
+import re
 
 from setuptools import find_packages, setup
 
-# _version_re = re.compile(r'__version__\s+=\s+(.*)')
-#
-# with open('oort/__init__.py', 'rb') as f:
-#     __version__ = str(ast.literal_eval(_version_re.search(f.read().decode('utf-8')).group(1)))
+_version_re = re.compile(r'__version__\s+=\s+(.*)')
+
+with open('oort/__init__.py', 'rb') as f:
+    __version__ = str(ast.literal_eval(_version_re.search(f.read().decode('utf-8')).group(1)))
 
 setup(
     name='oort-cloud',
-    version='0.1.0',
+    version=__version__,
     url='https://github.com/arcsecond-io/oort',
     license='MIT',
     author='Cedric Foellmi',
@@ -33,7 +33,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'oort = oort:main',
+            'oort = oort.server:run',
         ],
     },
     classifiers=[
