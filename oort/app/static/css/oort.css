@@ -1,3 +1,23 @@
 .row {
     margin-bottom: 2em;
 }
+
+.header {
+    border-bottom: 1px solid #4dbce9;
+    padding-bottom: 0.5em;
+}
+
+.label-centered {
+    color: lightgray;
+    position: absolute;
+    margin: auto;
+    right: 0;
+    bottom: 55%;
+    left: 0;
+    width: 95%;
+    text-align: center;
+    text-transform: uppercase;
+    display: inline-block;
+    vertical-align: middle;
+    line-height: 1.2em; /*set line height back to normal*/
+}

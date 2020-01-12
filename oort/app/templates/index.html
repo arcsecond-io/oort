@@ -20,6 +20,7 @@
   <link href="//fonts.googleapis.com/css?family=PT+Sans:400,700,400italic,700italic" rel=stylesheet type=text/css>
   <link href="//fonts.googleapis.com/css?family=Oswald:300,400,700" rel=stylesheet type=text/css>
   <link href="//fonts.googleapis.com/css?family=Inconsolata" rel=stylesheet type=text/css>
+  <link href="{$ url_for('static', filename='css/font-awesome.min.css') $}" rel=stylesheet>
 
   <link href="{$ url_for('static', filename='css/style.css') $}" rel="stylesheet">
   <link href="{$ url_for('static', filename='css/main.css') $}" rel="stylesheet">
@@ -30,27 +31,26 @@
 
 <body>
 <div class="container">
-  <div class="row">
+  <div class="row header">
     <div class="col-xs-12">
       <h4>
         <img src="{$ url_for('static', filename='img/logo-circle.png') $}" width="20">
         Your Arcsecond <span class="text-primary">Oort</span> server
+        <span class="small">(available and open-source on <a href="https://github.com/arcsecond-io/oort" target="_blank">GitHub</a>).</span>
       </h4>
       <div>
         {% if context.isAuthenticated %}
         <strong>username:</strong> @{$ context.username $},
         <strong>organisation:</strong> {$ context.organisation or '-' $},
         <strong>role:</strong> {$ context.role or '-' $}
-        {% else %}
-        Login first:
-        {% endif %}
-      </div>
-      <div>
-        {% if context.isAuthenticated and context.organisation %}
+        {% if context.organisation %}
         You are uploading to <a href="https://api.arcsecond.io/{$ context.organisation $}/">api.arcsecond.io/{$ context.organisation $}/</a> ({$
         context.organisation $} organisation account)
         {% else %}
         You are uploading to <a href="https://api.arcsecond.io">api.arcsecond.io</a> (Personal account)
+        {% endif %}
+        {% else %}
+        Login first with arcsecond (<code>$ arcsecond login</code>), then <a href="/" target="_self">refresh this page</a>.
         {% endif %}
       </div>
     </div>
@@ -58,14 +58,22 @@
 
   <div class="row">
     <div class="col-xs-12">
+
+      {% if context.isAuthenticated %}
+      <!-- **** STARTING FROM HERE, VUE.JS HAS CONTROL **** -->
       <div id="app">
-        <table class="table table-striped">
+        <table class="table table-striped" v-if="uploads.length > 0">
           <tr v-for="upload in uploads">
             <td>Upload:</td>
             <td>{{upload}}</td>
           </tr>
         </table>
+        <div v-else>
+          <span class="label-centered">There are no known uploads.</span>
+        </div>
       </div>
+      <!--  **** -->
+      {% endif %}
     </div>
   </div>
 </div>
