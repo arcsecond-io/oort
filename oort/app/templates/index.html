@@ -23,6 +23,7 @@
 
   <link href="{$ url_for('static', filename='css/style.css') $}" rel="stylesheet">
   <link href="{$ url_for('static', filename='css/main.css') $}" rel="stylesheet">
+  <link href="{$ url_for('static', filename='css/oort.css') $}" rel="stylesheet">
 
   <script src="https://cdn.jsdelivr.net/npm/vue@2.6.11"></script>
 </head>
@@ -37,12 +38,26 @@
       </h4>
       <div>
         {% if context.isAuthenticated %}
-        <strong>username:</strong> @{$ context.username $}, <strong>memberships:</strong> { $context.memberships $}
+        <strong>username:</strong> @{$ context.username $},
+        <strong>organisation:</strong> {$ context.organisation or '-' $},
+        <strong>role:</strong> {$ context.role or '-' $}
         {% else %}
         Login first:
         {% endif %}
       </div>
+      <div>
+        {% if context.isAuthenticated and context.organisation %}
+        You are uploading to <a href="https://api.arcsecond.io/{$ context.organisation $}/">api.arcsecond.io/{$ context.organisation $}/</a> ({$
+        context.organisation $} organisation account)
+        {% else %}
+        You are uploading to <a href="https://api.arcsecond.io">api.arcsecond.io</a> (Personal account)
+        {% endif %}
+      </div>
+    </div>
+  </div>
 
+  <div class="row">
+    <div class="col-xs-12">
       <div id="app">
         <table class="table table-striped">
           <tr v-for="upload in uploads">
