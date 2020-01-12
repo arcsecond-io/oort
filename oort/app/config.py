@@ -3,7 +3,7 @@ config = dict(
     SECRET_KEY='secret_xxx',
     PONY={
         'provider': 'sqlite',
-        'filename': 'db.db3',
+        'filename': 'oort.db3',
         'create_db': True
     }
 )

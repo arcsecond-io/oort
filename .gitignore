@@ -129,4 +129,6 @@ dmypy.json
 .pyre/
 /.idea
 /.DS_Store
-/oort/db.db3
+
+# Custom Arcsecond-Oort
+*.db3
