@@ -28,7 +28,7 @@ setup(
         'six',
         'flask',
         'pony',
-        'arcsecond',
+        'arcsecond>=0.7.3',
         'python-dotenv'
     ],
     entry_points={
