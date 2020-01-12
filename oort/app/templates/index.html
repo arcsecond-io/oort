@@ -38,22 +38,22 @@
         Your Arcsecond <span class="text-primary">Oort</span> server
         <span class="small">(open-source and available on <a href="https://github.com/arcsecond-io/oort" target="_blank">GitHub</a>).</span>
       </h3>
-      <div>
+      <div class="context">
         {% if context.isAuthenticated %}
         <strong>username:</strong> @{$ context.username $},
         <strong>organisation:</strong> {$ context.organisation or '-' $},
-        <strong>role:</strong> {$ context.role or '-' $}
+        <strong>role:</strong> {$ context.role or '-' $},
         {% if context.organisation %}
-        You are uploading to <a href="https://api.arcsecond.io/{$ context.organisation $}/">api.arcsecond.io/{$ context.organisation $}/</a> ({$
-        context.organisation $} organisation account)
+        uploading to <a href="https://api.arcsecond.io/{$ context.organisation $}/">api.arcsecond.io/{$ context.organisation $}/</a>
+        (organisation account, <a href="https://{$ context.organisation $}.arcsecond.io" target="_blank">portal</a>).
         {% else %}
-        You are uploading to <a href="https://api.arcsecond.io">api.arcsecond.io</a> (Personal account)
+        uploading to <a href="https://api.arcsecond.io">api.arcsecond.io</a> (Personal account)
         {% endif %}
         {% else %}
         Login first with arcsecond (<code>$ arcsecond login</code>), then <a href="/" target="_self">refresh this page</a>.
         {% endif %}
       </div>
-      <div>
+      <div class="context">
         Observed folder: <code>{$ context.folder $}</code>
       </div>
     </div>
