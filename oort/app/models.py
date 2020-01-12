@@ -9,3 +9,7 @@ class Upload(db.Entity):
     started = Optional(datetime)
     ended = Optional(datetime)
     status = Required(str)
+
+
+class Folder(db.Entity):
+    path = Required(str, unique=True)
