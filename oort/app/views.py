@@ -16,13 +16,14 @@ from .models import Upload, db
 @app.route('/')
 @app.route('/index')
 def index():
-    memberships = Arcsecond.memberships()
-    organisation, role = list(memberships.items())[0] if len(memberships) == 1 else '', ''
+    debug = app.config['debug']
+    memberships = Arcsecond.memberships(debug=debug)
+    membership = list(memberships.items())[0] if len(memberships) == 1 else ('', '')
 
-    context = {'isAuthenticated': Arcsecond.is_logged_in(),
-               'username': Arcsecond.username(),
-               'organisation': organisation,
-               'role': role,
+    context = {'isAuthenticated': Arcsecond.is_logged_in(debug=debug),
+               'username': Arcsecond.username(debug=debug),
+               'organisation': membership[0],
+               'role': membership[1],
                'folder': app.config['folder']}
 
     return render_template('index.html', context=context)

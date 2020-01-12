@@ -36,4 +36,5 @@ def main(ctx, state, version=False, v=False):
         while is_port_in_use(port):
             port += 1
         app.config['folder'] = os.getcwd()
+        app.config['debug'] = state.debug
         app.run(debug=state.debug, port=port)
