@@ -13,14 +13,23 @@ from .models import db
 @app.route('/')
 @app.route('/index')
 def index():
+    memberships = Arcsecond.memberships()
+    organisation, role = list(memberships.items())[0] if len(memberships) == 1 else '', ''
+
     context = {'isAuthenticated': Arcsecond.is_logged_in(),
                'username': Arcsecond.username(),
-               'memberships': Arcsecond.memberships()}
+               'organisation': organisation,
+               'role': role}
+
     return render_template('index.html', context=context)
 
+@app.route('/folders')
+def folders():
+    return None
 
 @app.route('/uploads')
 def uploads():
+    # Using Server-Side Events. See https://blog.easyaspy.org/post/10/2019-04-30-creating-real-time-charts-with-flask
     def generate():
         while True:
             json_data = json.dumps(
