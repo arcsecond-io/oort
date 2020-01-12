@@ -19,7 +19,8 @@ def index():
     context = {'isAuthenticated': Arcsecond.is_logged_in(),
                'username': Arcsecond.username(),
                'organisation': organisation,
-               'role': role}
+               'role': role,
+               'folder': app.config['folder']}
 
     return render_template('index.html', context=context)
 
