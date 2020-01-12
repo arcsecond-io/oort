@@ -1,15 +1,20 @@
 var app = new Vue({
   el: '#app',
   data: {
-    message: 'Hello Vue!',
-    uploads: [],
-    source: null
+    uploads_active: [],
+    uploads_inactive: [],
+    source_active: null,
+    source_inactive: null
   },
   mounted: function () {
-    this.source = new EventSource('/uploads')
     const self = this
-    this.source.onmessage = function (event) {
-      self.uploads = JSON.parse(event.data)
+    this.source_active = new EventSource('/uploads/active')
+    this.source_active.onmessage = function (event) {
+      self.uploads_active = JSON.parse(event.data)
+    }
+    this.source_inactive = new EventSource('/uploads/inactive')
+    this.source_inactive.onmessage = function (event) {
+      self.uploads_inactive = JSON.parse(event.data)
     }
   }
 })
