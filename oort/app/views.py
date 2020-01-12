@@ -1,5 +1,8 @@
+import json
+import random
 import time
 
+from datetime import datetime
 from flask import render_template, Response
 from arcsecond import Arcsecond
 
@@ -13,8 +16,20 @@ def index():
     context = {'isAuthenticated': Arcsecond.is_logged_in(),
                'username': Arcsecond.username(),
                'memberships': Arcsecond.memberships()}
-    uploads = db.Upload.select()
-    return render_template('index.html', context=context, uploads=uploads)
+    return render_template('index.html', context=context)
+
+
+@app.route('/uploads')
+def uploads():
+    def generate():
+        while True:
+            json_data = json.dumps(
+                [{'time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'), 'value': random.random() * 100},
+                 {'time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'), 'value': random.random() * 100}])
+            yield f"data:{json_data}\n\n"
+            time.sleep(0.5)
+
+    return Response(generate(), mimetype='text/event-stream')
 
 
 @app.route('/progress')
