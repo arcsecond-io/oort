@@ -132,3 +132,4 @@ dmypy.json
 
 # Custom Arcsecond-Oort
 *.db3
+/data
