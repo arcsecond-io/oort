@@ -1,0 +1,40 @@
+.row {
+    margin-bottom: 2em;
+}
+
+.header {
+    border-bottom: 1px solid #4dbce9;
+    padding-bottom: 0.5em;
+}
+
+.context {
+    line-height: 2em;
+}
+
+.table-block {
+    display: block;
+}
+
+.label-centered {
+    color: lightgray;
+    position: absolute;
+    margin: auto;
+    right: 0;
+    left: 0;
+    width: 95%;
+    text-align: center;
+    text-transform: uppercase;
+    display: inline-block;
+    vertical-align: middle;
+    line-height: 1.2em; /*set line height back to normal*/
+}
+
+.table-title {
+    text-transform: uppercase;
+    font-weight: bold;
+    color: rgba(79, 90, 108, 0.68);
+}
+
+.progress {
+    margin-bottom: 0;
+}
