@@ -16,12 +16,18 @@ Installation
 $ pip install oort-cloud
 ``` 
 
+This will also install the `arcsecond` [CLI](https://github.com/arcsecond-io/cli).
+
 Usage
 ===
 
 ```sh
+$ arcsecond login 
 $ cd <parent folder where files are located>
+// for uploading to a personal account:
 $ oort
+// for uploading to an organisation account whose subdomain is 'saao':
+$ oort -o saao
 ``` 
 
 That's it! Now, you can open a browser in `http://localhost:5000` and follow the operations.

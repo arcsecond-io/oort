@@ -44,8 +44,13 @@
         <strong>organisation:</strong> {$ context.organisation or '-' $},
         <strong>role:</strong> {$ context.role or '-' $},
         {% if context.organisation %}
+        {% if context.role %}
         uploading to <a href="https://api.arcsecond.io/{$ context.organisation $}/">api.arcsecond.io/{$ context.organisation $}/</a>
         (organisation account, <a href="https://{$ context.organisation $}.arcsecond.io" target="_blank">portal</a>).
+        {% else %}
+        no membership found for organisaion <code>{$ context.organisation or '-' $}</code>
+        uploading to <a href="https://api.arcsecond.io">api.arcsecond.io</a> (Personal account)
+        {% endif %}
         {% else %}
         uploading to <a href="https://api.arcsecond.io">api.arcsecond.io</a> (Personal account)
         {% endif %}
