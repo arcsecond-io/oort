@@ -43,25 +43,28 @@ def folders():
 
 @app.route('/uploads/active')
 def uploads_active():
-    # Using Server-Side Events. See https://blog.easyaspy.org/post/10/2019-04-30-creating-real-time-charts-with-flask
     @db_session
     def generate():
         while True:
-            files = os.listdir(app.config['folder'])
+            files = os.listdir(folder)
             active_uploads = []
 
             for file in files:
-                u = Upload.get(filepath=file)
+                filepath = os.path.join(folder, file)
+                u = Upload.get(filepath=filepath)
                 if u is None:
-                    active_uploads.append(Upload(filepath=file, filesize=os.path.getsize(file), status='new'))
+                    active_uploads.append(Upload(filepath=filepath, filesize=os.path.getsize(filepath), status='new'))
                 elif u.ended is None:
                     active_uploads.append(u)
+                    u.progress = random.random() * 100
+                commit()
 
             json_data = json.dumps([u.to_dict() for u in active_uploads])
             yield f"data:{json_data}\n\n"
             time.sleep(2)
 
     commit()
+    # Using Server-Side Events. See https://blog.easyaspy.org/post/10/2019-04-30-creating-real-time-charts-with-flask
     return Response(generate(), mimetype='text/event-stream')
 
 
