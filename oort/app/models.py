@@ -10,6 +10,7 @@ class Upload(db.Entity):
     started = Optional(datetime)
     ended = Optional(datetime)
     status = Required(str)
+    progress = Required(float, default=0)
 
 
 with db.set_perms_for(Upload):
