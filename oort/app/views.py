@@ -12,6 +12,10 @@ from arcsecond import Arcsecond
 from . import app
 from .models import Upload, db
 
+DATASET_NAME = 'Oort Uploads'
+
+active_uploads = {}
+
 
 @app.route('/')
 @app.route('/index')
@@ -43,23 +47,41 @@ def folders():
 
 @app.route('/uploads/active')
 def uploads_active():
+    folder = app.config['folder']
+    api_datasets = Arcsecond.build_datasets_api()
+
+    all_datasets = api_datasets.list()
+    upload_dataset = next((d for d in all_datasets if d['name'] == DATASET_NAME), None)
+    if not upload_dataset:
+        upload_dataset = api_datasets.create({'name': DATASET_NAME})
+
+    print(upload_dataset)
+
     @db_session
     def generate():
+        global active_uploads
         while True:
             files = os.listdir(folder)
-            active_uploads = []
-
             for file in files:
                 filepath = os.path.join(folder, file)
-                u = Upload.get(filepath=filepath)
-                if u is None:
-                    active_uploads.append(Upload(filepath=filepath, filesize=os.path.getsize(filepath), status='new'))
-                elif u.ended is None:
-                    active_uploads.append(u)
-                    u.progress = random.random() * 100
-                commit()
 
-            json_data = json.dumps([u.to_dict() for u in active_uploads])
+                api = active_uploads.get(filepath)
+                if api is None:
+                    api = Arcsecond.build_datafiles_api(dataset=upload_dataset['uuid'])
+                    api.progress = 0
+                    api.filepath = filepath
+                    active_uploads[filepath] = api
+
+                    def update_progress(event, progress_percent):
+                        print('--->>>>>>>>>', event, progress_percent)
+                        api.progress = progress_percent
+
+                    uploader = api.create({'file': filepath}, callback=update_progress)
+                    api.uploader = uploader
+                    uploader.start()
+
+            json_data = json.dumps(
+                [{'filepath': api.filepath, 'progress': api.progress} for api in active_uploads.values()])
             yield f"data:{json_data}\n\n"
             time.sleep(2)
 

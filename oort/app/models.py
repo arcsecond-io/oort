@@ -11,6 +11,7 @@ class Upload(db.Entity):
     ended = Optional(datetime)
     status = Required(str)
     progress = Required(float, default=0)
+    dataset = Optional(str)
 
 
 with db.set_perms_for(Upload):
