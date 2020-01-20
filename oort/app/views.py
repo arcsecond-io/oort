@@ -39,8 +39,9 @@ def index():
 
 @app.route('/uploads/active')
 def uploads_active():
+    debug = app.config['debug']
     folder = app.config['folder']
-    api_datasets = Arcsecond.build_datasets_api()
+    api_datasets = Arcsecond.build_datasets_api(debug=debug)
 
     all_datasets = api_datasets.list()
     upload_dataset = next((d for d in all_datasets if d['name'] == DATASET_NAME), None)
@@ -59,9 +60,12 @@ def uploads_active():
 
                 fw = active_uploads.get(filepath)
                 if fw is None:
-                    fw = FileWrapper(filepath, upload_dataset['uuid'])
+                    fw = FileWrapper(filepath, upload_dataset['uuid'], debug)
                     active_uploads[filepath] = fw
                     fw.start()
+                else:
+                    if fw.progress == 100:
+                        fw.finish()
 
             json_data = json.dumps([fw.to_dict() for fw in active_uploads.values()])
             yield f"data:{json_data}\n\n"

@@ -60,6 +60,7 @@
       </div>
       <div class="context">
         Observed folder: <code>{$ context.folder $}</code>
+        <span class="small">Maximum Simultaneous Uploads: 3</span>
       </div>
     </div>
   </div>
@@ -75,20 +76,21 @@
           <table class="table table-striped" v-if="uploads_active.length > 0">
             <thead>
             <tr>
-              <th>ID</th>
               <th>Filename</th>
-              <th>Size (kB)</th>
+              <th>Size</th>
               <th>Status</th>
               <th>Progress</th>
               <th>Started</th>
               <th>Ended</th>
+              <th>Duration</th>
+              <th>Error</th>
+
             </tr>
             </thead>
             <tbody>
             <tr v-for="upload in uploads_active">
-              <td>{{upload.id}}</td>
-              <td>{{upload.filepath}}</td>
-              <td>{{upload.filesize / 1000}}</td>
+              <td>{{upload.filename}}</td>
+              <td>{{upload.filesize / 1000}} kB</td>
               <td>{{upload.status}}</td>
               <td>
                 <div class="progress" style="width: 90%;">
@@ -103,6 +105,8 @@
               </td>
               <td>{{upload.started}}</td>
               <td>{{upload.ended}}</td>
+              <td>{{upload.duration}} s</td>
+              <td>{{upload.error}}</td>
             </tr>
             </tbody>
           </table>
@@ -116,7 +120,6 @@
           <table class="table table-striped" v-if="uploads_inactive.length > 0">
             <thead>
             <tr>
-              <th>ID</th>
               <th>Filename</th>
               <th>Size (kB)</th>
               <th>Status</th>
@@ -126,7 +129,6 @@
             </thead>
             <tbody>
             <tr v-for="upload in uploads_inactive">
-              <td>{{upload.id}}</td>
               <td>{{upload.filepath}}</td>
               <td>{{upload.filesize / 1000}}</td>
               <td>{{upload.status}}</td>
