@@ -10,7 +10,7 @@ from pony.orm import db_session, select, commit
 from arcsecond import Arcsecond
 
 from . import app
-from .models import Upload, db
+from .models import Upload, db, FileWrapper
 
 DATASET_NAME = 'Oort Uploads'
 
@@ -37,14 +37,6 @@ def index():
     return render_template('index.html', context=context)
 
 
-@app.route('/folders')
-def folders():
-    return None
-
-
-# [{'time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'), 'value': random.random() * 100},
-#                  {'time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'), 'value': random.random() * 100}]
-
 @app.route('/uploads/active')
 def uploads_active():
     folder = app.config['folder']
@@ -65,27 +57,16 @@ def uploads_active():
             for file in files:
                 filepath = os.path.join(folder, file)
 
-                api = active_uploads.get(filepath)
-                if api is None:
-                    api = Arcsecond.build_datafiles_api(dataset=upload_dataset['uuid'])
-                    api.progress = 0
-                    api.filepath = filepath
-                    active_uploads[filepath] = api
+                fw = active_uploads.get(filepath)
+                if fw is None:
+                    fw = FileWrapper(filepath, upload_dataset['uuid'])
+                    active_uploads[filepath] = fw
+                    fw.start()
 
-                    def update_progress(event, progress_percent):
-                        print('--->>>>>>>>>', event, progress_percent)
-                        api.progress = progress_percent
-
-                    uploader = api.create({'file': filepath}, callback=update_progress)
-                    api.uploader = uploader
-                    uploader.start()
-
-            json_data = json.dumps(
-                [{'filepath': api.filepath, 'progress': api.progress} for api in active_uploads.values()])
+            json_data = json.dumps([fw.to_dict() for api in active_uploads.values()])
             yield f"data:{json_data}\n\n"
-            time.sleep(2)
+            time.sleep(1)
 
-    commit()
     # Using Server-Side Events. See https://blog.easyaspy.org/post/10/2019-04-30-creating-real-time-charts-with-flask
     return Response(generate(), mimetype='text/event-stream')
 
