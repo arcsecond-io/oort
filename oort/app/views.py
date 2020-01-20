@@ -63,7 +63,7 @@ def uploads_active():
                     active_uploads[filepath] = fw
                     fw.start()
 
-            json_data = json.dumps([fw.to_dict() for api in active_uploads.values()])
+            json_data = json.dumps([fw.to_dict() for fw in active_uploads.values()])
             yield f"data:{json_data}\n\n"
             time.sleep(1)
 
