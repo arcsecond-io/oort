@@ -19,10 +19,10 @@ var app = new Vue({
         }
       })
     }
-    this.source_inactive = new EventSource('/uploads/inactive')
-    this.source_inactive.onmessage = function (event) {
-      self.uploads_inactive = JSON.parse(event.data)
-    }
+    // this.source_inactive = new EventSource('/uploads/inactive')
+    // this.source_inactive.onmessage = function (event) {
+    //   self.uploads_inactive = JSON.parse(event.data)
+    // }
   }
 })
 

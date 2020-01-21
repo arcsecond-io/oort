@@ -1,16 +1,13 @@
 import json
 import os
-import random
 import time
 
-from datetime import datetime
 from flask import render_template, Response
-from pony.orm import db_session, select, commit
 
 from arcsecond import Arcsecond
 
 from . import app
-from .models import Upload, db, FileWrapper
+from .models import FileWrapper
 
 DATASET_NAME = 'Oort Uploads'
 
@@ -50,7 +47,6 @@ def uploads_active():
 
     print(upload_dataset)
 
-    @db_session
     def generate():
         global active_uploads
         while True:
@@ -75,18 +71,17 @@ def uploads_active():
     return Response(generate(), mimetype='text/event-stream')
 
 
-@app.route('/uploads/inactive')
-def uploads_inactive():
-    @db_session
-    def generate():
-        while True:
-            uploads = select(u for u in Upload if u.ended)
-            json_data = json.dumps([u.to_dict() for u in uploads])
-            yield f"data:{json_data}\n\n"
-            time.sleep(10)
-
-    commit()
-    return Response(generate(), mimetype='text/event-stream')
+# @app.route('/uploads/inactive')
+# def uploads_inactive():
+#     def generate():
+#         while True:
+#             uploads = select(u for u in Upload if u.ended)
+#             json_data = json.dumps([u.to_dict() for u in uploads])
+#             yield f"data:{json_data}\n\n"
+#             time.sleep(10)
+#
+#     commit()
+#     return Response(generate(), mimetype='text/event-stream')
 
 
 @app.route('/progress')

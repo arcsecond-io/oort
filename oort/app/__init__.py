@@ -1,6 +1,4 @@
 from flask import Flask
-from pony.flask import Pony
-from .config import config
 
 
 class CustomFlask(Flask):
@@ -12,6 +10,5 @@ class CustomFlask(Flask):
 
 
 app = CustomFlask(__name__)
-app.config.update(config)
 
-Pony(app)
+from .views import *

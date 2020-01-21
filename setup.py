@@ -27,7 +27,6 @@ setup(
     install_requires=[
         'six',
         'flask',
-        'pony',
         'arcsecond>=0.7.6',
         'python-dotenv'
     ],

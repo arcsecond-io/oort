@@ -3,8 +3,6 @@ import socket
 import click
 
 from .app import app
-from .app.models import db
-from .app.views import *
 
 from . import __version__
 from .options import State, basic_options
@@ -31,8 +29,6 @@ def main(ctx, state, version=False, v=False, o=None, org=None, organisation=None
     if version or v:
         click.echo(__version__)
     elif ctx.invoked_subcommand is None:
-        db.bind(**app.config['PONY'])
-        db.generate_mapping(create_tables=True)
         port = 5000
         while is_port_in_use(port):
             port += 1
