@@ -34,7 +34,7 @@ def index():
     return render_template('index.html', context=context)
 
 
-@app.route('/uploads/active')
+@app.route('/uploads')
 def uploads_active():
     debug = app.config['debug']
     folder = app.config['folder']
