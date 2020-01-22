@@ -11,7 +11,7 @@ from .models import FileWrapper
 
 DATASET_NAME = 'Oort Uploads'
 
-active_uploads = {}
+UPLOADS = {}
 
 
 @app.route('/')
@@ -34,6 +34,25 @@ def index():
     return render_template('index.html', context=context)
 
 
+def wrap_files(dataset_uuid, autostart=True):
+    debug = app.config['debug']
+    folder = app.config['folder']
+
+    files = os.listdir(folder)
+    for file in files:
+        filepath = os.path.join(folder, file)
+        print(filepath, dataset_uuid)
+        fw = UPLOADS.get(filepath)
+        if fw is None:
+            fw = FileWrapper(filepath, dataset_uuid, debug)
+            UPLOADS[filepath] = fw
+            if autostart:
+                fw.start()
+        else:
+            if fw.progress == 100:
+                fw.finish()
+
+
 @app.route('/uploads')
 def uploads_active():
     debug = app.config['debug']
@@ -45,43 +64,17 @@ def uploads_active():
     if not upload_dataset:
         upload_dataset = api_datasets.create({'name': DATASET_NAME})
 
-    print(upload_dataset)
-
     def generate():
-        global active_uploads
+        global UPLOADS
         while True:
-            files = os.listdir(folder)
-            for file in files:
-                filepath = os.path.join(folder, file)
-
-                fw = active_uploads.get(filepath)
-                if fw is None:
-                    fw = FileWrapper(filepath, upload_dataset['uuid'], debug)
-                    active_uploads[filepath] = fw
-                    fw.start()
-                else:
-                    if fw.progress == 100:
-                        fw.finish()
-
-            json_data = json.dumps([fw.to_dict() for fw in active_uploads.values()])
+            wrap_files(upload_dataset['uuid'])
+            uploads_data = [fw.to_dict() for fw in UPLOADS.values()]
+            json_data = json.dumps({'state': None, 'uploads': uploads_data})
             yield f"data:{json_data}\n\n"
             time.sleep(1)
 
     # Using Server-Side Events. See https://blog.easyaspy.org/post/10/2019-04-30-creating-real-time-charts-with-flask
     return Response(generate(), mimetype='text/event-stream')
-
-
-# @app.route('/uploads/inactive')
-# def uploads_inactive():
-#     def generate():
-#         while True:
-#             uploads = select(u for u in Upload if u.ended)
-#             json_data = json.dumps([u.to_dict() for u in uploads])
-#             yield f"data:{json_data}\n\n"
-#             time.sleep(10)
-#
-#     commit()
-#     return Response(generate(), mimetype='text/event-stream')
 
 
 @app.route('/progress')
