@@ -1,18 +1,20 @@
 var app = new Vue({
   el: '#app',
   data: {
-    uploads_active: [],
+    state: null,
+    uploads: [],
     uploads_inactive: [],
-    source_active: null,
-    source_inactive: null
+    source: null
   },
   mounted: function () {
     const self = this
-    this.source_active = new EventSource('/uploads/active')
-    this.source_active.onmessage = function (event) {
-      self.uploads_active = JSON.parse(event.data)
+    this.source = new EventSource('/uploads')
+    this.source.onmessage = function (event) {
+      self.uploads = JSON.parse(event.data)
+      // self.state = json.state
+      // self.uploads = json.uploads
       const bars = document.getElementsByClassName('progress-bar')
-      self.uploads_active.forEach((upload, index) => {
+      self.uploads.forEach((upload, index) => {
         let bar = bars[index]
         if (bar) {
           bar.style.width = upload.progress.toFixed(1).toString() + '%'

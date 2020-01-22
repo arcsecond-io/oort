@@ -72,8 +72,8 @@
       <!-- **** STARTING FROM HERE, VUE.JS HAS CONTROL **** -->
       <div id="app">
         <div class="table-block">
-          <div class="table-title">Active Uploads ({{uploads_active.length}})</div>
-          <table class="table table-striped" v-if="uploads_active.length > 0">
+          <div class="table-title">Active Uploads ({{uploads.length}})</div>
+          <table class="table table-striped" v-if="uploads.length > 0">
             <thead>
             <tr>
               <th>Filename</th>
@@ -88,7 +88,7 @@
             </tr>
             </thead>
             <tbody>
-            <tr v-for="upload in uploads_active">
+            <tr v-for="upload in uploads">
               <td>{{upload.filename}}</td>
               <td>{{upload.filesize / 1000}} kB</td>
               <td>{{upload.status}}</td>
