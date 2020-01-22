@@ -115,32 +115,32 @@
           </div>
         </div>
 
-        <div class="table-block">
-          <div class="table-title">Past Uploads ({{uploads_inactive.length}})</div>
-          <table class="table table-striped" v-if="uploads_inactive.length > 0">
-            <thead>
-            <tr>
-              <th>Filename</th>
-              <th>Size (kB)</th>
-              <th>Status</th>
-              <th>Started</th>
-              <th>Ended</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr v-for="upload in uploads_inactive">
-              <td>{{upload.filepath}}</td>
-              <td>{{upload.filesize / 1000}}</td>
-              <td>{{upload.status}}</td>
-              <td>{{upload.started}}</td>
-              <td>{{upload.ended}}</td>
-            </tr>
-            </tbody>
-          </table>
-          <div v-else>
-            <span class="label-centered">There are no inactive / past uploads.</span>
-          </div>
-        </div>
+<!--        <div class="table-block">-->
+<!--          <div class="table-title">Past Uploads ({{uploads_inactive.length}})</div>-->
+<!--          <table class="table table-striped" v-if="uploads_inactive.length > 0">-->
+<!--            <thead>-->
+<!--            <tr>-->
+<!--              <th>Filename</th>-->
+<!--              <th>Size (kB)</th>-->
+<!--              <th>Status</th>-->
+<!--              <th>Started</th>-->
+<!--              <th>Ended</th>-->
+<!--            </tr>-->
+<!--            </thead>-->
+<!--            <tbody>-->
+<!--            <tr v-for="upload in uploads_inactive">-->
+<!--              <td>{{upload.filepath}}</td>-->
+<!--              <td>{{upload.filesize / 1000}}</td>-->
+<!--              <td>{{upload.status}}</td>-->
+<!--              <td>{{upload.started}}</td>-->
+<!--              <td>{{upload.ended}}</td>-->
+<!--            </tr>-->
+<!--            </tbody>-->
+<!--          </table>-->
+<!--          <div v-else>-->
+<!--            <span class="label-centered">There are no inactive / past uploads.</span>-->
+<!--          </div>-->
+<!--        </div>-->
 
       </div>
       <!--  **** -->
