@@ -1,6 +1,5 @@
 from flask import Flask
-from pony.flask import Pony
-from .config import config
+from .views import main
 
 
 class CustomFlask(Flask):
@@ -12,6 +11,4 @@ class CustomFlask(Flask):
 
 
 app = CustomFlask(__name__)
-app.config.update(config)
-
-Pony(app)
+app.register_blueprint(main, url_prefix='/')

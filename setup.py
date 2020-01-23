@@ -25,10 +25,8 @@ setup(
     zip_safe=False,
     platforms='any',
     install_requires=[
-        'six',
         'flask',
-        'pony',
-        'arcsecond>=0.7.3',
+        'arcsecond>=0.7.6',
         'python-dotenv'
     ],
     entry_points={
@@ -53,7 +51,6 @@ setup(
         'Operating System :: Unix',
         'Operating System :: Microsoft :: Windows',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 3',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ]
