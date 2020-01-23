@@ -36,3 +36,8 @@ def main(ctx, state, version=False, v=False, o=None, org=None, organisation=None
         app.config['debug'] = state.debug
         app.config['organisation'] = o or org or organisation
         app.run(debug=state.debug, port=port)
+
+
+@main.command(help=VERSION_HELP_STRING)
+def version():
+    click.echo(__version__)
