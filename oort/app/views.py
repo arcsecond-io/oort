@@ -2,20 +2,22 @@ import json
 import os
 import time
 
-from flask import render_template, Response
+from flask import render_template, Response, Blueprint
+from flask import current_app as app
 
 from arcsecond import Arcsecond
 
-from . import app
 from .models import FileWrapper
+
+main = Blueprint('main', __name__)
 
 DATASET_NAME = 'Oort Uploads'
 MAX_SIMULTANEOUS_UPLOADS = 3
 UPLOADS = {}
 
 
-@app.route('/')
-@app.route('/index')
+@main.route('/')
+@main.route('/index')
 def index():
     debug = app.config['debug']
     org = app.config['organisation']
@@ -28,16 +30,13 @@ def index():
     context = {'folder': app.config['folder'],
                'isAuthenticated': Arcsecond.is_logged_in(debug=debug),
                'username': Arcsecond.username(debug=debug),
-               'organisation': app.config['organisation'],
+               'organisation': org,
                'role': role}
 
     return render_template('index.html', context=context)
 
 
-def wrap_files(dataset_uuid, autostart=True):
-    debug = app.config['debug']
-    folder = app.config['folder']
-
+def wrap_files(debug, folder, dataset_uuid, autostart=True):
     files = os.listdir(folder)
     for file in files:
         filepath = os.path.join(folder, file)
@@ -53,9 +52,10 @@ def wrap_files(dataset_uuid, autostart=True):
             fw.finish()
 
 
-@app.route('/uploads')
+@main.route('/uploads')
 def uploads_active():
     debug = app.config['debug']
+    folder = app.config['folder']
 
     def generate():
         global UPLOADS
@@ -80,7 +80,7 @@ def uploads_active():
             yield f"data:{json_data}\n\n"
 
         while True:
-            wrap_files(upload_dataset['uuid'])
+            wrap_files(debug, folder, upload_dataset['uuid'])
             uploads_data = [fw.to_dict() for fw in UPLOADS.values() if fw.is_finished() is False]
             finished_uploads_data = [fw.to_dict() for fw in UPLOADS.values() if fw.is_finished() is True]
             state = {'message': '', 'showTables': True}

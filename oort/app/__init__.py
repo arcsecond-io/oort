@@ -1,4 +1,5 @@
 from flask import Flask
+from .views import main
 
 
 class CustomFlask(Flask):
@@ -10,5 +11,4 @@ class CustomFlask(Flask):
 
 
 app = CustomFlask(__name__)
-
-from .views import *
+app.register_blueprint(main, url_prefix='/')
