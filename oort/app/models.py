@@ -43,7 +43,9 @@ class FileWrapper(object):
             self.status = 'success'
         self.ended = datetime.now()
         self.duration = (self.ended - self.started).total_seconds()
-        print(self.duration)
+
+    def is_finished(self):
+        return self.ended is not None and (datetime.now() - self.ended).total_seconds() > 2
 
     def to_dict(self):
         return {

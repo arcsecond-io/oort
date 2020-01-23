@@ -18,7 +18,7 @@
 .label-centered {
     color: lightgray;
     position: absolute;
-    margin: auto;
+    margin: 0 auto;
     right: 0;
     left: 0;
     width: 95%;
@@ -27,6 +27,18 @@
     display: inline-block;
     vertical-align: middle;
     line-height: 1.2em; /*set line height back to normal*/
+}
+
+.label-centered.lightgray {
+    color: lightgray;
+}
+
+.label-centered.darkgray {
+    color: darkgray;
+}
+
+.table-block {
+    margin-bottom: 5em;
 }
 
 .table-title {

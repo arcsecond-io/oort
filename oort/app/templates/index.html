@@ -71,7 +71,11 @@
       {% if context.isAuthenticated %}
       <!-- **** STARTING FROM HERE, VUE.JS HAS CONTROL **** -->
       <div id="app">
-        <div class="table-block">
+        <div class="state-block" v-if="state">
+          <div class="label-centered darkgray">{{ state.message }}</div>
+        </div>
+
+        <div class="table-block" v-if="state.showTables">
           <div class="table-title">Active Uploads ({{uploads.length}})</div>
           <table class="table table-striped" v-if="uploads.length > 0">
             <thead>
@@ -84,7 +88,6 @@
               <th>Ended</th>
               <th>Duration</th>
               <th>Error</th>
-
             </tr>
             </thead>
             <tbody>
@@ -115,32 +118,36 @@
           </div>
         </div>
 
-<!--        <div class="table-block">-->
-<!--          <div class="table-title">Past Uploads ({{uploads_inactive.length}})</div>-->
-<!--          <table class="table table-striped" v-if="uploads_inactive.length > 0">-->
-<!--            <thead>-->
-<!--            <tr>-->
-<!--              <th>Filename</th>-->
-<!--              <th>Size (kB)</th>-->
-<!--              <th>Status</th>-->
-<!--              <th>Started</th>-->
-<!--              <th>Ended</th>-->
-<!--            </tr>-->
-<!--            </thead>-->
-<!--            <tbody>-->
-<!--            <tr v-for="upload in uploads_inactive">-->
-<!--              <td>{{upload.filepath}}</td>-->
-<!--              <td>{{upload.filesize / 1000}}</td>-->
-<!--              <td>{{upload.status}}</td>-->
-<!--              <td>{{upload.started}}</td>-->
-<!--              <td>{{upload.ended}}</td>-->
-<!--            </tr>-->
-<!--            </tbody>-->
-<!--          </table>-->
-<!--          <div v-else>-->
-<!--            <span class="label-centered">There are no inactive / past uploads.</span>-->
-<!--          </div>-->
-<!--        </div>-->
+        <div class="table-block" v-if="state.showTables">
+          <div class="table-title">Finished Uploads ({{finished_uploads.length}})</div>
+          <table class="table table-striped" v-if="finished_uploads.length > 0">
+            <thead>
+            <tr>
+              <th>Filename</th>
+              <th>Size (kB)</th>
+              <th>Status</th>
+              <th>Started</th>
+              <th>Ended</th>
+              <th>Duration</th>
+              <th>Error</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr v-for="upload in finished_uploads">
+              <td>{{upload.filename}}</td>
+              <td>{{upload.filesize / 1000}} kB</td>
+              <td>{{upload.status}}</td>
+              <td>{{upload.started}}</td>
+              <td>{{upload.ended}}</td>
+              <td>{{upload.duration}} s</td>
+              <td>{{upload.error}}</td>
+            </tr>
+            </tbody>
+          </table>
+          <div v-else>
+            <span class="label-centered">There are no inactive / past uploads.</span>
+          </div>
+        </div>
 
       </div>
       <!--  **** -->
