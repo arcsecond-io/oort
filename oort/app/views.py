@@ -59,7 +59,7 @@ def uploads_active():
 
     def generate():
         global UPLOADS
-        msg = f'Initializing (listing existing Datasets)... '
+        msg = 'Initializing (listing existing Datasets)...'
         state = {'message': msg, 'showTables': False}
         json_data = json.dumps({'state': state, 'uploads': [], 'finished_uploads': []})
         yield f"data:{json_data}\n\n"
