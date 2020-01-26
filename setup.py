@@ -21,9 +21,7 @@ setup(
     description='Oort server to manage all your files in arcsecond.io cloud.',
     long_description=__doc__,
     packages=find_packages(exclude=['tests']),  # include all packages under "oort"
-    package_data={
-        "": ["*.html", "*.css", "*.js", "*.png", "*.svg", "*.ttf", "*.woff", "*.woff2"],
-    },
+    include_package_data=True,
     zip_safe=False,
     platforms='any',
     install_requires=[
