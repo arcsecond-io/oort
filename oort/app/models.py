@@ -26,6 +26,10 @@ class FileWrapper(object):
 
         self.uploader = self.api.create({'file': filepath}, callback=update_progress)
 
+    @property
+    def remaining_bytes(self):
+        return (100 - self.progress) * self.filesize / 1000
+
     def start(self):
         if self.started is not None:
             return
@@ -38,11 +42,17 @@ class FileWrapper(object):
         self.result, self.error = self.uploader.finish()
         if self.error:
             self.status = 'error'
-            self.proress = 0
+            self.progress = 0
         else:
             self.status = 'success'
         self.ended = datetime.now()
         self.duration = (self.ended - self.started).total_seconds()
+
+    def is_started(self):
+        return self.started is not None and self.ended is None
+
+    def will_finish(self):
+        return self.is_started() and self.remaining_bytes / 1000 < 100
 
     def is_finished(self):
         return self.ended is not None and (datetime.now() - self.ended).total_seconds() > 2
