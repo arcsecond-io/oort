@@ -20,6 +20,11 @@ setup(
     author_email='cedric@arcsecond.io',
     description='Oort server to manage all your files in arcsecond.io cloud.',
     long_description=__doc__,
+    packages=find_packages(),
+    include_package_data=True,
+    package_data={
+        '': ['oort/app/static/*', 'oort/app/templates/*'],
+    },
     zip_safe=False,
     platforms='any',
     install_requires=[
