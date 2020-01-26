@@ -45,10 +45,10 @@ def wrap_files(debug, folder, dataset_uuid, autostart=True):
             fw = FileWrapper(filepath, dataset_uuid, debug)
             UPLOADS[filepath] = fw
 
-        started_count = len([u for u in UPLOADS.values() if u.started is not None])
+        started_count = len([u for u in UPLOADS.values() if u.is_started()])
         if autostart and started_count < MAX_SIMULTANEOUS_UPLOADS:
             fw.start()
-        if fw.started is not None and fw.progress == 100:
+        if fw.will_finish():
             fw.finish()
 
 
