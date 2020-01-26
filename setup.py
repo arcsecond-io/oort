@@ -20,8 +20,12 @@ setup(
     author_email='cedric@arcsecond.io',
     description='Oort server to manage all your files in arcsecond.io cloud.',
     long_description=__doc__,
-    packages=find_packages(exclude=['tests']),
-    include_package_data=True,
+    packages=find_packages("oort", exclude=['tests']),  # include all packages under "oort"
+    package_dir={"": "oort"},  # tell distutils packages are under "oort"
+    package_data={
+        # If any package contains *.txt files, include them:
+        "": ["*.py", "*.html", "*.css", "*.js", "*.png", "*.svg", "*.ttf", "*.woff", "*.woff2"],
+    },
     zip_safe=False,
     platforms='any',
     install_requires=[
