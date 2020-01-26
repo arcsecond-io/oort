@@ -29,7 +29,7 @@ setup(
     platforms='any',
     install_requires=[
         'flask',
-        'arcsecond>=0.7.6',
+        'arcsecond>=0.7.7',
         'python-dotenv'
     ],
     entry_points={
