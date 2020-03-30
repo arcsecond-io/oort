@@ -38,125 +38,139 @@
         Your Arcsecond <span class="text-primary">Oort</span> server
         <span class="small">(open-source and available on <a href="https://github.com/arcsecond-io/oort" target="_blank">GitHub</a>).</span>
       </h3>
-      <div class="context">
-        {% if context.isAuthenticated %}
-        <strong>username:</strong> @{$ context.username $},
-        <strong>organisation:</strong> {$ context.organisation or '-' $},
-        <strong>role:</strong> {$ context.role or '-' $},
-        {% if context.organisation %}
-        {% if context.role %}
-        uploading to <a href="https://api.arcsecond.io/{$ context.organisation $}/">api.arcsecond.io/{$ context.organisation $}/</a>
-        (organisation account, <a href="https://{$ context.organisation $}.arcsecond.io" target="_blank">portal</a>).
-        {% else %}
-        no membership found for organisaion <code>{$ context.organisation or '-' $}</code>
-        uploading to <a href="https://api.arcsecond.io">api.arcsecond.io</a> (Personal account)
-        {% endif %}
-        {% else %}
-        uploading to <a href="https://api.arcsecond.io">api.arcsecond.io</a> (Personal account)
-        {% endif %}
-        {% else %}
-        Login first with arcsecond (<code>$ arcsecond login</code>), then <a href="/" target="_self">refresh this page</a>.
-        {% endif %}
+
+      <!-- **** STARTING FROM HERE, VUE.JS 'header.js' HAS CONTROL **** -->
+      <div id="header">
+        <div class="context">
+          {% if context.isAuthenticated %}
+            <strong>username:</strong> @{$ context.username $},
+            <strong>organisation:</strong> {$ context.organisation or '-' $},
+            <strong>role:</strong> {$ context.role or '-' $},
+
+            {% if context.organisation %}
+              {% if context.role %}
+                uploading to <a href="https://api.arcsecond.io/{$ context.organisation $}/">api.arcsecond.io/{$ context.organisation $}/</a>
+                (organisation account, <a href="https://{$ context.organisation $}.arcsecond.io" target="_blank">portal</a>).
+              {% else %}
+                no membership found for organisation <code>{$ context.organisation or '-' $}</code>
+                uploading to <a href="https://api.arcsecond.io">api.arcsecond.io</a> (Personal account)
+              {% endif %}
+            {% else %}
+              uploading to <a href="https://api.arcsecond.io">api.arcsecond.io</a> (Personal account)
+            {% endif %}
+
+          {% else %}
+            Login first with the Arcsecond CLI (installed with Oort Cloud): (<code>$ arcsecond login</code>), then
+            <a href="/" target="_self">refresh this page</a>.
+          {% endif %}
+        </div>
+
+        <div class="context">
+          {% if context.isAuthenticated %}
+            Observed folder: <code>{$ context.folder $}</code>
+            <span class="small">Maximum Simultaneous Uploads: 3</span>
+          {% endif %}
+        </div>
       </div>
-      <div class="context">
-        Observed folder: <code>{$ context.folder $}</code>
-        <span class="small">Maximum Simultaneous Uploads: 3</span>
-      </div>
+
+      <!-- -->
+
     </div>
   </div>
 
   <div class="row">
     <div class="col-xs-12">
 
-      {% if context.isAuthenticated %}
-      <!-- **** STARTING FROM HERE, VUE.JS HAS CONTROL **** -->
-      <div id="app">
-        <div class="state-block" v-if="state">
-          <div class="label-centered darkgray">{{ state.message }}</div>
-        </div>
+      {% if context.canUpload %}
+        <!-- **** STARTING FROM HERE, VUE.JS 'uploads.js' HAS CONTROL **** -->
+        <div id="uploads">
+          <div class="state-block" v-if="state">
+            <div class="label-centered darkgray">{{ state.message }}</div>
+          </div>
 
-        <div class="table-block" v-if="state.showTables">
-          <div class="table-title">Active Uploads ({{uploads.length}})</div>
-          <table class="table table-striped" v-if="uploads.length > 0">
-            <thead>
-            <tr>
-              <th>Filename</th>
-              <th>Size</th>
-              <th>Status</th>
-              <th>Progress</th>
-              <th>Started</th>
-              <th>Ended</th>
-              <th>Duration</th>
-              <th>Error</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr v-for="upload in uploads">
-              <td>{{upload.filename}}</td>
-              <td>{{upload.filesize / 1000}} kB</td>
-              <td>{{upload.status}}</td>
-              <td>
-                <div class="progress" style="width: 90%;">
-                  <div class="progress-bar progress-bar-striped active"
-                       role="progressbar"
-                       aria-valuenow="0"
-                       aria-valuemin="0"
-                       aria-valuemax="100">
-                    <span class="progress-bar-label">{{Math.round(upload.progress)}}%</span>
+          <div class="table-block" v-if="state.showTables">
+            <div class="table-title">Active Uploads ({{ uploads.length }})</div>
+            <table class="table table-striped" v-if="uploads.length > 0">
+              <thead>
+              <tr>
+                <th>Filename</th>
+                <th>Size</th>
+                <th>Status</th>
+                <th>Progress</th>
+                <th>Started</th>
+                <th>Ended</th>
+                <th>Duration</th>
+                <th>Error</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr v-for="upload in uploads">
+                <td>{{ upload.filename }}</td>
+                <td>{{ upload.filesize / 1000 }} kB</td>
+                <td>{{ upload.status }}</td>
+                <td>
+                  <div class="progress" style="width: 90%;">
+                    <div class="progress-bar progress-bar-striped active"
+                         role="progressbar"
+                         aria-valuenow="0"
+                         aria-valuemin="0"
+                         aria-valuemax="100">
+                      <span class="progress-bar-label">{{ Math.round(upload.progress) }}%</span>
+                    </div>
                   </div>
-                </div>
-              </td>
-              <td>{{upload.started}}</td>
-              <td>{{upload.ended}}</td>
-              <td>{{upload.duration}} s</td>
-              <td>{{upload.error}}</td>
-            </tr>
-            </tbody>
-          </table>
-          <div v-else>
-            <span class="label-centered">There are no active uploads.</span>
+                </td>
+                <td>{{ upload.started }}</td>
+                <td>{{ upload.ended }}</td>
+                <td>{{ upload.duration }} s</td>
+                <td>{{ upload.error }}</td>
+              </tr>
+              </tbody>
+            </table>
+            <div v-else>
+              <span class="label-centered">There are no active uploads.</span>
+            </div>
           </div>
-        </div>
 
-        <div class="table-block" v-if="state.showTables">
-          <div class="table-title">Finished Uploads ({{finished_uploads.length}})</div>
-          <table class="table table-striped" v-if="finished_uploads.length > 0">
-            <thead>
-            <tr>
-              <th>Filename</th>
-              <th>Size (kB)</th>
-              <th>Status</th>
-              <th>Started</th>
-              <th>Ended</th>
-              <th>Duration</th>
-              <th>Error</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr v-for="upload in finished_uploads">
-              <td>{{upload.filename}}</td>
-              <td>{{upload.filesize / 1000}} kB</td>
-              <td>{{upload.status}}</td>
-              <td>{{upload.started}}</td>
-              <td>{{upload.ended}}</td>
-              <td>{{upload.duration}} s</td>
-              <td>{{upload.error}}</td>
-            </tr>
-            </tbody>
-          </table>
-          <div v-else>
-            <span class="label-centered">There are no inactive / past uploads.</span>
+          <div class="table-block" v-if="state.showTables">
+            <div class="table-title">Finished Uploads ({{ finished_uploads.length }})</div>
+            <table class="table table-striped" v-if="finished_uploads.length > 0">
+              <thead>
+              <tr>
+                <th>Filename</th>
+                <th>Size (kB)</th>
+                <th>Status</th>
+                <th>Started</th>
+                <th>Ended</th>
+                <th>Duration</th>
+                <th>Error</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr v-for="upload in finished_uploads">
+                <td>{{ upload.filename }}</td>
+                <td>{{ upload.filesize / 1000 }} kB</td>
+                <td>{{ upload.status }}</td>
+                <td>{{ upload.started }}</td>
+                <td>{{ upload.ended }}</td>
+                <td>{{ upload.duration }} s</td>
+                <td>{{ upload.error }}</td>
+              </tr>
+              </tbody>
+            </table>
+            <div v-else>
+              <span class="label-centered">There are no inactive / past uploads.</span>
+            </div>
           </div>
-        </div>
 
-      </div>
-      <!--  **** -->
+        </div>
+        <!--  **** -->
       {% endif %}
     </div>
   </div>
 </div>
 
-<script src="{$ url_for('static', filename='js/app.js') $}"></script>
+<script src="{$ url_for('static', filename='js/header.js') $}"></script>
+<script src="{$ url_for('static', filename='js/uploads.js') $}"></script>
 
 </body>
 </html>

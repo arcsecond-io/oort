@@ -1,5 +1,5 @@
 var app = new Vue({
-  el: '#app',
+  el: '#uploads',
   data: {
     state: null,
     uploads: [],
