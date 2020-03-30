@@ -28,7 +28,7 @@ class Context:
 
         self.role = None
         if self.organisation is not None:
-            role = self.memberships.get(self.organisation, None)
+            self.role = self.memberships.get(self.organisation, None)
 
         self.canUpload = self.organisation is None or self.role in ['member', 'admin', 'superadmin']
 
