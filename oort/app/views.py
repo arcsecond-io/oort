@@ -16,29 +16,34 @@ MAX_SIMULTANEOUS_UPLOADS = 3
 UPLOADS = {}
 
 
+class Context:
+    def __init__(self, config):
+        self.debug = config['debug']
+        self.organisation = config['organisation']
+
+        self.username = Arcsecond.username(debug=self.debug)
+        self.isAuthenticated = Arcsecond.is_logged_in(debug=self.debug)
+        self.memberships = Arcsecond.memberships(debug=self.debug)
+
+        self.role = None
+        if self.organisation is not None:
+            role = self.memberships.get(self.organisation, None)
+
+        self.canUpload = self.organisation is None or self.role in ['member', 'admin', 'superadmin']
+
+    def to_dict(self):
+        return {'folder': app.config['folder'],
+                'isAuthenticated': self.isAuthenticated,
+                'username': self.username,
+                'organisation': self.organisation,
+                'role': self.role,
+                'canUpload': self.canUpload}
+
+
 @main.route('/')
 @main.route('/index')
 def index():
-    debug = app.config['debug']
-    organisation = app.config['organisation']
-
-    memberships = Arcsecond.memberships(debug=debug)
-    role = None
-    if organisation is not None:
-        role = memberships.get(organisation, None)
-
-    isAuthenticated = Arcsecond.is_logged_in(debug=debug)
-    username = Arcsecond.username(debug=debug),
-    canUpload = organisation is None or role in ['member', 'admin', 'superadmin']
-
-    context = {'folder': app.config['folder'],
-               'isAuthenticated': isAuthenticated,
-               'username': username,
-               'organisation': organisation,
-               'role': role,
-               'canUpload': isAuthenticated and canUpload}
-
-    return render_template('index.html', context=context)
+    return render_template('index.html', context=Context(app.config).to_dict())
 
 
 def wrap_files(debug, folder, dataset_uuid, autostart=True):
@@ -59,39 +64,48 @@ def wrap_files(debug, folder, dataset_uuid, autostart=True):
 
 @main.route('/uploads')
 def uploads():
-    debug = app.config['debug']
-    folder = app.config['folder']
+    config = app.config
+    debug = config['debug']
+    folder = config['folder']
 
     def generate():
         global UPLOADS
-        msg = 'Initializing (listing existing Datasets)...'
-        state = {'message': msg, 'showTables': False}
-        json_data = json.dumps({'state': state, 'uploads': [], 'finished_uploads': []})
-        yield f"data:{json_data}\n\n"
 
-        api_datasets = Arcsecond.build_datasets_api(debug=debug)
-        all_datasets = api_datasets.list()
-        upload_dataset = next((d for d in all_datasets if d['name'] == DATASET_NAME), None)
-        if not upload_dataset:
-            msg = f'Dataset "{DATASET_NAME}" does not exist. Creating it...'
-            state = {'message': msg, 'showTables': False}
+        if Context(config).canUpload is False:
+            state = {'message': '', 'showTables': False}
             json_data = json.dumps({'state': state, 'uploads': [], 'finished_uploads': []})
             yield f"data:{json_data}\n\n"
-            upload_dataset = api_datasets.create({'name': DATASET_NAME})
+
         else:
-            msg = f'Dataset "{DATASET_NAME}" exists. Walking through local files...'
+            msg = 'Initializing (listing existing Datasets)...'
             state = {'message': msg, 'showTables': False}
             json_data = json.dumps({'state': state, 'uploads': [], 'finished_uploads': []})
             yield f"data:{json_data}\n\n"
 
-        while True:
-            wrap_files(debug, folder, upload_dataset['uuid'])
-            uploads_data = [fw.to_dict() for fw in UPLOADS.values() if fw.is_finished() is False]
-            finished_uploads_data = [fw.to_dict() for fw in UPLOADS.values() if fw.is_finished() is True]
-            state = {'message': '', 'showTables': True}
-            json_data = json.dumps({'state': state, 'uploads': uploads_data, 'finished_uploads': finished_uploads_data})
-            yield f"data:{json_data}\n\n"
-            time.sleep(1)
+            api_datasets = Arcsecond.build_datasets_api(debug=debug)
+            all_datasets = api_datasets.list()
+            upload_dataset = next((d for d in all_datasets if d['name'] == DATASET_NAME), None)
+            if not upload_dataset:
+                msg = f'Dataset "{DATASET_NAME}" does not exist. Creating it...'
+                state = {'message': msg, 'showTables': False}
+                json_data = json.dumps({'state': state, 'uploads': [], 'finished_uploads': []})
+                yield f"data:{json_data}\n\n"
+                upload_dataset = api_datasets.create({'name': DATASET_NAME})
+            else:
+                msg = f'Dataset "{DATASET_NAME}" exists. Walking through local files...'
+                state = {'message': msg, 'showTables': False}
+                json_data = json.dumps({'state': state, 'uploads': [], 'finished_uploads': []})
+                yield f"data:{json_data}\n\n"
+
+            while True:
+                wrap_files(debug, folder, upload_dataset['uuid'])
+                uploads_data = [fw.to_dict() for fw in UPLOADS.values() if fw.is_finished() is False]
+                finished_uploads_data = [fw.to_dict() for fw in UPLOADS.values() if fw.is_finished() is True]
+                state = {'message': '', 'showTables': True}
+                json_data = json.dumps(
+                    {'state': state, 'uploads': uploads_data, 'finished_uploads': finished_uploads_data})
+                yield f"data:{json_data}\n\n"
+                time.sleep(1)
 
     # Using Server-Side Events. See https://blog.easyaspy.org/post/10/2019-04-30-creating-real-time-charts-with-flask
     return Response(generate(), mimetype='text/event-stream')
