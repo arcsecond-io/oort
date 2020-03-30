@@ -46,6 +46,21 @@ def index():
     return render_template('index.html', context=Context(app.config).to_dict())
 
 
+@main.route('/admin')
+def admin():
+    config = app.config
+    debug = config['debug']
+    context = Context(app.config).to_dict()
+
+    def generate():
+        admin = {'message': 'OKAY'}
+        json_data = json.dumps({'admin': admin, 'context': context})
+        yield f"data:{json_data}\n\n"
+
+    # Using Server-Side Events. See https://blog.easyaspy.org/post/10/2019-04-30-creating-real-time-charts-with-flask
+    return Response(generate(), mimetype='text/event-stream')
+
+
 def wrap_files(debug, folder, dataset_uuid, autostart=True):
     files = os.listdir(folder)
     for file in files:
