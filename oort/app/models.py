@@ -1,4 +1,5 @@
 import os
+import uuid
 
 from datetime import datetime
 
@@ -6,7 +7,21 @@ from arcsecond import Arcsecond
 
 
 class FileWrapper(object):
-    def __init__(self, filepath, dataset, debug):
+    def __init__(self, filepath, dataset, debug=False):
+        if not filepath:
+            raise ValueError(f'Missing / wrong filepath: {filepath}')
+        if not os.path.exists(filepath):
+            raise ValueError(f'File not found at path: {filepath}')
+        if not os.path.isfile(filepath):
+            raise ValueError(f'Filepath is not a file: {filepath}')
+
+        if not dataset:
+            raise ValueError(f'Missing / wrong dataset UUID: {dataset}')
+        try:
+            uuid.UUID(dataset)
+        except ValueError:
+            raise ValueError(f'Missing / wrong dataset UUID: {dataset}')
+
         self.filepath = filepath
         self.dataset = dataset
         self.filesize = os.path.getsize(filepath)
