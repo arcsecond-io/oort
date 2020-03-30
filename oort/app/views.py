@@ -96,11 +96,12 @@ def uploads():
     config = app.config
     debug = config['debug']
     folder = config['folder']
+    canUpload = Context(config).canUpload
 
     def generate():
         global UPLOADS
 
-        if Context(config).canUpload is False:
+        if canUpload is False:
             state = {'message': '', 'showTables': False}
             json_data = json.dumps({'state': state, 'uploads': [], 'finished_uploads': []})
             yield f"data:{json_data}\n\n"
