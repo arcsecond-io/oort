@@ -19,6 +19,7 @@ UPLOADS = {}
 class Context:
     def __init__(self, config):
         self.debug = config['debug']
+        self.folder = app.config['folder']
         self.organisation = config['organisation']
 
         self.username = Arcsecond.username(debug=self.debug)
@@ -32,7 +33,7 @@ class Context:
         self.canUpload = self.organisation is None or self.role in ['member', 'admin', 'superadmin']
 
     def to_dict(self):
-        return {'folder': app.config['folder'],
+        return {'folder': self.folder,
                 'isAuthenticated': self.isAuthenticated,
                 'username': self.username,
                 'organisation': self.organisation,
