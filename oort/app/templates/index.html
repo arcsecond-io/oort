@@ -40,44 +40,45 @@
         <span class="small">(open-source and available on <a href="https://github.com/arcsecond-io/oort" target="_blank">GitHub</a>).</span>
       </h3>
 
-      <!-- **** STARTING FROM HERE, VUE.JS 'admin.js' HAS CONTROL **** -->
-      <div id="admin">
-        <div class="context">
+      {% if context.isAuthenticated %}
+        <!-- **** STARTING FROM HERE, VUE.JS 'admin.js' HAS CONTROL **** -->
+        <div id="admin">
+          <div class="context">
 
-          {{ context }} ?
+            {{ admin }}
+            {#            <strong>username:</strong> @{$ context.username $},#}
+            {#            <strong>organisation:</strong> {$ context.organisation or '-' $},#}
+            {#            <strong>role:</strong> {$ context.role or '-' $},#}
+            {##}
+            {#            {% if context.organisation %}#}
+            {#              {% if context.role %}#}
+            {#                uploading to <a href="https://api.arcsecond.io/{$ context.organisation $}/">api.arcsecond.io/{$ context.organisation $}/</a>#}
+            {#                (organisation account, <a href="https://{$ context.organisation $}.arcsecond.io" target="_blank">portal</a>).#}
+            {#              {% else %}#}
+            {#                no membership found for organisation <code>{$ context.organisation or '-' $}</code>#}
+            {#                uploading to <a href="https://api.arcsecond.io">api.arcsecond.io</a> (Personal account)#}
+            {#              {% endif %}#}
+            {#            {% else %}#}
+            {#              uploading to <a href="https://api.arcsecond.io">api.arcsecond.io</a> (Personal account)#}
+            {#            {% endif %}#}
 
-          <div v-if="context.isAuthenticated">
-            <strong>username:</strong> @{$ context.username $},
-            <strong>organisation:</strong> {$ context.organisation or '-' $},
-            <strong>role:</strong> {$ context.role or '-' $},
+            {#          {% if context.isAuthenticated %}#}
+            {#            Observed folder: <code>{$ context.folder $}</code>#}
+            {#            <span class="small">Maximum Simultaneous Uploads: 3</span>#}
+            {#          {% endif %}#}
+
           </div>
-          <div v-else>
+        </div>
+        <!-- -->
+
+      {% else %}
+        <div id="admin">
+          <div class="context">
             Login first with the Arcsecond CLI (installed with Oort Cloud): (<code>$ arcsecond login</code>), then
             <a href="/" target="_self">refresh this page</a>.
           </div>
-
-          {#            {% if context.organisation %}#}
-          {#              {% if context.role %}#}
-          {#                uploading to <a href="https://api.arcsecond.io/{$ context.organisation $}/">api.arcsecond.io/{$ context.organisation $}/</a>#}
-          {#                (organisation account, <a href="https://{$ context.organisation $}.arcsecond.io" target="_blank">portal</a>).#}
-          {#              {% else %}#}
-          {#                no membership found for organisation <code>{$ context.organisation or '-' $}</code>#}
-          {#                uploading to <a href="https://api.arcsecond.io">api.arcsecond.io</a> (Personal account)#}
-          {#              {% endif %}#}
-          {#            {% else %}#}
-          {#              uploading to <a href="https://api.arcsecond.io">api.arcsecond.io</a> (Personal account)#}
-          {#            {% endif %}#}
         </div>
-
-        {#        <div class="context">#}
-        {#          {% if context.isAuthenticated %}#}
-        {#            Observed folder: <code>{$ context.folder $}</code>#}
-        {#            <span class="small">Maximum Simultaneous Uploads: 3</span>#}
-        {#          {% endif %}#}
-        {#        </div>#}
-      </div>
-
-      <!-- -->
+      {% endif %}
 
     </div>
   </div>
@@ -86,6 +87,7 @@
     <div class="col-xs-12">
 
       {% if context.canUpload %}
+
         <!-- **** STARTING FROM HERE, VUE.JS 'uploads.js' HAS CONTROL **** -->
         <div id="uploads">
           <div class="state-block" v-if="state">
