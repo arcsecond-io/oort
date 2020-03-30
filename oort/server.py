@@ -35,7 +35,7 @@ def main(ctx, state, version=False, v=False, o=None, org=None, organisation=None
         app.config['folder'] = os.getcwd()
         app.config['debug'] = state.debug
         app.config['organisation'] = o or org or organisation
-        app.run(debug=state.debug, port=port)
+        app.run(debug=state.debug, host='0.0.0.0', port=port)
 
 
 @main.command(help=VERSION_HELP_STRING)
