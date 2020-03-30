@@ -49,17 +49,27 @@ def index():
 
 @main.route('/admin')
 def admin():
-    config = app.config
-    debug = config['debug']
-    context = Context(app.config).to_dict()
+    context = Context(app.config)
 
     def generate():
-        while True:
-            admin = {'message': 'OKAY'}
-            admin.update(**context)
+        admin = {'message': '', 'close': False}
+        admin.update(**context.to_dict())
+
+        if context.organisation and context.role:
+            admin['message'] = 'Fetching Organisation Observing Sites...'
             json_data = json.dumps({'admin': admin})
             yield f"data:{json_data}\n\n"
-            time.sleep(1)
+
+            api = Arcsecond.build_observingsites_api(debug=context.debug, organisation=context.organisation)
+            sites = api.list()
+
+            admin['message'] = str(sites)
+            json_data = json.dumps({'admin': admin})
+            yield f"data:{json_data}\n\n"
+
+        admin['close'] = True
+        json_data = json.dumps({'admin': admin})
+        yield f"data:{json_data}\n\n"
 
     # Using Server-Side Events. See https://blog.easyaspy.org/post/10/2019-04-30-creating-real-time-charts-with-flask
     return Response(generate(), mimetype='text/event-stream')
