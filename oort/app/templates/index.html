@@ -44,28 +44,41 @@
         <!-- **** STARTING FROM HERE, VUE.JS 'admin.js' HAS CONTROL **** -->
         <div id="admin">
           <div class="context">
+            <div>
+              <span><strong>username:</strong> @{{ admin.username }}</span>
+              <span v-if="admin.organisation"><strong>organisation:</strong> {{ admin.organisation ? admin.organisation : '-' }}</span>
+              <span v-if="admin.role"><strong>role:</strong> {{ admin.role ? admin.role : '-' }}</span>
+            </div>
 
-            {{ admin }}
-            {#            <strong>username:</strong> @{$ context.username $},#}
-            {#            <strong>organisation:</strong> {$ context.organisation or '-' $},#}
-            {#            <strong>role:</strong> {$ context.role or '-' $},#}
-            {##}
-            {#            {% if context.organisation %}#}
-            {#              {% if context.role %}#}
-            {#                uploading to <a href="https://api.arcsecond.io/{$ context.organisation $}/">api.arcsecond.io/{$ context.organisation $}/</a>#}
-            {#                (organisation account, <a href="https://{$ context.organisation $}.arcsecond.io" target="_blank">portal</a>).#}
-            {#              {% else %}#}
-            {#                no membership found for organisation <code>{$ context.organisation or '-' $}</code>#}
-            {#                uploading to <a href="https://api.arcsecond.io">api.arcsecond.io</a> (Personal account)#}
-            {#              {% endif %}#}
-            {#            {% else %}#}
-            {#              uploading to <a href="https://api.arcsecond.io">api.arcsecond.io</a> (Personal account)#}
-            {#            {% endif %}#}
+            <div v-if="admin.organisation && admin.role">
+              Uploading to <a href="https://api.arcsecond.io/{{ admin.organisation }}/">api.arcsecond.io/{{ admin.organisation }}/</a>
+              (organisation account, <a href="https://admin.organisation.arcsecond.io" target="_blank">open portal</a>).
+            </div>
+            <div v-else-if="admin.organisation">
+              No membership found for organisation with subdomain <code>{{ admin.organisation ? admin.organisation : '-' }}</code>!
+              Uploading to <a href="https://api.arcsecond.io">api.arcsecond.io</a> (Personal account)
+            </div>
+            <div v-else>
+              Uploading to <a href="https://api.arcsecond.io">api.arcsecond.io</a> (Personal account)
+            </div>
 
-            {#          {% if context.isAuthenticated %}#}
-            {#            Observed folder: <code>{$ context.folder $}</code>#}
-            {#            <span class="small">Maximum Simultaneous Uploads: 3</span>#}
-            {#          {% endif %}#}
+            <div v-if="admin.message">
+              <strong>{{ admin.message }}</strong>
+            </div>
+
+            <div v-if="admin.observing_site">
+
+            </div>
+            <div v-else>
+
+            </div>
+
+            <div v-if="admin.night_log">
+
+            </div>
+            <div v-else>
+
+            </div>
 
           </div>
         </div>
@@ -176,7 +189,7 @@
 </div>
 
 <script src="{$ url_for('static', filename='js/admin.js') $}"></script>
-<script src="{$ url_for('static', filename='js/uploads.js') $}"></script>
+{#<script src="{$ url_for('static', filename='js/uploads.js') $}"></script>#}
 
 </body>
 </html>
