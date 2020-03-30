@@ -20,18 +20,23 @@ UPLOADS = {}
 @main.route('/index')
 def index():
     debug = app.config['debug']
-    org = app.config['organisation']
+    organisation = app.config['organisation']
 
     memberships = Arcsecond.memberships(debug=debug)
     role = None
-    if org:
-        role = memberships.get(org, None)
+    if organisation is not None:
+        role = memberships.get(organisation, None)
+
+    isAuthenticated = Arcsecond.is_logged_in(debug=debug)
+    username = Arcsecond.username(debug=debug),
+    canUpload = organisation is None or role in ['member', 'admin', 'superadmin']
 
     context = {'folder': app.config['folder'],
-               'isAuthenticated': Arcsecond.is_logged_in(debug=debug),
-               'username': Arcsecond.username(debug=debug),
-               'organisation': org,
-               'role': role}
+               'isAuthenticated': isAuthenticated,
+               'username': username,
+               'organisation': organisation,
+               'role': role,
+               'canUpload': isAuthenticated and canUpload}
 
     return render_template('index.html', context=context)
 
@@ -53,7 +58,7 @@ def wrap_files(debug, folder, dataset_uuid, autostart=True):
 
 
 @main.route('/uploads')
-def uploads_active():
+def uploads():
     debug = app.config['debug']
     folder = app.config['folder']
 
