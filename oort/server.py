@@ -22,10 +22,11 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.group(invoke_without_command=True, context_settings=CONTEXT_SETTINGS)
 @click.option('-v', '--version', is_flag=True, help=VERSION_HELP_STRING)
 @click.option('-o', '--org', '--organisation', help="The subdomain of your organisation")
+@click.option('-t', '--tel', '--telescope', help="The UUID of the telescope acquiring data")
 @basic_options
 @pass_state
 @click.pass_context
-def main(ctx, state, version=False, v=False, o=None, org=None, organisation=None):
+def main(ctx, state, version=False, v=False, o=None, org=None, organisation=None, t=None, tel=None, telescope=None):
     if version or v:
         click.echo(__version__)
     elif ctx.invoked_subcommand is None:
@@ -35,6 +36,7 @@ def main(ctx, state, version=False, v=False, o=None, org=None, organisation=None
         app.config['folder'] = os.getcwd()
         app.config['debug'] = state.debug
         app.config['organisation'] = o or org or organisation
+        app.config['telescope'] = t or tel or telescope
         app.run(debug=state.debug, host='0.0.0.0', port=port, threaded=True)
 
 
