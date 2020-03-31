@@ -31,7 +31,7 @@
 
 <body>
 
-<div class="container">
+<div class="container-fluid">
   <div class="row row-header">
     <div class="col-xs-12">
       <h3>
@@ -48,36 +48,37 @@
               <span><strong>username:</strong> @{{ admin.username }}</span>
               <span v-if="admin.organisation"><strong>organisation:</strong> {{ admin.organisation ? admin.organisation : '-' }}</span>
               <span v-if="admin.role"><strong>role:</strong> {{ admin.role ? admin.role : '-' }}</span>
+
+              <span v-if="admin.organisation && admin.role">
+                &nbsp;<i class="fa fa-arrow-right"></i>&nbsp;Uploading to <a href="https://api.arcsecond.io/{{ admin.organisation }}/">api.arcsecond.io/{{ admin.organisation }}/</a>
+                (organisation account) [<a href="https://admin.organisation.arcsecond.io" target="_blank">open org portal</a>]
+              </span>
+              <span v-else-if="admin.organisation">
+                &nbsp;<i class="fa fa-arrow-right"></i>&nbsp;No membership found for organisation with subdomain <code>{{ admin.organisation }}</code>!
+                Uploading to <a href="https://api.arcsecond.io">api.arcsecond.io</a> (Personal account)
+              </span>
+              <span v-else>
+                &nbsp;<i class="fa fa-arrow-right"></i>&nbsp;Uploading to <a href="https://api.arcsecond.io">api.arcsecond.io</a> (Personal account)
+              </span>
             </div>
 
-            <div v-if="admin.organisation && admin.role">
-              Uploading to <a href="https://api.arcsecond.io/{{ admin.organisation }}/">api.arcsecond.io/{{ admin.organisation }}/</a>
-              (organisation account, <a href="https://admin.organisation.arcsecond.io" target="_blank">open portal</a>).
-            </div>
-            <div v-else-if="admin.organisation">
-              No membership found for organisation with subdomain <code>{{ admin.organisation ? admin.organisation : '-' }}</code>!
-              Uploading to <a href="https://api.arcsecond.io">api.arcsecond.io</a> (Personal account)
-            </div>
-            <div v-else>
-              Uploading to <a href="https://api.arcsecond.io">api.arcsecond.io</a> (Personal account)
+            <div>
+              <span v-if="admin.telescope">
+                <strong>telescope</strong>: {{ admin.telescope.name }} <span class="subtitle">(uuid: {{ admin.telescope.uuid }})</span>
+              </span>
+              <span v-else>
+                No Telescope.
+              </span>
+              <span v-if="admin.night_log">
+                <strong>night log</strong>: {{ admin.night_log.date }} <span class="subtitle">(uuid: {{ admin.night_log.uuid }})</span>
+              </span>
+              <span v-else>
+                No Night Log.
+              </span>
             </div>
 
             <div v-if="admin.message">
               <strong>{{ admin.message }}</strong>
-            </div>
-
-            <div v-if="admin.observing_site">
-
-            </div>
-            <div v-else>
-
-            </div>
-
-            <div v-if="admin.night_log">
-
-            </div>
-            <div v-else>
-
             </div>
 
           </div>
