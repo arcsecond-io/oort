@@ -36,8 +36,10 @@
     <div class="col-xs-12">
       <h3>
         <img src="{$ url_for('static', filename='img/logo-circle.png') $}" width="20">
-        Your Arcsecond <span class="text-primary">Oort</span> server
-        <span class="small">(open-source and available on <a href="https://github.com/arcsecond-io/oort" target="_blank">GitHub</a>).</span>
+        Your <span class="text-primary">Oort</span> server.
+        <span class="small">
+          (Oort uploads local data to Arcsecond's cloud. It is open-source and available on <a href="https://github.com/arcsecond-io/oort" target="_blank">GitHub</a>).
+        </span>
       </h3>
 
       {% if context.isAuthenticated %}
@@ -50,8 +52,8 @@
               <span v-if="admin.role"><strong>role:</strong> {{ admin.role ? admin.role : '-' }}</span>
 
               <span v-if="admin.organisation && admin.role">
-                &nbsp;<i class="fa fa-arrow-right"></i>&nbsp;Uploading to <a href="https://api.arcsecond.io/{{ admin.organisation }}/">api.arcsecond.io/{{ admin.organisation }}/</a>
-                (organisation account) [<a href="https://admin.organisation.arcsecond.io" target="_blank">open org portal</a>]
+                &nbsp;<i class="fa fa-arrow-right"></i>&nbsp;Uploading to <a :href="`https://api.arcsecond.io/${admin.organisation}/`">api.arcsecond.io/{{ admin.organisation }}/</a>
+                (organisation account) [<a :href="`https://${admin.organisation}.arcsecond.io`" target="_blank">open org portal</a>]
               </span>
               <span v-else-if="admin.organisation">
                 &nbsp;<i class="fa fa-arrow-right"></i>&nbsp;No membership found for organisation with subdomain <code>{{ admin.organisation }}</code>!
@@ -71,6 +73,7 @@
               </span>
               <span v-if="admin.night_log">
                 <strong>night log</strong>: {{ admin.night_log.date }} <span class="subtitle">(uuid: {{ admin.night_log.uuid }})</span>
+                [<a :href="`https://${admin.organisation}.arcsecond.io/${admin.night_log_url}`" target="_blank">open in portal</a>]
               </span>
               <span v-else>
                 No Night Log.
