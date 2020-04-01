@@ -65,13 +65,23 @@ class AdminLocalState(LocalState):
         local_nightlog = json.loads(self.read('night_log') or '{}')
 
         if local_nightlog:
-            self.update_payload('night_log', local_nightlog, 'admin')
+            if local_nightlog['date'] == date:
+                self.update_payload('night_log', local_nightlog, 'admin')
+            else:
+                self.save(datasets='')
+                result, error = self.logs_api.create({'date': date, 'telescope': local_telescope['uuid']})
+                if error:
+                    pass
+                elif result:
+                    self.save(night_log=json.dumps(result))
+                    self.update_payload('night_log', result, 'admin')
         else:
             logs, error = self.logs_api.list(date=date)
 
             if error:
                 self.update_payload('message', str(error), 'admin')
             elif len(logs) == 0:
+                self.save(datasets='')
                 result, error = self.logs_api.create({'date': date, 'telescope': local_telescope['uuid']})
                 if error:
                     pass
@@ -79,6 +89,7 @@ class AdminLocalState(LocalState):
                     self.save(night_log=json.dumps(result))
                     self.update_payload('night_log', result, 'admin')
             elif len(logs) == 1:
+                self.save(datasets='')
                 self.save(night_log=json.dumps(logs[0]))
                 self.update_payload('night_log', logs[0], 'admin')
             else:
