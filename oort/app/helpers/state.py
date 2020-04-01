@@ -10,7 +10,7 @@ class Context:
         self.debug = config['debug']
         self.folder = config['folder']
         self.organisation = config['organisation']
-        self.telescope = config['telescope']
+        self.telescopeUUID = config['telescope']
 
         self.username = Arcsecond.username(debug=self.debug)
         self.is_authenticated = Arcsecond.is_logged_in(debug=self.debug)
@@ -27,7 +27,7 @@ class Context:
                 'username': self.username,
                 'organisation': self.organisation,
                 'role': self.role,
-                'telescope': self.telescope,
+                'telescopeUUID': self.telescopeUUID,
                 'isAuthenticated': self.is_authenticated,
                 'canUpload': self.can_upload}
 
