@@ -32,7 +32,7 @@ def admin():
             yield state.get_yield_string()
             state.sync_night_log()
             yield state.get_yield_string()
-            time.sleep(60)
+            time.sleep(300)
 
     # Using Server-Side Events. See https://blog.easyaspy.org/post/10/2019-04-30-creating-real-time-charts-with-flask
     return Response(generate(), mimetype='text/event-stream')
