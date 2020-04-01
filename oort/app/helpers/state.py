@@ -13,14 +13,14 @@ class Context:
         self.telescope = config['telescope']
 
         self.username = Arcsecond.username(debug=self.debug)
-        self.isAuthenticated = Arcsecond.is_logged_in(debug=self.debug)
+        self.is_authenticated = Arcsecond.is_logged_in(debug=self.debug)
         self.memberships = Arcsecond.memberships(debug=self.debug)
 
         self.role = None
         if self.organisation is not None:
             self.role = self.memberships.get(self.organisation, None)
 
-        self.canUpload = self.organisation is None or self.role in ['member', 'admin', 'superadmin']
+        self.can_upload = self.organisation is None or self.role in ['member', 'admin', 'superadmin']
 
     def to_dict(self):
         return {'folder': self.folder,
@@ -28,8 +28,8 @@ class Context:
                 'organisation': self.organisation,
                 'role': self.role,
                 'telescope': self.telescope,
-                'isAuthenticated': self.isAuthenticated,
-                'canUpload': self.canUpload}
+                'isAuthenticated': self.is_authenticated,
+                'canUpload': self.can_upload}
 
 
 class LocalState:
