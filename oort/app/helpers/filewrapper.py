@@ -1,3 +1,4 @@
+import json
 import os
 import uuid
 
@@ -58,9 +59,20 @@ class FileWrapper(object):
         self.result, self.error = self.uploader.finish()
         if self.error:
             self.status = 'error'
-            self.progress = 0
+            try:
+                error_body = json.loads(self.error)
+            except Exception:
+                pass
+            else:
+                if 'detail' in error_body.keys():
+                    detail = error_body['detail']
+                    error_content = detail[0] if isinstance(detail, list) and len(detail) > 0 else detail
+                    if 'already exists in dataset' in error_content:
+                        self.error = ''
+                        self.status = 'skipped'
         else:
             self.status = 'success'
+        self.progress = 0
         self.ended = datetime.now()
         self.duration = (self.ended - self.started).total_seconds()
 
