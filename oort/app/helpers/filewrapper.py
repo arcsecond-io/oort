@@ -7,7 +7,7 @@ from arcsecond import Arcsecond
 
 
 class FileWrapper(object):
-    def __init__(self, filepath, dataset, debug=False):
+    def __init__(self, filepath, dataset_uuid, dataset_name, debug=False):
         if not filepath:
             raise ValueError(f'Missing / wrong filepath: {filepath}')
         if not os.path.exists(filepath):
@@ -15,15 +15,16 @@ class FileWrapper(object):
         if not os.path.isfile(filepath):
             raise ValueError(f'Filepath is not a file: {filepath}')
 
-        if not dataset:
-            raise ValueError(f'Missing / wrong dataset UUID: {dataset}')
+        if not dataset_uuid:
+            raise ValueError(f'Missing / wrong dataset UUID: {dataset_uuid}')
         try:
-            uuid.UUID(dataset)
+            uuid.UUID(dataset_uuid)
         except ValueError:
-            raise ValueError(f'Missing / wrong dataset UUID: {dataset}')
+            raise ValueError(f'Missing / wrong dataset UUID: {dataset_uuid}')
 
         self.filepath = filepath
-        self.dataset = dataset
+        self.dataset_uuid = dataset_uuid
+        self.dataset_name = dataset_name
         self.filesize = os.path.getsize(filepath)
         self.status = 'new'
         self.progress = 0
@@ -33,7 +34,7 @@ class FileWrapper(object):
         self.result = None
         self.error = None
 
-        self.api = Arcsecond.build_datafiles_api(debug=debug, dataset=dataset)
+        self.api = Arcsecond.build_datafiles_api(debug=debug, dataset=dataset_uuid)
 
         def update_progress(event, progress_percent):
             self.progress = progress_percent
@@ -82,7 +83,7 @@ class FileWrapper(object):
             'started': self.started.strftime('%Y-%m-%dT%H:%M:%S') if self.started else '',
             'ended': self.ended.strftime('%Y-%m-%dT%H:%M:%S') if self.ended else '',
             'duration': '{:.1f}'.format(self.duration) if self.duration else '',
-
-            'dataset': self.dataset,
+            'dataset_uuid': self.dataset_uuid,
+            'dataset_name': self.dataset_name,
             'error': self.error or ''
         }
