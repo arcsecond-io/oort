@@ -100,7 +100,7 @@
     </div>
   </div>
 
-  <div class="row">
+  <div class="row text-small">
     <div class="col-xs-12">
 
       {% if context.canUpload %}
@@ -113,10 +113,11 @@
 
           <div class="table-block" v-if="state.showTables">
             <div class="table-title">Active Uploads ({{ uploads.length }})</div>
-            <table class="table table-striped" v-if="uploads.length > 0">
+            <table class="table table-striped text-small" v-if="uploads.length > 0">
               <thead>
               <tr>
                 <th>Filename</th>
+                <th>Dataset</th>
                 <th>Size</th>
                 <th>Status</th>
                 <th>Progress</th>
@@ -127,8 +128,9 @@
               </tr>
               </thead>
               <tbody>
-              <tr v-for="upload in uploads">
+              <tr v-for="upload in current_uploads">
                 <td>{{ upload.filename }}</td>
+                <td :title="upload.dataset_uuid">{{ upload.dataset_name }}</td>
                 <td>{{ upload.filesize / 1000 }} kB</td>
                 <td>{{ upload.status }}</td>
                 <td>
@@ -156,10 +158,11 @@
 
           <div class="table-block" v-if="state.showTables">
             <div class="table-title">Finished Uploads ({{ finished_uploads.length }})</div>
-            <table class="table table-striped" v-if="finished_uploads.length > 0">
+            <table class="table table-striped text-small" v-if="finished_uploads.length > 0">
               <thead>
               <tr>
                 <th>Filename</th>
+                <th>Dataset</th>
                 <th>Size (kB)</th>
                 <th>Status</th>
                 <th>Started</th>
@@ -171,6 +174,7 @@
               <tbody>
               <tr v-for="upload in finished_uploads">
                 <td>{{ upload.filename }}</td>
+                <td :title="upload.dataset_uuid">{{ upload.dataset_name }}</td>
                 <td>{{ upload.filesize / 1000 }} kB</td>
                 <td>{{ upload.status }}</td>
                 <td>{{ upload.started }}</td>
