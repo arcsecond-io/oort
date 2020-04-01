@@ -1,19 +1,11 @@
-import json
-import os
 import time
 
 from flask import render_template, Response, Blueprint
 from flask import current_app as app
 
-from arcsecond import Arcsecond
-
 from oort.app.helpers import AdminLocalState, UploadsLocalState, Context, FileWrapper
 
 main = Blueprint('main', __name__)
-
-DATASET_NAME = 'Oort Uploads'
-MAX_SIMULTANEOUS_UPLOADS = 3
-UPLOADS = {}
 
 
 @main.route('/')
