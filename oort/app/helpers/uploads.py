@@ -42,7 +42,7 @@ class UploadsLocalState(LocalState):
         if not self.context.can_upload:
             return
 
-        local_nightlog = json.loads(self.read('night_log') or {})
+        local_nightlog = json.loads(self.read('night_log') or '{}')
         if not local_nightlog:
             return
 
@@ -52,21 +52,27 @@ class UploadsLocalState(LocalState):
 
         for dataset_name in self.files.keys():
             if dataset_name in local_datasets.values():
-                # Ok, remote dataset exists
+                # Ok, remote dataset with name exists, find its key (uuid).
                 dataset_uuid = dict((v, k) for k, v in local_datasets.items())[dataset_name]
                 new_local_datasets[dataset_uuid] = dataset_name
             else:
-                existing_datasets = self.api_datasets.list(name=dataset_name, night_log=local_nightlog.get('uuid'))
-                if len(existing_datasets) == 0:
-                    payload = {'name': dataset_name,
-                               'night_log': local_nightlog.get('uuid')}
-                    result = self.api_datasets.create(payload)
-                    new_local_datasets[result['uuid']] = dataset_name
+                night_log_uuid = local_nightlog.get('uuid')
+                existing_datasets, error = self.api_datasets.list(name=dataset_name, night_log=night_log_uuid)
+                if error:
+                    if self.context.debug: print(str(error))
+                elif len(existing_datasets) == 0:
+                    payload = {'name': dataset_name, 'night_log': local_nightlog.get('uuid')}
+                    result, error = self.api_datasets.create(payload)
+                    if error:
+                        if self.context.debug: print(str(error))
+                    elif result:
+                        new_local_datasets[result['uuid']] = dataset_name
                 elif len(existing_datasets) == 1:
                     new_local_datasets[existing_datasets[0]['uuid']] = dataset_name
                 else:
-                    self.update_payload('message',
-                                        f'Multiple datasets found for name {dataset_name}. Choosing first created one.')
+                    msg = f'Multiple datasets found for name {dataset_name}. Choosing first created one.'
+                    if self.context.debug: print(str(error))
+                    self.update_payload('message', msg)
                     existing_datasets.sort(key=lambda obj: obj['creation_date'])
                     new_local_datasets[existing_datasets[0]['uuid']] = dataset_name
 
@@ -76,7 +82,7 @@ class UploadsLocalState(LocalState):
         if not self.context.can_upload:
             return
 
-        local_nightlog = json.loads(self.read('night_log') or {})
+        local_nightlog = json.loads(self.read('night_log') or '{}')
         if not local_nightlog:
             return
 
