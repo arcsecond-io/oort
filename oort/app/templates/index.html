@@ -73,6 +73,8 @@
               </span>
               <span v-if="admin.night_log">
                 <strong>night log</strong>: {{ admin.night_log.date }} <span class="subtitle">(uuid: {{ admin.night_log.uuid }})</span>
+                <br/>
+                <span class="subtitle">Beware that night logs starts on local noon and last 24 hours.</span>
                 [<a :href="`https://${admin.organisation}.arcsecond.io/${admin.night_log_url}`" target="_blank">open night data in portal</a>]
               </span>
               <span v-else>
