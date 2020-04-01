@@ -43,10 +43,15 @@ def uploads():
     state = UploadsLocalState(app.config)
 
     def generate():
+        count = 0
         while True:
-            state.sync_datasets()
+            if count % 60 == 0:
+                state.sync_datasets()
+                yield state.get_yield_string()
+            state.sync_uploads()
             yield state.get_yield_string()
             time.sleep(1)
+            count += 1
 
     # Using Server-Side Events. See https://blog.easyaspy.org/post/10/2019-04-30-creating-real-time-charts-with-flask
     return Response(generate(), mimetype='text/event-stream')
