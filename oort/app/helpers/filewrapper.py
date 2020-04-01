@@ -40,7 +40,7 @@ class FileWrapper(object):
             self.progress = progress_percent
             self.duration = (datetime.now() - self.started).total_seconds()
 
-        self.uploader = self.api.create({'file': filepath}, callback=update_progress)
+        self.uploader, _ = self.api.create({'file': filepath}, callback=update_progress)
 
     @property
     def remaining_bytes(self):
