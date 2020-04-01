@@ -38,9 +38,19 @@
         <img src="{$ url_for('static', filename='img/logo-circle.png') $}" width="20">
         Your <span class="text-primary">Oort</span> server.
         <span class="small">
-          (Oort uploads local data to Arcsecond's cloud. It is open-source and available on <a href="https://github.com/arcsecond-io/oort" target="_blank">GitHub</a>).
+          (Oort uploads local data to Arcsecond's cloud. It is open-source and available on
+          <a href="https://github.com/arcsecond-io/oort" target="_blank">GitHub</a>).
         </span>
       </h3>
+      <div class="context">
+        <strong>Launch command used:</strong>
+        <code>
+          oort
+          {% if context.organisation %}-o {$ context.organisation $}{% endif %}
+          {% if context.telescopeUUID %}-t {$ context.telescopeUUID $}{% endif %}
+          {% if context.debug %}-d{% endif %}
+        </code>
+      </div>
 
       {% if context.isAuthenticated %}
         <!-- **** STARTING FROM HERE, VUE.JS 'admin.js' HAS CONTROL **** -->

@@ -29,7 +29,8 @@ class Context:
                 'role': self.role,
                 'telescopeUUID': self.telescopeUUID,
                 'isAuthenticated': self.is_authenticated,
-                'canUpload': self.can_upload}
+                'canUpload': self.can_upload,
+                'debug': self.debug}
 
 
 class LocalState:
@@ -77,4 +78,3 @@ class LocalState:
     def get_yield_string(self):
         json_data = json.dumps(self.payload)
         return f"data:{json_data}\n\n"
-
