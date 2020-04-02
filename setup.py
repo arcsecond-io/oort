@@ -29,7 +29,7 @@ setup(
     platforms='any',
     install_requires=[
         'flask',
-        'arcsecond>=0.7.7',
+        'arcsecond>=0.9.0',
         'python-dotenv'
     ],
     entry_points={
@@ -39,13 +39,7 @@ setup(
     },
     classifiers=[
         # As from http://pypi.python.org/pypi?%3Aaction=list_classifiers
-        # 'Development Status :: 1 - Planning',
-        # 'Development Status :: 2 - Pre-Alpha',
         'Development Status :: 3 - Alpha',
-        # 'Development Status :: 4 - Beta',
-        # 'Development Status :: 5 - Production/Stable',
-        # 'Development Status :: 6 - Mature',
-        # 'Development Status :: 7 - Inactive',
         'Environment :: Console',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',

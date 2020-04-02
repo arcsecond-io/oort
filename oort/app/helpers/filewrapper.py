@@ -1,4 +1,6 @@
+import json
 import os
+import uuid
 
 from datetime import datetime
 
@@ -6,9 +8,24 @@ from arcsecond import Arcsecond
 
 
 class FileWrapper(object):
-    def __init__(self, filepath, dataset, debug):
+    def __init__(self, filepath, dataset_uuid, dataset_name, debug=False):
+        if not filepath:
+            raise ValueError(f'Missing / wrong filepath: {filepath}')
+        if not os.path.exists(filepath):
+            raise ValueError(f'File not found at path: {filepath}')
+        if not os.path.isfile(filepath):
+            raise ValueError(f'Filepath is not a file: {filepath}')
+
+        if not dataset_uuid:
+            raise ValueError(f'Missing / wrong dataset UUID: {dataset_uuid}')
+        try:
+            uuid.UUID(dataset_uuid)
+        except ValueError:
+            raise ValueError(f'Missing / wrong dataset UUID: {dataset_uuid}')
+
         self.filepath = filepath
-        self.dataset = dataset
+        self.dataset_uuid = dataset_uuid
+        self.dataset_name = dataset_name
         self.filesize = os.path.getsize(filepath)
         self.status = 'new'
         self.progress = 0
@@ -18,13 +35,13 @@ class FileWrapper(object):
         self.result = None
         self.error = None
 
-        self.api = Arcsecond.build_datafiles_api(debug=debug, dataset=dataset)
+        self.api = Arcsecond.build_datafiles_api(debug=debug, dataset=dataset_uuid)
 
         def update_progress(event, progress_percent):
             self.progress = progress_percent
             self.duration = (datetime.now() - self.started).total_seconds()
 
-        self.uploader = self.api.create({'file': filepath}, callback=update_progress)
+        self.uploader, _ = self.api.create({'file': filepath}, callback=update_progress)
 
     @property
     def remaining_bytes(self):
@@ -42,9 +59,20 @@ class FileWrapper(object):
         self.result, self.error = self.uploader.finish()
         if self.error:
             self.status = 'error'
-            self.progress = 0
+            try:
+                error_body = json.loads(self.error)
+            except Exception:
+                pass
+            else:
+                if 'detail' in error_body.keys():
+                    detail = error_body['detail']
+                    error_content = detail[0] if isinstance(detail, list) and len(detail) > 0 else detail
+                    if 'already exists in dataset' in error_content:
+                        self.error = ''
+                        self.status = 'skipped'
         else:
             self.status = 'success'
+        self.progress = 0
         self.ended = datetime.now()
         self.duration = (self.ended - self.started).total_seconds()
 
@@ -67,7 +95,7 @@ class FileWrapper(object):
             'started': self.started.strftime('%Y-%m-%dT%H:%M:%S') if self.started else '',
             'ended': self.ended.strftime('%Y-%m-%dT%H:%M:%S') if self.ended else '',
             'duration': '{:.1f}'.format(self.duration) if self.duration else '',
-
-            'dataset': self.dataset,
+            'dataset_uuid': self.dataset_uuid,
+            'dataset_name': self.dataset_name,
             'error': self.error or ''
         }
