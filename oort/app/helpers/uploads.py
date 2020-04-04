@@ -1,6 +1,8 @@
 import json
 import os
-from arcsecond import Arcsecond
+
+import arcsecond
+from arcsecond import Arcsecond, ArcsecondConnectionError
 
 from .filewrapper import FileWrapper
 from .state import LocalState
@@ -28,7 +30,7 @@ class UploadsLocalState(LocalState):
         suffix = section if section != ROOT_FILES_SECTION else ''
         names = os.listdir(os.path.join(self.context.folder, suffix))
         for name in names:
-            path = os.path.join(self.context.folder, name)
+            path = os.path.join(self.context.folder, suffix, name)
             if os.path.isdir(path):
                 if section == ROOT_FILES_SECTION:
                     self._read_local_files(name)
@@ -57,24 +59,31 @@ class UploadsLocalState(LocalState):
                 new_local_datasets[dataset_uuid] = dataset_name
             else:
                 night_log_uuid = local_nightlog.get('uuid')
-                existing_datasets, error = self.api_datasets.list(name=dataset_name, night_log=night_log_uuid)
-                if error:
-                    if self.context.debug: print(str(error))
-                elif len(existing_datasets) == 0:
-                    payload = {'name': dataset_name, 'night_log': local_nightlog.get('uuid')}
-                    result, error = self.api_datasets.create(payload)
+                try:
+                    existing_datasets_response, error = self.api_datasets.list(name=dataset_name, night_log=night_log_uuid)
+                except arcsecond.api.error.ArcsecondConnectionError as e:
+                    if self.context.debug: print(str(e))
+                    self.update_payload('warning', str(e), 'state')
+                else:
+                    self.update_payload('warning', '', 'state')
+                    existing_datasets = existing_datasets_response['results']
                     if error:
                         if self.context.debug: print(str(error))
-                    elif result:
-                        new_local_datasets[result['uuid']] = dataset_name
-                elif len(existing_datasets) == 1:
-                    new_local_datasets[existing_datasets[0]['uuid']] = dataset_name
-                else:
-                    msg = f'Multiple datasets found for name {dataset_name}. Choosing first created one.'
-                    if self.context.debug: print(str(error))
-                    self.update_payload('message', msg)
-                    existing_datasets.sort(key=lambda obj: obj['creation_date'])
-                    new_local_datasets[existing_datasets[0]['uuid']] = dataset_name
+                    elif len(existing_datasets) == 0:
+                        payload = {'name': dataset_name, 'night_log': local_nightlog.get('uuid')}
+                        result, error = self.api_datasets.create(payload)
+                        if error:
+                            if self.context.debug: print(str(error))
+                        elif result:
+                            new_local_datasets[result['uuid']] = dataset_name
+                    elif len(existing_datasets) == 1:
+                        new_local_datasets[existing_datasets[0]['uuid']] = dataset_name
+                    else:
+                        msg = f'Multiple datasets found for name {dataset_name}. Choosing first created one.'
+                        if self.context.debug: print(str(error))
+                        self.update_payload('warning', msg, 'state')
+                        existing_datasets.sort(key=lambda obj: obj['creation_date'])
+                        new_local_datasets[existing_datasets[0]['uuid']] = dataset_name
 
         self.save(datasets=json.dumps(new_local_datasets))
 

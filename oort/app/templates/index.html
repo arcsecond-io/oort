@@ -54,7 +54,7 @@
 
       {% if context.isAuthenticated %}
         <!-- **** STARTING FROM HERE, VUE.JS 'admin.js' HAS CONTROL **** -->
-        <div id="admin">
+        <div id="admin" v-if="admin">
           <div class="context">
             <div>
               <span><strong>username:</strong> @{{ admin.username }}</span>
@@ -118,9 +118,13 @@
       {% if context.canUpload %}
 
         <!-- **** STARTING FROM HERE, VUE.JS 'uploads.js' HAS CONTROL **** -->
-        <div id="uploads">
-          <div class="state-block" v-if="state">
+        <div id="uploads" v-if="state">
+          <div class="state-block">
             <div class="label-centered darkgray">{{ state.message }}</div>
+          </div>
+
+          <div class="state-block" v-if="state.warning">
+            <div><pre class="alert-warning">{{ state.warning }}</pre></div>
           </div>
 
           <div class="table-block" v-if="state.showTables">
