@@ -30,7 +30,7 @@ class UploadsLocalState(LocalState):
         suffix = section if section != ROOT_FILES_SECTION else ''
         names = os.listdir(os.path.join(self.context.folder, suffix))
         for name in names:
-            path = os.path.join(self.context.folder, name)
+            path = os.path.join(self.context.folder, suffix, name)
             if os.path.isdir(path):
                 if section == ROOT_FILES_SECTION:
                     self._read_local_files(name)
