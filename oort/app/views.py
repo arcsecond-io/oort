@@ -37,7 +37,7 @@ def uploads():
     def generate():
         count = 0
         while True:
-            if count % 60 == 0:
+            if (count < 30 and count % 10 == 0) or count % 60 == 0:
                 state.sync_datasets()
                 yield state.get_yield_string()
             state.sync_uploads()
