@@ -65,6 +65,7 @@ class UploadsLocalState(LocalState):
                     if self.context.debug: print(str(e))
                     self.update_payload('warning', str(e), 'state')
                 else:
+                    self.update_payload('warning', '', 'state')
                     existing_datasets = existing_datasets_response['results']
                     if error:
                         if self.context.debug: print(str(error))
