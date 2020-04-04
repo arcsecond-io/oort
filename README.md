@@ -44,6 +44,6 @@ $ cd <parent folder where files are located>
 $ oort -o <subdomain> -t <telescope uuid>
 ``` 
 
-That's it! Now, you can open a browser in `http://localhost:5000` and follow the operations.
+That's it! Now, you can open a browser in `http://0.0.0.0:5000` and follow the operations.
 
 ![Oort in action](/assets/oort-cloud-basic.png)
