@@ -69,9 +69,9 @@ class FileWrapper(object):
                     error_content = detail[0] if isinstance(detail, list) and len(detail) > 0 else detail
                     if 'already exists in dataset' in error_content:
                         self.error = ''
-                        self.status = 'skipped'
+                        self.status = 'OK'
         else:
-            self.status = 'success'
+            self.status = 'OK'
         self.progress = 0
         self.ended = datetime.now()
         self.duration = (self.ended - self.started).total_seconds()
