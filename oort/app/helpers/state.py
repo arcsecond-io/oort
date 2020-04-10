@@ -74,7 +74,7 @@ class LocalState:
         return new_resource
 
     def _check_existing_remote_resource(self, name, api, uuid):
-        response_detail, error = api.get(uuid=uuid)
+        response_detail, error = api.read(uuid)
         if error:
             if self.context.debug: print(str(error))
             self.update_payload('warning', str(error), 'messages')
