@@ -47,11 +47,14 @@ class UploadsLocalState(LocalState):
         local_calibs = []
 
         for telescope in self.walker.telescopes:
-            night_log = next((nl for nl in local_night_logs if nl['telescope'] == telescope['uuid']), None)
+            night_log = next((nl for nl in local_night_logs if nl['telescope'] == telescope.uuid), None)
             if night_log is None:
                 continue
 
-            for calibration in telescope.calibrations:
+            if getattr(telescope, 'calibrations', None) is None:
+                continue
+
+            if telescope.calibrations.biases is not None:
                 # Word 'Biases' MUST MATCH Django model field!
                 biases = self._find_or_create_remote_resource('Bias',
                                                               self.api_calibrations,
@@ -60,6 +63,7 @@ class UploadsLocalState(LocalState):
                 if biases:
                     local_calibs.append(biases)
 
+            if telescope.calibrations.darks is not None:
                 # Word 'Darks' MUST MATCH Django model field!
                 darks = self._find_or_create_remote_resource('Dark',
                                                              self.api_calibrations,
