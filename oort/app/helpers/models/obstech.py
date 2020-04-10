@@ -7,6 +7,7 @@ class FilesWalker:
         self.date = date
         self.folderpath = folderpath
         self.files = []
+        self.reset()
 
     @property
     def name(self):
