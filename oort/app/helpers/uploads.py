@@ -45,6 +45,9 @@ class UploadsLocalState(LocalState):
     def _get_dataset_key(self, tel_uuid):
         return f'telescope_{tel_uuid}_datasets'
 
+    def _get_flat_key(self, tel_uuid):
+        return f'telescope_{tel_uuid}_flats'
+
     def sync_calibrations(self):
         if not self.context.can_upload:
             return
@@ -79,8 +82,23 @@ class UploadsLocalState(LocalState):
 
             if self.context.debug:
                 print(f'Validated telescope {telescope.uuid} calibs {local_calibs}')
-
             self.save(**{self._get_calib_key(telescope.uuid): json.dumps(local_calibs)})
+
+            if telescope.calibrations.flats is not None:
+                local_flats = []
+
+                for filter in telescope.calibrations.flats.filters:
+                    flat = self._find_or_create_remote_resource('Flat',
+                                                                self.api_calibrations,
+                                                                night_log=night_log['uuid'],
+                                                                name=filter.name,
+                                                                type='Flats')
+                    if flat:
+                        local_flats.append(flat)
+
+                if self.context.debug:
+                    print(f'Validated telescope {telescope.uuid} flats {local_flats}')
+                self.save(**{self._get_flat_key(telescope.uuid): json.dumps(local_flats)})
 
     def sync_datasets(self):
         if not self.context.can_upload:
@@ -96,12 +114,23 @@ class UploadsLocalState(LocalState):
 
             local_datasets = []
             local_calibs = json.loads(self.read(self._get_calib_key(telescope.uuid)) or '[]')
+            local_flats = json.loads(self.read(self._get_flat_key(telescope.uuid)) or '[]')
 
             for local_calib in local_calibs:
                 dataset = self._find_or_create_remote_resource('Dataset',
                                                                self.api_datasets,
                                                                calibration=local_calib['uuid'],
                                                                name=local_calib['type'],
+                                                               organisation=self.context.organisation)
+
+                if dataset:
+                    local_datasets.append(dataset)
+
+            for local_flat in local_flats:
+                dataset = self._find_or_create_remote_resource('Dataset',
+                                                               self.api_datasets,
+                                                               calibration=local_flat['uuid'],
+                                                               name=local_flat['type'] + ': ' + local_flat['name'],
                                                                organisation=self.context.organisation)
 
                 if dataset:

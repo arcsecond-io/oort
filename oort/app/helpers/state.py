@@ -73,7 +73,7 @@ class LocalState:
         elif len(response_list) == 1:
             new_resource = response_list[0]
         else:
-            msg = f'Multiple {name} found for date {self.current_date}? Choosing first.'
+            msg = f'Multiple {resource_name} found for date {self.current_date}? Choosing first.'
             if self.context.debug: print(msg)
             self.update_payload('warning', msg, 'messages')
         return new_resource

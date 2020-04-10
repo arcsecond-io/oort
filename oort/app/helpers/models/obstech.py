@@ -31,6 +31,20 @@ class FilesWalker:
         return [(name, os.path.join(folderpath, name)) for name in names if name[0] != '.']
 
 
+class Filters(FilesWalker):
+    def __init__(self, date, folderpath):
+        super().__init__(date, folderpath)
+
+    def reset(self):
+        self.filters = []
+
+    def walk(self):
+        for name, path in self._walk_folder(self.folderpath):
+            if not os.path.isdir(path):
+                continue
+            self.filters.append(FilesWalker(self.date, path))
+
+
 class Calibrations(FilesWalker):
     def __init__(self, date, folderpath):
         super().__init__(date, folderpath)
@@ -48,10 +62,13 @@ class Calibrations(FilesWalker):
                 continue
             if name.lower().startswith('bias'):
                 self.biases = FilesWalker(self.date, path)
+                self.biases.walk()
             elif name.lower().startswith('dark'):
                 self.darks = FilesWalker(self.date, path)
+                self.darks.walk()
             elif name.lower().startswith('flat'):
-                self.flats.append(FilesWalker(self.date, path))
+                self.flats = Filters(self.date, path)
+                self.flats.walk()
 
 
 class Target(FilesWalker):
@@ -67,8 +84,7 @@ class Target(FilesWalker):
         for name, path in self._walk_folder(self.folderpath):
             if not os.path.isdir(path):
                 continue
-            else:
-                self.observations.append(FilesWalker(self.date, path))
+            self.observations.append(FilesWalker(self.date, path))
 
 
 class Telescope(FilesWalker):
