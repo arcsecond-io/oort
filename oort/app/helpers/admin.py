@@ -17,8 +17,6 @@ class AdminLocalState(LocalState):
         self.logs_api = Arcsecond.build_nightlogs_api(debug=self.context.debug,
                                                       organisation=self.context.organisation)
 
-    def _check_remote_telescope(self, ):
-        telescope, error = self.telescopes_api.read(self.context.telescopeUUID)
     @property
     def current_date(self):
         before_noon = datetime.datetime.now().hour < 12
@@ -26,6 +24,9 @@ class AdminLocalState(LocalState):
             return (datetime.datetime.now() - datetime.timedelta(days=1)).date().isoformat()
         else:
             return datetime.datetime.now().date().isoformat()
+
+    def _check_remote_telescope(self, tel_uuid):
+        telescope, error = self.telescopes_api.read(tel_uuid)
         if error:
             if self.context.debug: print(str(error))
             self.update_payload('message', str(error), 'admin')
@@ -34,7 +35,7 @@ class AdminLocalState(LocalState):
             self.update_payload('telescope', telescope, 'admin')
             self.save(telescope=json.dumps(telescope))
         else:
-            self.update_payload('message', f"Unknown telescope with UUID {self.context.telescopeUUID}", 'admin')
+            self.update_payload('message', f"Unknown telescope with UUID {tel_uuid}", 'admin')
             self.save(telescope='')
 
     def sync_telescope(self):
@@ -47,13 +48,13 @@ class AdminLocalState(LocalState):
                 self.update_payload('telescope', local_telescope, 'admin')
             else:
                 # If not, telescope provided in CLI takes precedence, even if it fails...
-                self._check_remote_telescope()
+                self._check_remote_telescope(local_telescope['uuid'])
 
         elif local_telescope and not self.context.telescopeUUID:
             self.update_payload('telescope', local_telescope, 'admin')
 
         elif not local_telescope and self.context.telescopeUUID:
-            self._check_remote_telescope()
+            self._check_remote_telescope(self.context.telescopeUUID)
 
         else:
             # Do nothing
