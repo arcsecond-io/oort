@@ -27,8 +27,7 @@ class FilesWalker:
         if not os.path.exists(folderpath) or not os.path.isdir(folderpath):
             return zip([], [])
         names = os.listdir(folderpath)
-        paths = [os.path.join(folderpath, name) for name in names if len(name) > 0 and name[0] != '.']
-        return zip(names, paths)
+        return [(name, os.path.join(folderpath, name)) for name in names if name[0] != '.']
 
 
 class Calibrations(FilesWalker):
