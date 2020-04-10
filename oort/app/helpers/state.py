@@ -48,6 +48,30 @@ class LocalState:
         else:
             return datetime.datetime.now().date().isoformat()
 
+    def _create_remote_resource(self, api, name, **kwargs):
+        response_resource, error = api.create(kwargs)
+        if error:
+            if self.context.debug: print(str(error))
+            msg = f'Failed to create {name} for date {self.current_date}. Retry is automatic.'
+            self.update_payload('warning', msg, 'messages')
+        else:
+            return response_resource
+
+    def _check_remote_resource(self, name, api, **kwargs):
+        new_resource = None
+        response_list, error = api.list(**kwargs)
+        if error:
+            return response_list, error
+        elif len(response_list) == 0:
+            new_resource = self._create_remote_resource(api, **kwargs)
+        elif len(response_list) == 1:
+            new_resource = response_list[0]
+        else:
+            msg = f'Multiple {name} found for date {self.current_date}? Choosing first.'
+            if self.context.debug: print(msg)
+            self.update_payload('warning', msg, 'messages')
+        return new_resource
+
     @property
     def _section(self):
         raw_section = 'debug' if self.context.debug else 'main'
