@@ -35,7 +35,6 @@ class AdminLocalState(LocalState):
             if valid_telescope:
                 valid_telescopes.append(valid_telescope)
 
-
         if self.context.debug: print(f'Validated telescopes: {valid_telescopes}')
         self.update_payload('telescopes', valid_telescopes, 'admin')
         self.save(telescopes=json.dumps(valid_telescopes))
@@ -87,7 +86,6 @@ class AdminLocalState(LocalState):
             return
 
         self.update_payload('date', self.current_date, 'admin')
-        self.save(datasets='')
 
         local_logs = []
         for local_telescope in local_telescopes:
@@ -99,6 +97,7 @@ class AdminLocalState(LocalState):
             if new_log:
                 local_logs.append(new_log)
 
+        if self.context.debug: print(f'Validated night logs: {local_logs}')
         self.save(night_logs=json.dumps(local_logs))
         self.update_payload('night_logs', local_logs, 'admin')
 
