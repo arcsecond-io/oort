@@ -39,12 +39,17 @@ class UploadsLocalState(LocalState):
         for telescope in self.walker.telescopes:
             telescope.walk()
 
+    def _get_calib_key(self, tel_uuid):
+        return f'telescope_{tel_uuid}_calibrations'
+
+    def _get_dataset_key(self, tel_uuid):
+        return f'telescope_{tel_uuid}_datasets'
+
     def sync_calibrations(self):
         if not self.context.can_upload:
             return
 
         local_night_logs = json.loads(self.read('night_logs') or '[]')
-        local_calibs = []
 
         for telescope in self.walker.telescopes:
             night_log = next((nl for nl in local_night_logs if nl['telescope'] == telescope.uuid), None)
@@ -52,9 +57,7 @@ class UploadsLocalState(LocalState):
                 if self.context.debug: print(f'No night log for telescope {telescope.uuid}')
                 continue
 
-            if getattr(telescope, 'calibrations', None) is None:
-                if self.context.debug: print(f'No calibrations walker for telescope folder {telescope.uuid}')
-                continue
+            local_calibs = []
 
             if telescope.calibrations.biases is not None:
                 # Word 'Biases' MUST MATCH Django model field!
@@ -74,54 +77,40 @@ class UploadsLocalState(LocalState):
                 if darks:
                     local_calibs.append(darks)
 
-        if self.context.debug:
-            print(f'Validated calibs: {local_calibs}')
+            if self.context.debug:
+                print(f'Validated telescope {telescope.uuid} calibs {local_calibs}')
+
+            self.save(**{self._get_calib_key(telescope.uuid): json.dumps(local_calibs)})
 
     def sync_datasets(self):
         if not self.context.can_upload:
             return
 
-        return
+        local_night_logs = json.loads(self.read('night_logs') or '[]')
 
-        self._read_local_files(ROOT_FILES_SECTION)
-        local_datasets = json.loads(self.read('datasets') or '{}')
-        new_local_datasets = {}
+        for telescope in self.walker.telescopes:
+            night_log = next((nl for nl in local_night_logs if nl['telescope'] == telescope.uuid), None)
+            if night_log is None:
+                if self.context.debug: print(f'No night log for telescope {telescope.uuid}')
+                continue
 
-        for dataset_name in self.files.keys():
-            if dataset_name in local_datasets.values():
-                # Ok, remote dataset with name exists, find its key (uuid).
-                dataset_uuid = dict((v, k) for k, v in local_datasets.items())[dataset_name]
-                new_local_datasets[dataset_uuid] = dataset_name
-            else:
-                night_log_uuid = local_nightlog.get('uuid')
-                try:
-                    existing_datasets_response, error = self.api_datasets.list(name=dataset_name,
-                                                                               night_log=night_log_uuid)
-                except arcsecond.api.error.ArcsecondConnectionError as e:
-                    if self.context.debug: print(str(e))
-                    self.update_payload('warning', str(e), 'state')
-                else:
-                    self.update_payload('warning', '', 'state')
-                    existing_datasets = existing_datasets_response['results']
-                    if error:
-                        if self.context.debug: print(str(error))
-                    elif len(existing_datasets) == 0:
-                        payload = {'name': dataset_name, 'night_log': local_nightlog.get('uuid')}
-                        result, error = self.api_datasets.create(payload)
-                        if error:
-                            if self.context.debug: print(str(error))
-                        elif result:
-                            new_local_datasets[result['uuid']] = dataset_name
-                    elif len(existing_datasets) == 1:
-                        new_local_datasets[existing_datasets[0]['uuid']] = dataset_name
-                    else:
-                        msg = f'Multiple datasets found for name {dataset_name}. Choosing first created one.'
-                        if self.context.debug: print(str(error))
-                        self.update_payload('warning', msg, 'state')
-                        existing_datasets.sort(key=lambda obj: obj['creation_date'])
-                        new_local_datasets[existing_datasets[0]['uuid']] = dataset_name
+            local_datasets = []
+            local_calibs = json.loads(self.read(self._get_calib_key(telescope.uuid)) or '[]')
 
-        self.save(datasets=json.dumps(new_local_datasets))
+            for local_calib in local_calibs:
+                dataset = self._find_or_create_remote_resource('Dataset',
+                                                               self.api_datasets,
+                                                               calibration=local_calib['uuid'],
+                                                               name=local_calib['type'],
+                                                               organisation=self.context.organisation)
+
+                if dataset:
+                    local_datasets.append(dataset)
+
+            if self.context.debug:
+                print(f'Validated telescope {telescope.uuid} datasets {local_datasets}')
+
+            self.save(**{self._get_dataset_key(telescope.uuid): json.dumps(local_datasets)})
 
     def sync_uploads(self):
         if not self.context.can_upload:
