@@ -2,7 +2,7 @@ import os
 from configparser import ConfigParser
 
 
-class FilesFolder:
+class FilesWalker:
     def __init__(self, date, folderpath):
         self.date = date
         self.folderpath = folderpath
@@ -12,18 +12,18 @@ class FilesFolder:
     def name(self):
         return os.path.basename(self.folderpath)
 
-    def _reset(self):
+    def reset(self):
         pass
 
-    def _parse(self):
-        for name, path in self._walk_filesystem(self.folderpath):
+    def walk(self):
+        for name, path in self._walk_folder(self.folderpath):
             if not os.path.exists(path) or os.path.isdir(path):
                 continue
             # Todo: deal with timezones and filename formats!
             if self.date in name:
                 self.files.append(path)
 
-    def _walk_filesystem(self, folderpath):
+    def _walk_folder(self, folderpath):
         if not os.path.exists(folderpath) or not os.path.isdir(folderpath):
             return zip([], [])
         names = os.listdir(folderpath)
@@ -31,58 +31,59 @@ class FilesFolder:
         return zip(names, paths)
 
 
-class Calibrations(FilesFolder):
+class Calibrations(FilesWalker):
     def __init__(self, date, folderpath):
         super().__init__(date, folderpath)
-        self._parse()
+        self.walk()
 
-    def _reset(self):
+    def reset(self):
         self.biases = None
         self.darks = None
-        self.flats = None
+        self.flats = []
 
-    def _parse(self):
-        self._reset()
-        for name, path in self._walk_filesystem(self.folderpath):
+    def walk(self):
+        self.reset()
+        for name, path in self._walk_folder(self.folderpath):
             if not os.path.isdir(path):
                 continue
             if name.lower().startswith('bias'):
-                self.biases = FilesFolder(self.date, path)
+                self.biases = FilesWalker(self.date, path)
             elif name.lower().startswith('dark'):
-                self.darks = FilesFolder(self.date, path)
+                self.darks = FilesWalker(self.date, path)
             elif name.lower().startswith('flat'):
-                self.flats = FilesFolder(self.date, path)
+                self.flats.append(FilesWalker(self.date, path))
 
 
-class Target(FilesFolder):
+class Target(FilesWalker):
     def __init__(self, date, folderpath):
         super().__init__(date, folderpath)
-        self._parse()
+        self.walk()
 
-    def _reset(self):
+    def reset(self):
         self.observations = []
 
-    def _parse(self):
-        self._reset()
-        for name, path in self._walk_filesystem(self.folderpath):
+    def walk(self):
+        self.reset()
+        for name, path in self._walk_folder(self.folderpath):
             if not os.path.isdir(path):
                 continue
             else:
-                self.observations.append(FilesFolder(self.date, path))
+                self.observations.append(FilesWalker(self.date, path))
 
 
-class Telescope(FilesFolder):
+class Telescope(FilesWalker):
     def __init__(self, uuid, date, folderpath):
         self.uuid = uuid
         super().__init__(date, folderpath)
+        # Do NOT auto-walk.
 
-    def _reset(self):
+    def reset(self):
         self.calibrations = None
         self.targets = []
 
-    def _parse(self):
-        self._reset()
-        for name, path in self._walk_filesystem(self.folderpath):
+    def walk(self):
+        self.reset()
+        for name, path in self._walk_folder(self.folderpath):
             if not os.path.isdir(path):
                 # If not a directory, skip it. Will skip __oort__.ini files too.
                 continue
@@ -92,18 +93,17 @@ class Telescope(FilesFolder):
                 self.targets.append(Target(self.date, path))
 
 
-class NightLog(FilesFolder):
+class RootFilesWalker(FilesWalker):
     def __init__(self, date, folderpath):
         super().__init__(date, folderpath)
-        self._parse()
+        self.walk()
 
-    def _reset(self):
+    def reset(self):
         self.telescopes = []
 
-    def _parse(self):
-        self._reset()
-
-        for name, path in self._walk_filesystem(self.folderpath):
+    def walk(self):
+        self.reset()
+        for name, path in self._walk_folder(self.folderpath):
             if not os.path.exists(path) or not os.path.isdir(path):
                 continue
             oort_filepath = os.path.join(path, '__oort__')
