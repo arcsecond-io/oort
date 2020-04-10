@@ -57,11 +57,12 @@ class LocalState:
         else:
             return response_resource
 
-    def _check_remote_resource(self, name, api, **kwargs):
+    def _find_or_create_remote_resource(self, name, api, **kwargs):
         new_resource = None
         response_list, error = api.list(**kwargs)
         if error:
-            return response_list, error
+            if self.context.debug: print(str(error))
+            self.update_payload('warning', str(error), 'messages')
         elif len(response_list) == 0:
             new_resource = self._create_remote_resource(api, **kwargs)
         elif len(response_list) == 1:
@@ -71,6 +72,18 @@ class LocalState:
             if self.context.debug: print(msg)
             self.update_payload('warning', msg, 'messages')
         return new_resource
+
+    def _check_existing_remote_resource(self, name, api, uuid):
+        response_detail, error = api.get(uuid=uuid)
+        if error:
+            if self.context.debug: print(str(error))
+            self.update_payload('warning', str(error), 'messages')
+        elif response_detail:
+            self.update_payload('warning', '', 'messages')
+        else:
+            msg = f"Unknown {name} with UUID {uuid}"
+            if self.context.debug: print(msg)
+            self.update_payload('warning', msg, 'messages')
 
     @property
     def _section(self):
