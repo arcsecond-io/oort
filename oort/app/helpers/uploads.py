@@ -1,11 +1,10 @@
 import json
-import os
 
 import arcsecond
-from arcsecond import Arcsecond, ArcsecondConnectionError
+from arcsecond import Arcsecond
 
 from .filewrapper import FileWrapper
-from .models.obstech import NightLog
+from .models import RootFilesWalker
 from .state import LocalState
 
 ROOT_FILES_SECTION = '__oort__'
@@ -24,15 +23,50 @@ class UploadsLocalState(LocalState):
         self.uploads = {}
         self.autostart = True
 
-        self.night_log = NightLog(self.current_date, self.context.folder)
+        self.walker = RootFilesWalker(self.current_date, self.context.folder)
 
         self.api_datasets = Arcsecond.build_datasets_api(debug=self.context.debug,
                                                          organisation=self.context.organisation)
 
+        self.api_observations = Arcsecond.build_observations_api(debug=self.context.debug,
+                                                                 organisation=self.context.organisation)
+
+        self.api_calibrations = Arcsecond.build_calibrations_api(debug=self.context.debug,
+                                                                 organisation=self.context.organisation)
+
     def refresh(self):
-        self.night_log._parse()
-        for telescope in self.night_log.telescopes:
-            telescope._parse()
+        self.walker.walk()
+        for telescope in self.walker.telescopes:
+            telescope.walk()
+
+    def sync_calibrations(self):
+        if not self.context.can_upload:
+            return
+
+        local_night_logs = json.loads(self.read('night_logs') or '[]')
+        local_calibs = []
+
+        for telescope in self.walker.telescopes:
+            night_log = next((nl for nl in local_night_logs if nl['telescope'] == telescope['uuid']), None)
+            if night_log is None:
+                continue
+
+            for calibration in telescope.calibrations:
+                # Word 'Biases' MUST MATCH Django model field!
+                biases = self._find_or_create_remote_resource('Bias',
+                                                              self.api_calibrations,
+                                                              night_log=night_log['uuid'],
+                                                              type='Biases')
+                if biases:
+                    local_calibs.append(biases)
+
+                # Word 'Darks' MUST MATCH Django model field!
+                darks = self._find_or_create_remote_resource('Dark',
+                                                             self.api_calibrations,
+                                                             night_log=night_log['uuid'],
+                                                             type='Darks')
+                if darks:
+                    local_calibs.append(darks)
 
     def sync_datasets(self):
         if not self.context.can_upload:

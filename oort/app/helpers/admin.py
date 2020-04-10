@@ -1,9 +1,8 @@
 import json
-import datetime
 
 from arcsecond import Arcsecond
 
-from .models.obstech import NightLog
+from .models import RootFilesWalker
 from .state import LocalState
 
 
@@ -12,7 +11,7 @@ class AdminLocalState(LocalState):
         super().__init__(config)
         self.update_payload('admin', self.context.to_dict())
 
-        self.night_log = NightLog(self.current_date, self.context.folder)
+        self.walker = RootFilesWalker(self.current_date, self.context.folder)
 
         self.telescopes_api = Arcsecond.build_telescopes_api(debug=self.context.debug,
                                                              organisation=self.context.organisation)
@@ -20,27 +19,22 @@ class AdminLocalState(LocalState):
         self.logs_api = Arcsecond.build_nightlogs_api(debug=self.context.debug,
                                                       organisation=self.context.organisation)
 
-    def _check_remote_telescope(self, tel_uuid):
-        response_telescope, error = self.telescopes_api.read(tel_uuid)
-        if error:
-            if self.context.debug: print(str(error))
-            self.update_payload('message', str(error), 'admin')
-        elif response_telescope:
-            self.update_payload('message', '', 'admin')
-            return response_telescope
-        else:
-            self.update_payload('message', f"Unknown telescope with UUID {tel_uuid}", 'admin')
-
     def refresh(self):
-        self.night_log._parse()
-        if self.context.debug: print(f'Found telescopes: {self.night_log.telescopes}')
+        self.walker.walk()
+        # Do not walk inside telescopes.
+        if self.context.debug: print(f'Found telescopes: {self.walker.telescopes}')
 
     def sync_telescopes(self):
         valid_telescopes = []
-        for telescope in self.night_log.telescopes:
-            valid_telescope = self._check_remote_telescope(telescope.uuid)
+
+        for telescope in self.walker.telescopes:
+            valid_telescope = self._check_existing_remote_resource('Telescope',
+                                                                   self.telescopes_api,
+                                                                   telescope['uuid'])
+
             if valid_telescope:
                 valid_telescopes.append(valid_telescope)
+
         self.update_payload('telescopes', valid_telescopes, 'admin')
         self.save(telescopes=json.dumps(valid_telescopes))
 
@@ -75,14 +69,14 @@ class AdminLocalState(LocalState):
     #         self.update_payload('telescopes', [valid_telescope], 'admin')
     #         self.save(telescopes=json.dumps([valid_telescope]))
 
-    def _create_remote_night_log(self, date, telescope_uuid):
-        response_log, error = self.logs_api.create({'date': date, 'telescope': telescope_uuid['uuid']})
-        if error:
-            if self.context.debug: print(str(error))
-            msg = f'Failed to create night log for date {date}. Retry is automatic.'
-            self.update_payload('message', msg, 'admin')
-        else:
-            return response_log
+    # def _create_remote_night_log(self, date, telescope):
+    #     response_log, error = self.logs_api.create({'date': date, 'telescope': telescope['uuid']})
+    #     if error:
+    #         if self.context.debug: print(str(error))
+    #         msg = f'Failed to create night log for date {date}. Retry is automatic.'
+    #         self.update_payload('message', msg, 'admin')
+    #     else:
+    #         return response_log
 
     def sync_night_logs(self):
         local_telescopes = json.loads(self.read('telescopes') or '[]')
@@ -95,21 +89,13 @@ class AdminLocalState(LocalState):
 
         local_logs = []
         for local_telescope in local_telescopes:
-            response_list, error = self.logs_api.list(date=self.current_date, telescope=local_telescope['uuid'])
-            if error:
-                if self.context.debug: print(str(error))
-                self.update_payload('message', str(error), 'admin')
-            elif len(response_list) == 0:
-                new_log = self._create_remote_night_log(self.current_date, local_telescope)
-                if new_log:
-                    local_logs.append(new_log)
-            elif len(response_list) == 1:
-                local_logs.append(response_list[0])
-            else:
-                msg = f'Multiple logs found for date {self.current_date} and telescope {local_telescope["uuid"]} ? Choosing first.'
-                if self.context.debug: print(msg)
-                self.update_payload('message', msg, 'admin')
-                local_logs.append(response_list[0])
+            new_log = self._find_or_create_remote_resource('Night Log',
+                                                           self.logs_api,
+                                                           date=self.current_date,
+                                                           telescope=local_telescope['uuid'])
+
+            if new_log:
+                local_logs.append(new_log)
 
         self.save(night_logs=json.dumps(local_logs))
         self.update_payload('night_logs', local_logs, 'admin')
