@@ -20,14 +20,6 @@ class AdminLocalState(LocalState):
         self.logs_api = Arcsecond.build_nightlogs_api(debug=self.context.debug,
                                                       organisation=self.context.organisation)
 
-    @property
-    def current_date(self):
-        before_noon = datetime.datetime.now().hour < 12
-        if before_noon:
-            return (datetime.datetime.now() - datetime.timedelta(days=1)).date().isoformat()
-        else:
-            return datetime.datetime.now().date().isoformat()
-
     def _check_remote_telescope(self, tel_uuid):
         response_telescope, error = self.telescopes_api.read(tel_uuid)
         if error:

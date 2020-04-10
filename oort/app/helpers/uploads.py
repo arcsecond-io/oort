@@ -5,6 +5,7 @@ import arcsecond
 from arcsecond import Arcsecond, ArcsecondConnectionError
 
 from .filewrapper import FileWrapper
+from .models.obstech import NightLog
 from .state import LocalState
 
 ROOT_FILES_SECTION = '__oort__'
@@ -23,30 +24,21 @@ class UploadsLocalState(LocalState):
         self.uploads = {}
         self.autostart = True
 
+        self.night_log = NightLog(self.current_date, self.context.folder)
+
         self.api_datasets = Arcsecond.build_datasets_api(debug=self.context.debug,
                                                          organisation=self.context.organisation)
 
-    def _read_local_files(self, section):
-        suffix = section if section != ROOT_FILES_SECTION else ''
-        names = os.listdir(os.path.join(self.context.folder, suffix))
-        for name in names:
-            path = os.path.join(self.context.folder, suffix, name)
-            if os.path.isdir(path):
-                if section == ROOT_FILES_SECTION:
-                    self._read_local_files(name)
-            else:
-                if section not in self.files.keys():
-                    self.files[section] = []
-                if len(name) > 0 and name[0] != '.' and path not in self.files[section] and os.path.isfile(path):
-                    self.files[section].append(path)
+    def refresh(self):
+        self.night_log._parse()
+        for telescope in self.night_log.telescopes:
+            telescope._parse()
 
     def sync_datasets(self):
         if not self.context.can_upload:
             return
 
-        local_nightlog = json.loads(self.read('night_log') or '{}')
-        if not local_nightlog:
-            return
+        return
 
         self._read_local_files(ROOT_FILES_SECTION)
         local_datasets = json.loads(self.read('datasets') or '{}')
@@ -60,7 +52,8 @@ class UploadsLocalState(LocalState):
             else:
                 night_log_uuid = local_nightlog.get('uuid')
                 try:
-                    existing_datasets_response, error = self.api_datasets.list(name=dataset_name, night_log=night_log_uuid)
+                    existing_datasets_response, error = self.api_datasets.list(name=dataset_name,
+                                                                               night_log=night_log_uuid)
                 except arcsecond.api.error.ArcsecondConnectionError as e:
                     if self.context.debug: print(str(e))
                     self.update_payload('warning', str(e), 'state')
@@ -90,6 +83,8 @@ class UploadsLocalState(LocalState):
     def sync_uploads(self):
         if not self.context.can_upload:
             return
+
+        return
 
         local_nightlog = json.loads(self.read('night_log') or '{}')
         if not local_nightlog:

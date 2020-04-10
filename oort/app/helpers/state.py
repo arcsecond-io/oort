@@ -1,3 +1,4 @@
+import datetime
 import json
 import os
 from configparser import ConfigParser
@@ -38,6 +39,14 @@ class LocalState:
         self.context = Context(config)
         self._config_filepath = os.path.expanduser('.oort.ini')
         self.payload = {}
+
+    @property
+    def current_date(self):
+        before_noon = datetime.datetime.now().hour < 12
+        if before_noon:
+            return (datetime.datetime.now() - datetime.timedelta(days=1)).date().isoformat()
+        else:
+            return datetime.datetime.now().date().isoformat()
 
     @property
     def _section(self):
