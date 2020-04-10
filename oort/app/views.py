@@ -20,7 +20,7 @@ def admin():
 
     def generate():
         while True:
-            state.sync_telescope()
+            state.sync_telescopes()
             yield state.get_yield_string()
             state.sync_night_log()
             yield state.get_yield_string()

@@ -3,6 +3,7 @@ import datetime
 
 from arcsecond import Arcsecond
 
+from .models.obstech import NightLog
 from .state import LocalState
 
 
@@ -10,6 +11,8 @@ class AdminLocalState(LocalState):
     def __init__(self, config):
         super().__init__(config)
         self.update_payload('admin', self.context.to_dict())
+
+        self.night_log = NightLog(self.context.folder, self.current_date)
 
         self.telescopes_api = Arcsecond.build_telescopes_api(debug=self.context.debug,
                                                              organisation=self.context.organisation)
@@ -26,39 +29,52 @@ class AdminLocalState(LocalState):
             return datetime.datetime.now().date().isoformat()
 
     def _check_remote_telescope(self, tel_uuid):
-        telescope, error = self.telescopes_api.read(tel_uuid)
+        response_telescope, error = self.telescopes_api.read(tel_uuid)
         if error:
             if self.context.debug: print(str(error))
             self.update_payload('message', str(error), 'admin')
-        elif telescope:
+        elif response_telescope:
             self.update_payload('message', '', 'admin')
-            self.update_payload('telescope', telescope, 'admin')
-            self.save(telescope=json.dumps(telescope))
+            return response_telescope
         else:
             self.update_payload('message', f"Unknown telescope with UUID {tel_uuid}", 'admin')
-            self.save(telescope='')
+            self.save(telescopes='')
 
-    def sync_telescope(self):
+    def sync_telescopes(self):
+        valid_telescopes = []
+        for telescope in self.night_log.telescopes:
+            valid_telescope = self._check_remote_telescope(telescope.uuid)
+            if valid_telescope:
+                valid_telescopes.append(valid_telescope)
+        self.update_payload('telescopes', valid_telescopes, 'admin')
+        self.save(telescopes=json.dumps(valid_telescopes))
+
+    def sync_single_telescope(self):
         self.update_payload('message', '', 'admin')
         local_telescope = json.loads(self.read('telescope') or '{}')
+        valid_telescope = None
 
         if local_telescope and self.context.telescopeUUID:
             # Check if they are the same
             if local_telescope['uuid'] == self.context.telescopeUUID:
-                self.update_payload('telescope', local_telescope, 'admin')
+                self.update_payload('telescopes', [local_telescope], 'admin')
             else:
                 # If not, telescope provided in CLI takes precedence, even if it fails...
-                self._check_remote_telescope(local_telescope['uuid'])
+                valid_telescope = self._check_remote_telescope(local_telescope['uuid'])
 
         elif local_telescope and not self.context.telescopeUUID:
-            self.update_payload('telescope', local_telescope, 'admin')
+            self.update_payload('telescopes', [local_telescope], 'admin')
 
         elif not local_telescope and self.context.telescopeUUID:
-            self._check_remote_telescope(self.context.telescopeUUID)
+            valid_telescope = self._check_remote_telescope(self.context.telescopeUUID)
 
         else:
             # Do nothing
             pass
+
+        if valid_telescope:
+            self.update_payload('telescopes', [valid_telescope], 'admin')
+            self.save(telescopes=json.dumps([valid_telescope]))
 
     def _create_night_log(self, date, local_telescope):
         result, error = self.logs_api.create({'date': date, 'telescope': local_telescope['uuid']})
