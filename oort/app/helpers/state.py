@@ -48,23 +48,23 @@ class LocalState:
         else:
             return datetime.datetime.now().date().isoformat()
 
-    def _create_remote_resource(self, name, api, **kwargs):
+    def _create_remote_resource(self, resource_name, api, **kwargs):
         response_resource, error = api.create(kwargs)
         if error:
             if self.context.debug: print(str(error))
-            msg = f'Failed to create {name} for date {self.current_date}. Retry is automatic.'
+            msg = f'Failed to create {resource_name} for date {self.current_date}. Retry is automatic.'
             self.update_payload('warning', msg, 'messages')
         else:
             return response_resource
 
-    def _find_or_create_remote_resource(self, name, api, **kwargs):
+    def _find_or_create_remote_resource(self, resource_name, api, **kwargs):
         new_resource = None
         response_list, error = api.list(**kwargs)
         if error:
             if self.context.debug: print(str(error))
             self.update_payload('warning', str(error), 'messages')
         elif len(response_list) == 0:
-            new_resource = self._create_remote_resource(name, api, **kwargs)
+            new_resource = self._create_remote_resource(resource_name, api, **kwargs)
         elif len(response_list) == 1:
             new_resource = response_list[0]
         else:
@@ -73,7 +73,7 @@ class LocalState:
             self.update_payload('warning', msg, 'messages')
         return new_resource
 
-    def _check_existing_remote_resource(self, name, api, uuid):
+    def _check_existing_remote_resource(self, resource_name, api, uuid):
         response_detail, error = api.read(uuid)
         if error:
             if self.context.debug: print(str(error))
@@ -81,7 +81,7 @@ class LocalState:
         elif response_detail:
             self.update_payload('warning', '', 'messages')
         else:
-            msg = f"Unknown {name} with UUID {uuid}"
+            msg = f"Unknown {resource_name} with UUID {uuid}"
             if self.context.debug: print(msg)
             self.update_payload('warning', msg, 'messages')
         return response_detail
