@@ -60,6 +60,11 @@ class LocalState:
     def _find_or_create_remote_resource(self, resource_name, api, **kwargs):
         new_resource = None
         response_list, error = api.list(**kwargs)
+
+        # Dealing with paginated results
+        if isinstance(response_list, dict) and 'count' in response_list.keys() and 'results' in response_list.keys():
+            response_list = response_list['results']
+
         if error:
             if self.context.debug: print(str(error))
             self.update_payload('warning', str(error), 'messages')
