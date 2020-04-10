@@ -67,33 +67,27 @@ class AdminLocalState(LocalState):
         if not local_telescope:
             return
 
-        before_noon = datetime.datetime.now().hour < 12
-        if before_noon:
-            date = (datetime.datetime.now() - datetime.timedelta(days=1)).date().isoformat()
-        else:
-            date = datetime.datetime.now().date().isoformat()
-
-        self.update_payload('date', date, 'admin')
+        self.update_payload('date', self.current_date, 'admin')
         local_nightlog = json.loads(self.read('night_log') or '{}')
         self.save(datasets='')
 
         if local_nightlog:
-            if local_nightlog['date'] == date:
+            if local_nightlog['date'] == self.current_date:
                 self.update_payload('night_log', local_nightlog, 'admin')
             else:
-                self._create_night_log(date, local_telescope)
+                self._create_night_log(self.current_date, local_telescope)
         else:
-            logs, error = self.logs_api.list(date=date)
+            logs, error = self.logs_api.list(date=self.current_date)
 
             if error:
                 if self.context.debug: print(str(error))
                 self.update_payload('message', str(error), 'admin')
             elif len(logs) == 0:
-                self._create_night_log(date, local_telescope)
+                self._create_night_log(self.current_date, local_telescope)
             elif len(logs) == 1:
                 self.save(night_log=json.dumps(logs[0]))
                 self.update_payload('night_log', logs[0], 'admin')
             else:
-                msg = f'Multiple logs found for date {date}'
+                msg = f'Multiple logs found for date {self.current_date}'
                 if self.context.debug: print(msg)
                 self.update_payload('message', msg, 'admin')
