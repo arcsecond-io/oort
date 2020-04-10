@@ -17,15 +17,17 @@ class FilesFolder:
 
     def _parse(self):
         for name, path in self._walk_filesystem(self.folderpath):
-            if os.path.isdir(path):
+            if not os.path.exists(path) or os.path.isdir(path):
                 continue
             # Todo: deal with timezones and filename formats!
             if self.date in name:
                 self.files.append(path)
 
     def _walk_filesystem(self, folderpath):
+        if not os.path.exists(folderpath) or not os.path.isdir(folderpath):
+            return zip([], [])
         names = os.listdir(folderpath)
-        paths = [os.path.join(folderpath, name) for name in names]
+        paths = [os.path.join(folderpath, name) for name in names if len(name) > 0 and name[0] != '.']
         return zip(names, paths)
 
 
@@ -102,14 +104,11 @@ class NightLog(FilesFolder):
         self._reset()
 
         for name, path in self._walk_filesystem(self.folderpath):
-            if not os.path.isdir(path):
+            if not os.path.exists(path) or not os.path.isdir(path):
                 continue
             oort_filepath = os.path.join(path, '__oort__')
             if os.path.exists(oort_filepath) and os.path.isfile(oort_filepath):
                 self._append_telescope(oort_filepath)
-
-        for telescope in self.telescopes:
-            telescope._parse()
 
     def _append_telescope(self, oort_filepath):
         with open(oort_filepath, 'r') as f:
