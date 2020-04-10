@@ -84,6 +84,7 @@ class LocalState:
             msg = f"Unknown {name} with UUID {uuid}"
             if self.context.debug: print(msg)
             self.update_payload('warning', msg, 'messages')
+        return response_detail
 
     @property
     def _section(self):

@@ -2,6 +2,7 @@ var admin = new Vue({
   el: '#admin',
   data: {
     admin: null,
+    messages: null,
     source: null
   },
   mounted: function () {
@@ -10,6 +11,7 @@ var admin = new Vue({
     this.source.onmessage = function (event) {
       const json = JSON.parse(event.data)
       self.admin = json.admin
+      self.messages = json.messages
       if (self.admin['selected_night_log']) {
         self.admin['selected_night_log_url'] = 'data/' + self.admin['selected_night_log']['date'].replace(/-/gi, '/')
       }

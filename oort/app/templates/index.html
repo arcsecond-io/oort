@@ -83,7 +83,7 @@
 
             <div>
               <span v-if="admin.telescopes && admin.telescopes.length">
-                <label for="telescopes-select">telescope(s)</label>:
+                <label for="telescopes-select">Telescope(s)</label>:
                 <select id="telescopes-select" @change="selectTelescope($event.target.value)">
                   <option value="__all__">All</option>
                   <option v-for="(telescope, index) in admin.telescopes" :key="telescope.uuid" :value="telescope.uuid">
@@ -97,30 +97,30 @@
             </div>
             <div>
               <span v-if="admin.selected_night_log">
-                <strong>night log</strong>: {{ admin.selected_night_log.date }}
+                <strong>Selected night log</strong>: {{ admin.selected_night_log.date }}
                 <span class="subtitle">(uuid: {{ admin.selected_night_log.uuid }})</span>
                 <br/>
                 <span class="subtitle">Beware that night logs starts on local noon and last 24 hours.</span>
                 [<a :href="`https://${admin.organisation}.arcsecond.io/${admin.selected_night_log_url}`" target="_blank">open night data in portal</a>]
               </span>
               <span v-else-if="admin.night_logs && admin.night_logs.length">
-                <strong>all night logs</strong>: {{ admin.night_logs[0].date }}
-                [<span class="subtitle" v-for="night_log in admin.night_logs">{{ night_log.uuid }}</span>&nbsp;]
+                <strong>All night logs</strong>: {{ admin.night_logs[0].date }}
+                [<span class="subtitle" v-for="night_log in admin.night_logs">{{ night_log.uuid }}, </span>]
                 <br/>
                 <span class="subtitle">Beware that night logs starts on local noon and last 24 hours.</span>
                 [<a :href="`https://${admin.organisation}.arcsecond.io/${admin.selected_night_log_url}`" target="_blank">open night data in portal</a>]
               </span>
               <span v-else>
-                No Night Log.
+                No night log
               </span>
             </div>
 
-            <div v-if="admin.message">
-              <strong>{{ admin.message }}</strong>
+            <div v-if="messages && messages.info">
+              <strong>{{ messages.info }}</strong>
             </div>
 
-            <div v-if="admin.warning">
-              <span class="alert-warning">{{ admin.warning }}</span>
+            <div v-if="messages && messages.warning">
+              <span class="alert-warning">{{ messages.warning }}</span>
             </div>
 
           </div>

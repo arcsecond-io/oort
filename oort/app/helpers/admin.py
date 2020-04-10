@@ -35,6 +35,8 @@ class AdminLocalState(LocalState):
             if valid_telescope:
                 valid_telescopes.append(valid_telescope)
 
+
+        if self.context.debug: print(f'Validated telescopes: {valid_telescopes}')
         self.update_payload('telescopes', valid_telescopes, 'admin')
         self.save(telescopes=json.dumps(valid_telescopes))
 
