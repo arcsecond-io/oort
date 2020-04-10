@@ -30,7 +30,7 @@ class AdminLocalState(LocalState):
         for telescope in self.walker.telescopes:
             valid_telescope = self._check_existing_remote_resource('Telescope',
                                                                    self.telescopes_api,
-                                                                   telescope['uuid'])
+                                                                   telescope.uuid)
 
             if valid_telescope:
                 valid_telescopes.append(valid_telescope)
