@@ -48,7 +48,7 @@ class LocalState:
         else:
             return datetime.datetime.now().date().isoformat()
 
-    def _create_remote_resource(self, api, name, **kwargs):
+    def _create_remote_resource(self, name, api, **kwargs):
         response_resource, error = api.create(kwargs)
         if error:
             if self.context.debug: print(str(error))
@@ -64,7 +64,7 @@ class LocalState:
             if self.context.debug: print(str(error))
             self.update_payload('warning', str(error), 'messages')
         elif len(response_list) == 0:
-            new_resource = self._create_remote_resource(api, **kwargs)
+            new_resource = self._create_remote_resource(name, api, **kwargs)
         elif len(response_list) == 1:
             new_resource = response_list[0]
         else:
