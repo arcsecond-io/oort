@@ -49,9 +49,11 @@ class UploadsLocalState(LocalState):
         for telescope in self.walker.telescopes:
             night_log = next((nl for nl in local_night_logs if nl['telescope'] == telescope.uuid), None)
             if night_log is None:
+                if self.context.debug: print(f'No night log for telescope {telescope.uuid}')
                 continue
 
             if getattr(telescope, 'calibrations', None) is None:
+                if self.context.debug: print(f'No calibrations walker for telescope folder {telescope.uuid}')
                 continue
 
             if telescope.calibrations.biases is not None:
@@ -71,6 +73,9 @@ class UploadsLocalState(LocalState):
                                                              type='Darks')
                 if darks:
                     local_calibs.append(darks)
+
+        if self.context.debug:
+            print(f'Validated calibs: {local_calibs}')
 
     def sync_datasets(self):
         if not self.context.can_upload:
