@@ -19,6 +19,13 @@ class AdminLocalState(LocalState):
 
     def _check_remote_telescope(self, ):
         telescope, error = self.telescopes_api.read(self.context.telescopeUUID)
+    @property
+    def current_date(self):
+        before_noon = datetime.datetime.now().hour < 12
+        if before_noon:
+            return (datetime.datetime.now() - datetime.timedelta(days=1)).date().isoformat()
+        else:
+            return datetime.datetime.now().date().isoformat()
         if error:
             if self.context.debug: print(str(error))
             self.update_payload('message', str(error), 'admin')
