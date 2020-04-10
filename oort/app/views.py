@@ -40,6 +40,8 @@ def uploads():
         count = 0
         while True:
             if (count < 30 and count % 10 == 0) or count % 60 == 0:
+                state.refresh()
+                yield state.get_yield_string()
                 state.sync_calibrations()
                 yield state.get_yield_string()
                 state.sync_datasets()
