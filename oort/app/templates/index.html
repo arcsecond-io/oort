@@ -156,6 +156,12 @@
             </div>
           </div>
 
+          <div class="state-block" v-if="!isAlive">
+            <div>
+              <pre class="alert-warning">Oort server is disconnected. Issue the command above again.</pre>
+            </div>
+          </div>
+
           <div class="table-block" v-if="state.showTables">
             <div class="table-title">Active Uploads ({{ uploads.length }})</div>
             <table class="table table-striped text-small" v-if="uploads.length > 0">
