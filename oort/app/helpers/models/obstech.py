@@ -43,7 +43,8 @@ class Filters(FilesWalker):
             if not os.path.isdir(path):
                 continue
             self.filters.append(FilesWalker(self.date, path))
-
+        for filter in self.filters:
+            filter.walk()
 
 class Calibrations(FilesWalker):
     def __init__(self, date, folderpath):
