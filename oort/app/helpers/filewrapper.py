@@ -49,12 +49,18 @@ class FileWrapper(object):
 
     def exists_remotely(self):
         filename = os.path.basename(self.filepath)
-        filtered_list = self.api.list(dataset=self.dataset_uuid, name=filename)
-        print(filtered_list)
-        if len(filtered_list) == 0:
+        response_list, error = self.api.list(dataset=self.dataset_uuid, name=filename)
+        if error:
+            print(error)
+
+        if isinstance(response_list, dict) and 'count' in response_list.keys() and 'results' in response_list.keys():
+            response_list = response_list['results']
+
+        print(response_list)
+        if len(response_list) == 0:
             return False
-        elif len(filtered_list) == 1:
-            return 'amazonaws.com' in filtered_list[0]['file']
+        elif len(response_list) == 1:
+            return 'amazonaws.com' in response_list[0]['file']
         else:
             print(f'Multiple files for dataset {self.dataset_uuid} and filename {filename}???')
 
