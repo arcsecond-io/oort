@@ -1,7 +1,7 @@
 import datetime
 import json
 import os
-from configparser import ConfigParser
+from configparser import ConfigParser, DuplicateOptionError
 
 from arcsecond import Arcsecond
 
@@ -98,7 +98,11 @@ class LocalState:
 
     def _get_config(self):
         _config = ConfigParser()
-        _config.read(self._config_filepath)
+        try:
+            _config.read(self._config_filepath)
+        except DuplicateOptionError:
+            os.remove(self._config_filepath)
+            _config.read(self._config_filepath)
         return _config
 
     def _save_config(self, config):
