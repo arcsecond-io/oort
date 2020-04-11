@@ -145,38 +145,68 @@ class UploadsLocalState(LocalState):
         if not self.context.can_upload:
             return
 
-        return
+        local_night_logs = json.loads(self.read('night_logs') or '[]')
 
-        local_nightlog = json.loads(self.read('night_log') or '{}')
-        if not local_nightlog:
-            return
+        for telescope in self.walker.telescopes:
+            night_log = next((nl for nl in local_night_logs if nl['telescope'] == telescope.uuid), None)
+            if night_log is None:
+                if self.context.debug: print(f'No night log for telescope {telescope.uuid}')
+                continue
 
-        self._read_local_files(ROOT_FILES_SECTION)
-        local_datasets = json.loads(self.read('datasets') or '{}')
+            local_datasets = json.loads(self.read(self._get_dataset_key(telescope.uuid)) or '[]')
+            local_calibs = json.loads(self.read(self._get_calib_key(telescope.uuid)) or '[]')
 
-        self.update_payload('showTables', True, 'state')
+            # All Biases: One Dataset
 
-        for dataset_name in self.files.keys():
-            if dataset_name in local_datasets.values():
-                dataset_uuid = dict((v, k) for k, v in local_datasets.items())[dataset_name]
+            bias_calib = next((cal for cal in local_calibs if cal['type'] == 'Biases'), None)
+            bias_dataset = next((ds for ds in local_datasets if ds['calibration'] == bias_calib['uuid']), None)
+            if bias_dataset:
+                if self.context.debug: print(f'Uploading biases...')
+                for filepath in telescope.calibrations.biases.files:
+                    self.process_file_upload(filepath, bias_dataset)
 
-                for filepath in self.files[dataset_name]:
-                    fw = self.uploads.get(filepath)
-                    if fw is None:
-                        fw = FileWrapper(filepath, dataset_uuid, dataset_name, self.context.debug)
-                        self.uploads[filepath] = fw
+            # All Darks: One Dataset
 
-                    started_count = len([u for u in self.uploads.values() if u.is_started()])
-                    if self.autostart and started_count < MAX_SIMULTANEOUS_UPLOADS:
-                        fw.start()
-                    if fw.will_finish():
-                        fw.finish()
+            dark_calib = next((cal for cal in local_calibs if cal['type'] == 'Darks'), None)
+            dark_dataset = next((ds for ds in local_datasets if ds['calibration'] == dark_calib['uuid']), None)
+            if dark_dataset:
+                if self.context.debug: print(f'Uploading darks...')
+                for filepath in telescope.calibrations.darks.files:
+                    self.process_file_upload(filepath, dark_dataset)
 
-                current_uploads = [fw.to_dict() for fw in self.uploads.values() if fw.is_finished() is False]
-                finished_uploads = [fw.to_dict() for fw in self.uploads.values() if fw.is_finished() is True]
-                self.update_payload('current_uploads', current_uploads)
-                self.update_payload('finished_uploads', finished_uploads)
+            # One Flat Filter: One Dataset
 
+            local_flats = json.loads(self.read(self._get_flat_key(telescope.uuid)) or '[]')
+            for flat_filter in telescope.calibrations.flats.filters:
+                flat_calib = next((flat for flat in local_flats if flat['name'] == flat_filter.name), None)
+                flat_dataset = next((ds for ds in local_datasets if ds['calibration'] == flat_calib['uuid']), None)
+
+                if flat_dataset:
+                    if self.context.debug: print(f'Uploading flats {flat_filter.name} {flat_filter.files}...')
+                    for filepath in flat_filter.files:
+                        self.process_file_upload(filepath, flat_dataset)
+
+            current_uploads = [fw.to_dict() for fw in self.uploads.values() if fw.is_finished() is False]
+            finished_uploads = [fw.to_dict() for fw in self.uploads.values() if fw.is_finished() is True]
+            self.update_payload('current_uploads', current_uploads)
+            self.update_payload('finished_uploads', finished_uploads)
+            self.update_payload('showTables', True, 'state')
+
+            if self.context.debug:
+                print(finished_uploads)
+
+    def process_file_upload(self, filepath, dataset):
+        fw = self.uploads.get(filepath)
+        if fw is None:
+            fw = FileWrapper(filepath, dataset['uuid'], dataset['name'], self.context.debug)
+            self.uploads[filepath] = fw
+
+        started_count = len([u for u in self.uploads.values() if u.is_started()])
+        if self.autostart and started_count < MAX_SIMULTANEOUS_UPLOADS:
+            if fw.exists_remotely():
+                fw.finish()
             else:
-                # Wait for sync datasets to get the dataset for that folder
-                pass
+                fw.start()
+
+        if fw.will_finish():
+            fw.finish()

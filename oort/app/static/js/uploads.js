@@ -19,8 +19,12 @@ var app = new Vue({
       self.isAlive = true
       const json = JSON.parse(event.data)
       self.state = json.state
-      self.current_uploads = json.current_uploads.sort((u1, u2) => new Date(u1.started).getDate() < new Date(u2.started).getDate())
-      self.finished_uploads = json.finished_uploads.sort((u1, u2) => new Date(u1.ended).getDate() < new Date(u2.ended).getDate())
+      self.current_uploads = json.current_uploads
+      self.finished_uploads = json.finished_uploads
+
+      self.current_uploads.sort((u1, u2) => new Date(u1.started).getDate() < new Date(u2.started).getDate())
+      self.finished_uploads.sort((u1, u2) => new Date(u1.ended).getDate() < new Date(u2.ended).getDate())
+
       const bars = document.getElementsByClassName('progress-bar')
       self.current_uploads.forEach((upload, index) => {
         let bar = bars[index]
