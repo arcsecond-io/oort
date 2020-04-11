@@ -47,6 +47,17 @@ class FileWrapper(object):
     def remaining_bytes(self):
         return (100 - self.progress) * self.filesize / 1000
 
+    def exists_remotely(self):
+        filename = os.path.basename(self.filepath)
+        filtered_list = self.api.list(dataset=self.dataset_uuid, name=filename)
+        print(filtered_list)
+        if len(filtered_list) == 0:
+            return False
+        elif len(filtered_list) == 1:
+            return 'amazonaws.com' in filtered_list[0]['file']
+        else:
+            print(f'Multiple files for dataset {self.dataset_uuid} and filename {filename}???')
+
     def start(self):
         if self.started is not None:
             return
