@@ -37,10 +37,10 @@
     <div class="col-xs-12">
       <h3>
         <img src="{$ url_for('static', filename='img/logo-circle.png') $}" width="20">
-        Your <span class="text-primary">Oort</span> server.
+        Your <span class="text-value">Oort</span> server
         <span class="small">
-          (Oort uploads local data to Arcsecond's cloud. It is open-source and available on
-          <a href="https://github.com/arcsecond-io/oort" target="_blank">GitHub</a>).
+          uploads local data to <a href="https://www.arcsecond.io" target="_blank">Arcsecond</a>'s cloud.
+          (It is open-source and available on <a href="https://github.com/arcsecond-io/oort" target="_blank">GitHub</a>.)
         </span>
       </h3>
 
@@ -98,7 +98,10 @@
                 </span>
                 <span v-if="state.organisation && state.role">
                   <i class="fa fa-arrow-right"></i>
-                  &nbsp;Uploading to <a :href="`https://api.arcsecond.io/${state.organisation}/`">api.arcsecond.io/{{ state.organisation }}/</a>
+                  &nbsp;Uploading to
+                    <a :href="`https://api.arcsecond.io/${state.organisation}/`" target="_blank">
+                      api.arcsecond.io/{{ state.organisation }}/
+                    </a>
                   (private API endpoints)
                 </span>
                 <span v-else-if="state.organisation">
