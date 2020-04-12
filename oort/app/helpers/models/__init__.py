@@ -1,1 +1,0 @@
-from .obstech import RootFilesWalker

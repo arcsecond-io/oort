@@ -32,7 +32,8 @@
 <body>
 
 <div class="container-fluid">
-  <div class="row row-header">
+
+  <div class="row">
     <div class="col-xs-12">
       <h3>
         <img src="{$ url_for('static', filename='img/logo-circle.png') $}" width="20">
@@ -48,7 +49,6 @@
         <code>
           oort
           {% if context.organisation %}-o {$ context.organisation $}{% endif %}
-          {% if context.telescopeUUID %}-t {$ context.telescopeUUID $}{% endif %}
           {% if context.debug %}-d{% endif %}
         </code>
       </div>
@@ -56,32 +56,54 @@
         <strong>Observed folder:</strong>
         <code>{$ context.folder $}</code>
       </div>
+    </div>
+  </div>
 
-      {% if context.isAuthenticated %}
-        <!-- **** STARTING FROM HERE, VUE.JS 'admin.js' HAS CONTROL **** -->
-        <div id="admin" v-if="admin">
+  {% if not context.isAuthenticated %}
+
+    <div class="row">
+      <div class="col-xs-12">
+        <div id="admin">
           <div class="context">
-            <div>
-              <span><strong>Arcsecond login username:</strong> @{{ admin.username }}</span>
-              <span v-if="admin.organisation"><strong>organisation:</strong> {{ admin.organisation ? admin.organisation : '-' }}</span>
-              <span v-if="admin.role"><strong>role:</strong> {{ admin.role ? admin.role : '-' }}</span>
+            Login first with the Arcsecond CLI (installed with Oort Cloud): (<code>$ arcsecond login</code>), then
+            <a href="/" target="_self">refresh this page</a>.
+          </div>
+        </div>
+      </div>
+    </div>
 
-              <span v-if="admin.organisation && admin.role">
+  {% else %}
+
+    <!-- **** STARTING FROM HERE, VUE.JS 'admin.js' HAS CONTROL **** -->
+    <div id="vuejs">
+
+      <div class="row row-header">
+        <div class="col-xs-12">
+
+          <div v-if="admin">
+
+            <div class="context">
+              <div>
+                <span><strong>Arcsecond login username:</strong> @{{ admin.username }}</span>
+                <span v-if="admin.organisation"><strong>organisation:</strong> {{ admin.organisation ? admin.organisation : '-' }}</span>
+                <span v-if="admin.role"><strong>role:</strong> {{ admin.role ? admin.role : '-' }}</span>
+
+                <span v-if="admin.organisation && admin.role">
                 &nbsp;<i class="fa fa-check" style="color: green;"></i>&nbsp;
                 &nbsp;<i class="fa fa-arrow-right"></i>&nbsp;Uploading to <a :href="`https://api.arcsecond.io/${admin.organisation}/`">api.arcsecond.io/{{ admin.organisation }}/</a>
                 (organisation account) [<a :href="`https://${admin.organisation}.arcsecond.io`" target="_blank">open portal</a>]
               </span>
-              <span v-else-if="admin.organisation">
+                <span v-else-if="admin.organisation">
                 &nbsp;<i class="fa fa-exclamation-triangle" style="color: orange;"></i>&nbsp;
                 &nbsp;<i class="fa fa-arrow-right"></i>&nbsp;No membership found for organisation <code>{{ admin.organisation }}</code>!
                 Uploading to <a href="https://api.arcsecond.io">api.arcsecond.io</a> (Personal account)
               </span>
-              <span v-else>
+                <span v-else>
                 &nbsp;<i class="fa fa-arrow-right"></i>&nbsp;Uploading to <a href="https://api.arcsecond.io">api.arcsecond.io</a> (Personal account)
               </span>
-            </div>
+              </div>
 
-            <div>
+              <div>
               <span v-if="admin.telescopes && admin.telescopes.length">
                 <label for="telescopes-select">Telescope(s)</label>:
                 <select id="telescopes-select" @change="selectTelescope($event.target.value)">
@@ -91,11 +113,12 @@
                   </option>
                 </select>
               </span>
-              <span v-else>
+                <span v-else>
                 No Telescope.
               </span>
-            </div>
-            <div>
+              </div>
+
+              <div>
               <span v-if="admin.selected_night_log">
                 <strong>Selected night log</strong>: {{ admin.selected_night_log.date }}
                 <span class="subtitle">(uuid: {{ admin.selected_night_log.uuid }})</span>
@@ -103,155 +126,148 @@
                 <span class="subtitle">Beware that night logs starts on local noon and last 24 hours.</span>
                 [<a :href="`https://${admin.organisation}.arcsecond.io/${admin.selected_night_log_url}`" target="_blank">open night data in portal</a>]
               </span>
-              <span v-else-if="admin.night_logs && admin.night_logs.length">
+                <span v-else-if="admin.night_logs && admin.night_logs.length">
                 <strong>All night logs</strong>: {{ admin.night_logs[0].date }}
                 [<span class="subtitle" v-for="night_log in admin.night_logs">{{ night_log.uuid }}, </span>]
                 <br/>
                 <span class="subtitle">Beware that night logs starts on local noon and last 24 hours.</span>
                 [<a :href="`https://${admin.organisation}.arcsecond.io/${admin.selected_night_log_url}`" target="_blank">open night data in portal</a>]
               </span>
-              <span v-else>
+                <span v-else>
                 No night log
               </span>
-            </div>
+              </div>
 
-            <div v-if="messages && messages.info">
-              <strong>{{ messages.info }}</strong>
-            </div>
+              <div v-if="messages && messages.info">
+                <strong>{{ messages.info }}</strong>
+              </div>
 
-            <div v-if="messages && messages.warning">
-              <span class="alert-warning">{{ messages.warning }}</span>
-            </div>
+              <div v-if="messages && messages.warning">
+                <span class="alert-warning">{{ messages.warning }}</span>
+              </div>
 
+            </div>
           </div>
-        </div>
-        <!-- -->
+          <!-- -->
 
-      {% else %}
-        <div id="admin">
-          <div class="context">
-            Login first with the Arcsecond CLI (installed with Oort Cloud): (<code>$ arcsecond login</code>), then
-            <a href="/" target="_self">refresh this page</a>.
-          </div>
         </div>
-      {% endif %}
+      </div>
 
+      {#    <div class="row text-small">#}
+      {#      <div class="col-xs-12">#}
+      {##}
+      {#        {% if context.canUpload %}#}
+      {##}
+      {#          <!-- **** STARTING FROM HERE, VUE.JS 'uploads.js' HAS CONTROL **** -->#}
+      {#          <div id="uploads" v-if="state">#}
+      {#            <div class="state-block">#}
+      {#              <div class="label-centered darkgray">{{ state.message }}</div>#}
+      {#            </div>#}
+      {##}
+      {#            <div class="state-block" v-if="state.warning">#}
+      {#              <div>#}
+      {#                <pre class="alert-warning">{{ state.warning }}</pre>#}
+      {#              </div>#}
+      {#            </div>#}
+      {##}
+      {#            <div class="state-block" v-if="!isAlive">#}
+      {#              <div>#}
+      {#                <pre class="alert-warning">Oort server is disconnected. Issue the command above again.</pre>#}
+      {#              </div>#}
+      {#            </div>#}
+      {##}
+      {#            <div class="table-block" v-if="isAlive && state.showTables">#}
+      {#              <div class="table-title">#}
+      {#                Active Uploads ({{ current_uploads.length }})#}
+      {#                <i class="fa fa-spin fa-spinner"></i>#}
+      {#              </div>#}
+      {#              <table class="table table-striped text-small" v-if="current_uploads.length > 0">#}
+      {#                <thead>#}
+      {#                <tr>#}
+      {#                  <th>Filename</th>#}
+      {#                  <th>Dataset</th>#}
+      {#                  <th>Size</th>#}
+      {#                  <th>Status</th>#}
+      {#                  <th>Progress</th>#}
+      {#                  <th>Started</th>#}
+      {#                  <th>Ended</th>#}
+      {#                  <th>Duration</th>#}
+      {#                  <th>Error</th>#}
+      {#                </tr>#}
+      {#                </thead>#}
+      {#                <tbody>#}
+      {#                <tr v-for="upload in current_uploads">#}
+      {#                  <td>{{ upload.filename }}</td>#}
+      {#                  <td :title="upload.dataset_uuid">{{ upload.dataset_name }}</td>#}
+      {#                  <td>{{ upload.filesize / 1000 }} kB</td>#}
+      {#                  <td>{{ upload.status }}</td>#}
+      {#                  <td>#}
+      {#                    <div class="progress" style="width: 90%;">#}
+      {#                      <div class="progress-bar progress-bar-striped active"#}
+      {#                           role="progressbar"#}
+      {#                           aria-valuenow="0"#}
+      {#                           aria-valuemin="0"#}
+      {#                           aria-valuemax="100">#}
+      {#                        <span class="progress-bar-label">{{ Math.round(upload.progress) }}%</span>#}
+      {#                      </div>#}
+      {#                    </div>#}
+      {#                  </td>#}
+      {#                  <td>{{ upload.started }}</td>#}
+      {#                  <td>{{ upload.ended }}</td>#}
+      {#                  <td>{{ upload.duration }} s</td>#}
+      {#                  <td>{{ upload.error }}</td>#}
+      {#                </tr>#}
+      {#                </tbody>#}
+      {#              </table>#}
+      {#              <div v-else>#}
+      {#                <span class="label-centered">There are no active uploads.</span>#}
+      {#              </div>#}
+      {#            </div>#}
+      {##}
+      {#            <div class="table-block" v-if="state.showTables">#}
+      {#              <div class="table-title">Finished Uploads ({{ finished_uploads.length }})</div>#}
+      {#              <table class="table table-striped text-small" v-if="finished_uploads.length > 0">#}
+      {#                <thead>#}
+      {#                <tr>#}
+      {#                  <th>Filename</th>#}
+      {#                  <th>Dataset</th>#}
+      {#                  <th>Size (kB)</th>#}
+      {#                  <th>Status</th>#}
+      {#                  <th>Started</th>#}
+      {#                  <th>Ended</th>#}
+      {#                  <th>Duration</th>#}
+      {#                  <th>Error</th>#}
+      {#                </tr>#}
+      {#                </thead>#}
+      {#                <tbody>#}
+      {#                <tr v-for="upload in finished_uploads">#}
+      {#                  <td>{{ upload.filename }}</td>#}
+      {#                  <td :title="upload.dataset_uuid">{{ upload.dataset_name }}</td>#}
+      {#                  <td>{{ upload.filesize / 1000 }} kB</td>#}
+      {#                  <td>{{ upload.status }}</td>#}
+      {#                  <td>{{ upload.started }}</td>#}
+      {#                  <td>{{ upload.ended }}</td>#}
+      {#                  <td>{{ upload.duration }} s</td>#}
+      {#                  <td>{{ upload.error }}</td>#}
+      {#                </tr>#}
+      {#                </tbody>#}
+      {#              </table>#}
+      {#              <div v-else>#}
+      {#                <span class="label-centered">There are no inactive / past uploads.</span>#}
+      {#              </div>#}
+      {#            </div>#}
+      {##}
+      {#          </div>#}
+      {#          <!--  **** -->#}
+      {#        {% endif %}#}
+      {#      </div>#}
+      {#    </div>#}
     </div>
-  </div>
 
-  <div class="row text-small">
-    <div class="col-xs-12">
+  {% endif %}
 
-      {% if context.canUpload %}
+  <script src="{$ url_for('static', filename='js/uploads.js') $}"></script>
 
-        <!-- **** STARTING FROM HERE, VUE.JS 'uploads.js' HAS CONTROL **** -->
-        <div id="uploads" v-if="state">
-          <div class="state-block">
-            <div class="label-centered darkgray">{{ state.message }}</div>
-          </div>
-
-          <div class="state-block" v-if="state.warning">
-            <div>
-              <pre class="alert-warning">{{ state.warning }}</pre>
-            </div>
-          </div>
-
-          <div class="state-block" v-if="!isAlive">
-            <div>
-              <pre class="alert-warning">Oort server is disconnected. Issue the command above again.</pre>
-            </div>
-          </div>
-
-          <div class="table-block" v-if="isAlive && state.showTables">
-            <div class="table-title">
-              Active Uploads ({{ current_uploads.length }})
-              <i class="fa fa-spin fa-spinner"></i>
-            </div>
-            <table class="table table-striped text-small" v-if="current_uploads.length > 0">
-              <thead>
-              <tr>
-                <th>Filename</th>
-                <th>Dataset</th>
-                <th>Size</th>
-                <th>Status</th>
-                <th>Progress</th>
-                <th>Started</th>
-                <th>Ended</th>
-                <th>Duration</th>
-                <th>Error</th>
-              </tr>
-              </thead>
-              <tbody>
-              <tr v-for="upload in current_uploads">
-                <td>{{ upload.filename }}</td>
-                <td :title="upload.dataset_uuid">{{ upload.dataset_name }}</td>
-                <td>{{ upload.filesize / 1000 }} kB</td>
-                <td>{{ upload.status }}</td>
-                <td>
-                  <div class="progress" style="width: 90%;">
-                    <div class="progress-bar progress-bar-striped active"
-                         role="progressbar"
-                         aria-valuenow="0"
-                         aria-valuemin="0"
-                         aria-valuemax="100">
-                      <span class="progress-bar-label">{{ Math.round(upload.progress) }}%</span>
-                    </div>
-                  </div>
-                </td>
-                <td>{{ upload.started }}</td>
-                <td>{{ upload.ended }}</td>
-                <td>{{ upload.duration }} s</td>
-                <td>{{ upload.error }}</td>
-              </tr>
-              </tbody>
-            </table>
-            <div v-else>
-              <span class="label-centered">There are no active uploads.</span>
-            </div>
-          </div>
-
-          <div class="table-block" v-if="state.showTables">
-            <div class="table-title">Finished Uploads ({{ finished_uploads.length }})</div>
-            <table class="table table-striped text-small" v-if="finished_uploads.length > 0">
-              <thead>
-              <tr>
-                <th>Filename</th>
-                <th>Dataset</th>
-                <th>Size (kB)</th>
-                <th>Status</th>
-                <th>Started</th>
-                <th>Ended</th>
-                <th>Duration</th>
-                <th>Error</th>
-              </tr>
-              </thead>
-              <tbody>
-              <tr v-for="upload in finished_uploads">
-                <td>{{ upload.filename }}</td>
-                <td :title="upload.dataset_uuid">{{ upload.dataset_name }}</td>
-                <td>{{ upload.filesize / 1000 }} kB</td>
-                <td>{{ upload.status }}</td>
-                <td>{{ upload.started }}</td>
-                <td>{{ upload.ended }}</td>
-                <td>{{ upload.duration }} s</td>
-                <td>{{ upload.error }}</td>
-              </tr>
-              </tbody>
-            </table>
-            <div v-else>
-              <span class="label-centered">There are no inactive / past uploads.</span>
-            </div>
-          </div>
-
-        </div>
-        <!--  **** -->
-      {% endif %}
-    </div>
-  </div>
 </div>
-
-<script src="{$ url_for('static', filename='js/admin.js') $}"></script>
-<script src="{$ url_for('static', filename='js/uploads.js') $}"></script>
-
 </body>
 </html>
