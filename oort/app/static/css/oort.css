@@ -3,6 +3,7 @@
 }
 
 .row.row-header {
+    margin-top: -5em;
     border-bottom: 1px solid #4dbce9;
     padding-bottom: 0.5em;
 }
