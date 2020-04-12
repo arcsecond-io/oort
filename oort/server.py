@@ -2,10 +2,13 @@ import os
 import socket
 import click
 
+from arcsecond import Arcsecond
+
 from .app import app
 
 from . import __version__
 from .options import State, basic_options
+from .errors import *
 
 
 def is_port_in_use(port):
@@ -29,13 +32,22 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 def main(ctx, state, version=False, v=False, o=None, org=None, organisation=None, t=None, tel=None, telescope=None):
     if version or v:
         click.echo(__version__)
+
     elif ctx.invoked_subcommand is None:
+        if not Arcsecond.is_logged_in():
+            raise NotLoggedInOortCloudError()
+
+        organisation = o or org or organisation
+        if organisation:
+            if Arcsecond.memberships().get(organisation) is None:
+                raise InvalidOrgMembershipInOortCloudError(organisation)
+
         port = 5000
         while is_port_in_use(port):
             port += 1
         app.config['folder'] = os.getcwd()
         app.config['debug'] = state.debug
-        app.config['organisation'] = o or org or organisation
+        app.config['organisation'] = organisation
         app.config['telescope'] = t or tel or telescope
         app.run(debug=state.debug, host='0.0.0.0', port=port, threaded=True)
 
