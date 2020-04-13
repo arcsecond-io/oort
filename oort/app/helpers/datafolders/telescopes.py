@@ -1,5 +1,7 @@
 import os
 
+from arcsecond import Arcsecond
+
 from .filewalkers import FilesWalker
 from .calibrations import CalibrationsFolder
 from .filters import FiltersFolder
@@ -44,8 +46,14 @@ class TelescopeFolder(FilesWalker):
         observations = []
         datasets = []
 
+        api = Arcsecond.build_observations_api(debug=self.context.debug,
+                                               organisation=self.context.organisation)
+
         for observations_folder in self.observations_folders:
-            resources_list, datasets_list = observations_folder.sync_filters(self.telescope_key, **kwargs)
+            resources_list, datasets_list = observations_folder.sync_filters('Observations',
+                                                                             'observation',
+                                                                             api,
+                                                                             **kwargs)
             observations += resources_list
             datasets += datasets_list
 
