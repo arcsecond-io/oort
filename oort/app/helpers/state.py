@@ -47,6 +47,10 @@ class Context:
             self._payload[group][key] = value
 
     def get_group_payload(self, group, key):
+        if not group in self._payload.keys():
+            return None
+        if not key in self._payload[group]:
+            return None
         return self._payload[group][key]
 
     def get_yield_string(self):
