@@ -25,6 +25,7 @@ class Context:
             self.can_upload = self.role in ['member', 'admin', 'superadmin']
 
         self.config_filepath = os.path.expanduser('.oort.ini')
+        self.current_date = config.get('current_date', self._get_current_date())
 
         self._autostart = True
         self._payload = {}
@@ -60,8 +61,7 @@ class Context:
         json_data = json.dumps(self._payload)
         return f"data:{json_data}\n\n"
 
-    @property
-    def current_date(self):
+    def _get_current_date(self):
         before_noon = datetime.datetime.now().hour < 12
         if before_noon:
             return (datetime.datetime.now() - datetime.timedelta(days=1)).date().isoformat()
