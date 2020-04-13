@@ -102,18 +102,18 @@ class RootFolder(FilesWalker):
                 continue
             telescope_folder.sync_calibrations_folders(night_log=night_log['uuid'])
 
-    def sync_telescopes_targets(self):
+    def sync_telescopes_observations(self):
         night_logs = self.context.get_payload('night_logs')
         for telescope_folder in self.telescope_folders:
             night_log = find(night_logs, telescope=telescope_folder.uuid)
             if night_log is None:
                 continue
-            telescope_folder.sync_targets_folders(night_log=night_log['uuid'])
+            telescope_folder.sync_observations_folders(night_log=night_log['uuid'])
 
     def upload_telescopes_calibrations(self):
         for telescope_folder in self.telescope_folders:
             telescope_folder.uploads_calibrations_folders()
 
-    def upload_telescopes_targets(self):
+    def upload_telescopes_observations(self):
         for telescope_folder in self.telescope_folders:
-            telescope_folder.uploads_targets_folders()
+            telescope_folder.uploads_observations_folders()

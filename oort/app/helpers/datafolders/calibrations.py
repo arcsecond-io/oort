@@ -74,7 +74,7 @@ class CalibrationsFolder(FilesWalker):
             if bias_calib:
                 bias_dataset = find(calibrations_datasets, calibration=bias_calib['uuid'])
                 if bias_dataset:
-                    if self.context.debug: print(f'Uploading biases...')
+                    if self.context.debug: print(f'Uploading {bias_folder.name}...')
                     bias_folder.upload_files(bias_dataset)
 
         for darks_folder in self.darks_folders:
@@ -82,8 +82,8 @@ class CalibrationsFolder(FilesWalker):
             if dark_calib:
                 dark_dataset = find(calibrations_datasets, calibration=dark_calib['uuid'])
                 if dark_dataset:
-                    if self.context.debug: print(f'Uploading darks...')
+                    if self.context.debug: print(f'Uploading {darks_folder.name}...')
                     darks_folder.upload_files(dark_dataset)
 
         for flats_folder in self.flats_folders:
-            flats_folder.upload_filters(payload_key)
+            flats_folder.upload_filters(payload_key, 'Flats')

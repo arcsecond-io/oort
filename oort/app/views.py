@@ -29,7 +29,7 @@ def uploads():
                 yield state.sync_observations_and_calibrations()
 
             yield state.sync_calibrations_uploads()
-            # yield state.sync_observations_uploads()
+            yield state.sync_observations_uploads()
             time.sleep(1)
             count += 1
 

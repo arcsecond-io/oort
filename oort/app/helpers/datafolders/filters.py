@@ -33,14 +33,14 @@ class FiltersFolder(FilesWalker):
 
         return resources_list, datasets_list
 
-    def upload_filters(self, payload_key):
+    def upload_filters(self, payload_key, type_key):
         calibrations = self.context.get_group_payload(payload_key, 'calibrations')
         calibrations_datasets = self.context.get_group_payload(payload_key, 'calibrations_datasets')
 
         for filter_folder in self.filter_folders:
-            flat_calib = find(calibrations, type='Flats', name=filter_folder.name)
+            flat_calib = find(calibrations, type=type_key, name=filter_folder.name)
             if flat_calib:
                 flat_dataset = find(calibrations_datasets, calibration=flat_calib['uuid'])
                 if flat_dataset:
-                    if self.context.debug: print(f'Uploading flats {filter_folder.name}...')
+                    if self.context.debug: print(f'Uploading {filter_folder.name}...')
                     filter_folder.upload_files(flat_dataset)

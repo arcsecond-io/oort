@@ -27,13 +27,9 @@ class UploadsLocalState(State):
 
         self.root.walk_telescope_folders()
         self.root.sync_telescopes_calibrations()
-        self.root.sync_telescopes_targets()
+        self.root.sync_telescopes_observations()
 
         return self.context.get_yield_string()
-
-    def sync_observations_uploads(self):
-        if not self.context.can_upload:
-            return self.get_yield_string()
 
     def sync_calibrations_uploads(self):
         if not self.context.can_upload:
@@ -42,9 +38,13 @@ class UploadsLocalState(State):
         self.context.payload_group_update('state', showTables=True)
         self.root.upload_telescopes_calibrations()
 
-    def sync_targets_uploads(self):
+        return self.context.get_yield_string()
+
+    def sync_observations_uploads(self):
         if not self.context.can_upload:
             return self.get_yield_string()
 
         self.context.payload_group_update('state', showTables=True)
-        self.root.upload_telescopes_targets()
+        self.root.upload_telescopes_observations()
+
+        return self.context.get_yield_string()

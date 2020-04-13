@@ -15,7 +15,7 @@ class TelescopeFolder(FilesWalker):
 
     def reset(self):
         self.calibrations_folders = []
-        self.targets_folders = []
+        self.observations_folders = []
 
     def walk(self):
         self.reset()
@@ -30,22 +30,22 @@ class TelescopeFolder(FilesWalker):
             else:
                 # Prefix Observation and Datasets names with target name.
                 if self.context.debug: print(f' > Found a {self.prefix} {name} folder.')
-                self.targets_folders.append(FiltersFolder(self.context, path, name))
+                self.observations_folders.append(FiltersFolder(self.context, path, name))
 
     @property
     def payload_key(self):
         return f'telescope_{self.uuid}'
 
-    def sync_calibrations_folders(self, payload_key, **kwargs):
+    def sync_calibrations_folders(self, **kwargs):
         for calibrations_folder in self.calibrations_folders:
             calibrations_folder.sync_biases_darks_flats(self.payload_key, **kwargs)
 
-    def sync_targets_folders(self, **kwargs):
+    def sync_observations_folders(self, **kwargs):
         observations = []
         datasets = []
 
-        for targets_folder in self.targets_folders:
-            targets_observations, targets_datasets = targets_folder.sync_filters(self.payload_key, **kwargs)
+        for observations_folder in self.observations_folders:
+            targets_observations, targets_datasets = observations_folder.sync_filters(self.payload_key, **kwargs)
             observations += targets_observations
             datasets += targets_datasets
 
@@ -56,6 +56,6 @@ class TelescopeFolder(FilesWalker):
         for calibrations_folder in self.calibrations_folders:
             calibrations_folder.upload_biases_darks_flats(self.payload_key)
 
-    def uploads_targets_folders(self):
-        for targets_folder in self.targets_folders:
-            targets_folder.upload_biases_darks_flats(self.payload_key)
+    def uploads_observations_folders(self):
+        for observations_folder in self.observations_folders:
+            observations_folder.upload_biases_darks_flats(self.payload_key)
