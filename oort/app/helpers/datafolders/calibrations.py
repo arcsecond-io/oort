@@ -94,4 +94,4 @@ class CalibrationsFolder(FilesWalker):
     def _upload_flats(self, telescope_key):
         for flats_folder in self.flats_folders:
             # The second parameter must match the key in above self.context.payload_group_update...
-            flats_folder.upload_filters(telescope_key, 'calibrations', type='Flats')
+            flats_folder.upload_filters(telescope_key, 'calibrations')
