@@ -14,6 +14,7 @@
 
 .table-block {
     display: block;
+    margin-bottom: 5em;
 }
 
 .label-centered {
@@ -36,10 +37,6 @@
 
 .label-centered.darkgray {
     color: darkgray;
-}
-
-.table-block {
-    margin-bottom: 5em;
 }
 
 .table-title {
