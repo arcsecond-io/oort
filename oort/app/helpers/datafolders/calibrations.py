@@ -21,7 +21,8 @@ class FiltersFolder(FilesWalker):
     def sync_flats(self, api, **kwargs):
         flats = []
         for flat_filter in self.filters:
-            flat = flat_filter.sync_resource(f"Flats : {flat_filter.name}", api, **kwargs)
+            kwargs.update(name=f"Flats : {flat_filter.name}")
+            flat = flat_filter.sync_resource(f'Flat for filter {flat_filter.name}', api, **kwargs)
             if flat:
                 flats.append(flat)
         return flats
@@ -66,7 +67,9 @@ class CalibrationsFolder(FilesWalker):
                                                     organisation=self.context.organisation)
 
         if self.biases_folder:
+            kwargs.update(type="Biases")
             biases_calib = self.biases_folder.sync_resource("Biases", api_calibrations, **kwargs)
+
             if biases_calib:
                 calibrations.append(biases_calib)
                 biases_dataset = self.biases_folder.sync_resource('Dataset',
@@ -78,7 +81,9 @@ class CalibrationsFolder(FilesWalker):
                     datasets.append(biases_dataset)
 
         if self.darks_folder:
+            kwargs.update(type="Biases")
             darks_calib = self.darks_folder.sync_resource("Darks", api_calibrations, **kwargs)
+
             if darks_calib:
                 calibrations.append(darks_calib)
                 darks_dataset = self.darks_folder.sync_resource('Dataset',
