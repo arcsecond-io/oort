@@ -74,31 +74,41 @@ class FileWrapper(object):
     def start(self):
         if self.started is not None:
             return
-        self.uploader.start()
         self.started = datetime.now()
+        if self.exists_remotely():
+            self.progress = 100
+        else:
+            self.uploader.start()
 
     def finish(self):
         if self.ended is not None:
             return
-        self.result, self.error = self.uploader.finish()
+
+        if not self.exists_remotely():
+            _, self.error = self.uploader.finish()
+
         if self.error:
             self.status = 'error'
-            try:
-                error_body = json.loads(self.error)
-            except Exception:
-                pass
-            else:
-                if 'detail' in error_body.keys():
-                    detail = error_body['detail']
-                    error_content = detail[0] if isinstance(detail, list) and len(detail) > 0 else detail
-                    if 'already exists in dataset' in error_content:
-                        self.error = ''
-                        self.status = 'OK'
+            self._process_error(self.error)
         else:
             self.status = 'OK'
+
         self.progress = 0
         self.ended = datetime.now()
         self.duration = (self.ended - self.started).total_seconds()
+
+    def _process_error(self, error):
+        try:
+            error_body = json.loads(error)
+        except Exception:
+            pass
+        else:
+            if 'detail' in error_body.keys():
+                detail = error_body['detail']
+                error_content = detail[0] if isinstance(detail, list) and len(detail) > 0 else detail
+                if 'already exists in dataset' in error_content:
+                    self.error = ''
+                    self.status = 'OK'
 
     def is_started(self):
         return self.started is not None and self.ended is None

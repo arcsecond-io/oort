@@ -154,10 +154,7 @@ class FilesWalker:
 
         started_count = len([u for u in self.context._uploads.values() if u.is_started()])
         if self.context._autostart and started_count < MAX_SIMULTANEOUS_UPLOADS:
-            if fw.exists_remotely():
-                fw.finish()
-            else:
-                fw.start()
+            fw.start()
 
         if fw.will_finish():
             fw.finish()
