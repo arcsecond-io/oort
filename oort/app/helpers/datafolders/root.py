@@ -15,12 +15,6 @@ class RootFolder(FilesWalker):
         super().__init__(context, context.folder)
         self.skip_root_files = skip_root_files
 
-        self.telescopes_api = Arcsecond.build_telescopes_api(debug=self.context.debug,
-                                                             organisation=self.context.organisation)
-
-        self.logs_api = Arcsecond.build_nightlogs_api(debug=self.context.debug,
-                                                      organisation=self.context.organisation)
-
     def reset(self):
         self.other_folders = []
         self.telescope_folders = []
@@ -66,8 +60,10 @@ class RootFolder(FilesWalker):
         self.context.payload_group_update('messages', warning='')
         self.context.payload_update(telescopes=[])
 
+        telescopes_api = Arcsecond.build_telescopes_api(debug=self.context.debug,
+                                                        organisation=self.context.organisation)
         for telescope_folder in self.telescope_folders:
-            telescope = self.fetch_resource('Telescope', self.telescopes_api, telescope_folder.uuid)
+            telescope = self.fetch_resource('Telescope', telescopes_api, telescope_folder.uuid)
             if telescope:
                 self.context.payload_append(telescopes=telescope)
 
@@ -79,9 +75,12 @@ class RootFolder(FilesWalker):
         self.context.payload_group_update('messages', warning='')
         self.context.payload_update(night_logs=[])
 
+        logs_api = Arcsecond.build_nightlogs_api(debug=self.context.debug,
+                                                 organisation=self.context.organisation)
+
         for telescope in self.context.get_payload('telescopes'):
             new_log = self.sync_resource('Night Log',
-                                         self.logs_api,
+                                         logs_api,
                                          date=self.context.current_date,
                                          telescope=telescope['uuid'])
 
