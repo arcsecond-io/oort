@@ -42,7 +42,9 @@ class FiltersFolder(FilesWalker):
         resources_datasets = self.context.get_group_payload(group_key, payload_key + '_datasets')
 
         for filter_folder in self.filter_folders:
-            filter_resource_dataset = find(resources_datasets, uuid=self._folder_dataset_mapping[filter_folder.name])
-            if filter_resource_dataset:
-                if self.context.debug: print(f'Uploading {filter_folder.name}...')
-                filter_folder.upload_files(filter_resource_dataset)
+            uuid = self._folder_dataset_mapping.get(filter_folder.name)
+            if uuid:
+                filter_resource_dataset = find(resources_datasets, uuid=uuid)
+                if filter_resource_dataset:
+                    if self.context.debug: print(f'Uploading {filter_folder.name}...')
+                    filter_folder.upload_files(filter_resource_dataset)
