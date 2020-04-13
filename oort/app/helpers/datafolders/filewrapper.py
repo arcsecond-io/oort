@@ -36,9 +36,7 @@ class FileWrapper(object):
         self.error = None
         self._exists_remotely = False
 
-        self.api = Arcsecond.build_datafiles_api(debug=debug,
-                                                 dataset=dataset_uuid,
-                                                 organisation=organisation)
+        self.api = Arcsecond.build_datafiles_api(debug=debug, organisation=organisation)
 
         def update_progress(event, progress_percent):
             self.progress = progress_percent
@@ -55,7 +53,8 @@ class FileWrapper(object):
             return self._exists_remotely
 
         filename = os.path.basename(self.filepath)
-        response_list, error = self.api.list(name=filename)  # API is built already with dataset_uuid
+        # Prefer providing dataset UUID as filter instead of subresources as in constructor...
+        response_list, error = self.api.list(dataset=self.dataset_uuid, name=filename)
         if error:
             print(error)
 
@@ -65,7 +64,9 @@ class FileWrapper(object):
         if len(response_list) == 0:
             return False
         elif len(response_list) == 1:
-            self._exists_remotely = 'amazonaws.com' in response_list[0]['file']
+            file_field = response_list[0].get('file')
+            if file_field:
+                self._exists_remotely = 'amazonaws.com' in file_field.get('download_url')
             return self._exists_remotely
         else:
             print(f'Multiple files for dataset {self.dataset_uuid} and filename {filename}???')
