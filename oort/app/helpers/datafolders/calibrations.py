@@ -26,7 +26,7 @@ class CalibrationsFolder(FilesWalker):
                 if self.context.debug: print(f' >  > Found a [{self.prefix}] {name} folder.')
                 self.flats_folders.append(FiltersFolder(self.context, path, self.prefix + ' Flats'))
 
-    def sync_biases_darks_flats(self, payload_key, **kwargs):
+    def sync_biases_darks_flats(self, telescope_key, **kwargs):
         calibrations_list = []
         datasets_list = []
 
@@ -59,12 +59,18 @@ class CalibrationsFolder(FilesWalker):
             calibrations_list += flats_calibs
             datasets_list += flats_datasets
 
-        self.context.payload_group_update(payload_key, calibrations=calibrations_list)
-        self.context.payload_group_update(payload_key, calibrations_datasets=datasets_list)
+        self.context.payload_group_update(telescope_key, calibrations=calibrations_list)
+        self.context.payload_group_update(telescope_key, calibrations_datasets=datasets_list)
 
-    def upload_biases_darks_flats(self, payload_key):
-        calibrations = self.context.get_group_payload(payload_key, 'calibrations')
-        calibrations_datasets = self.context.get_group_payload(payload_key, 'calibrations_datasets')
+    def upload_biases_darks_flats(self, telescope_key):
+        self._upload_biases_darks(telescope_key)
+        self._upload_flats(telescope_key)
+
+    def _upload_biases_darks(self, telescope_key):
+        # The second parameter must match the key in above self.context.payload_group_update...
+        # Todo refactor to uniformize the level at whicb payload is updated.
+        calibrations = self.context.get_group_payload(telescope_key, 'calibrations')
+        calibrations_datasets = self.context.get_group_payload(telescope_key, 'calibrations_datasets')
 
         if not calibrations_datasets or not calibrations:
             return
@@ -85,5 +91,7 @@ class CalibrationsFolder(FilesWalker):
                     if self.context.debug: print(f'Uploading {darks_folder.name}...')
                     darks_folder.upload_files(dark_dataset)
 
+    def _upload_flats(self, telescope_key):
         for flats_folder in self.flats_folders:
-            flats_folder.upload_filters(payload_key, 'Flats')
+            # The second parameter must match the key in above self.context.payload_group_update...
+            flats_folder.upload_filters(telescope_key, 'calibrations', type='Flats')

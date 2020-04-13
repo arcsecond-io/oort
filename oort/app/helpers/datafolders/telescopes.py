@@ -33,29 +33,30 @@ class TelescopeFolder(FilesWalker):
                 self.observations_folders.append(FiltersFolder(self.context, path, name))
 
     @property
-    def payload_key(self):
+    def telescope_key(self):
         return f'telescope_{self.uuid}'
 
     def sync_calibrations_folders(self, **kwargs):
         for calibrations_folder in self.calibrations_folders:
-            calibrations_folder.sync_biases_darks_flats(self.payload_key, **kwargs)
+            calibrations_folder.sync_biases_darks_flats(self.telescope_key, **kwargs)
 
     def sync_observations_folders(self, **kwargs):
         observations = []
         datasets = []
 
         for observations_folder in self.observations_folders:
-            targets_observations, targets_datasets = observations_folder.sync_filters(self.payload_key, **kwargs)
-            observations += targets_observations
-            datasets += targets_datasets
+            resources_list, datasets_list = observations_folder.sync_filters(self.telescope_key, **kwargs)
+            observations += resources_list
+            datasets += datasets_list
 
-        self.context.payload_group_update(self.payload_key, observations=observations)
-        self.context.payload_group_update(self.payload_key, observations_datasets=datasets)
+        self.context.payload_group_update(self.telescope_key, observations=observations)
+        self.context.payload_group_update(self.telescope_key, observations_datasets=datasets)
 
     def uploads_calibrations_folders(self):
         for calibrations_folder in self.calibrations_folders:
-            calibrations_folder.upload_biases_darks_flats(self.payload_key)
+            calibrations_folder.upload_biases_darks_flats(self.telescope_key)
 
     def uploads_observations_folders(self):
         for observations_folder in self.observations_folders:
-            observations_folder.upload_biases_darks_flats(self.payload_key)
+            # The second parameter must match the key in above self.context.payload_group_update...
+            observations_folder.upload_filters(self.telescope_key, 'observations')
