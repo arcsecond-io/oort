@@ -14,7 +14,7 @@ class TelescopeFolder(FilesWalker):
         # Do NOT auto-walk.
 
     def reset(self):
-        self.calibrations = None
+        self.calibrations_folder = None
         self.target_folders = []
 
     def walk(self):
@@ -24,13 +24,13 @@ class TelescopeFolder(FilesWalker):
                 # If not a directory, skip it. Will skip __oort__.ini files too.
                 continue
             if name.lower().startswith('calib'):
-                self.calibrations = CalibrationsFolder(self.context, path)
-            # We may wish to checkk for Biases, Darks etc at that level too...
+                self.calibrations_folder = CalibrationsFolder(self.context, path)
+            # We may wish to check for Biases, Darks etc at that level too...
             else:
                 self.target_folders.append(TargetFolder(self.context, path))
 
     def sync_calibrations(self, payload_key, **kwargs):
-        if self.calibrations is None:
+        if self.calibrations_folder is None:
             return
 
         self.calibrations_folder.sync_biases_darks_flats(payload_key, **kwargs)
