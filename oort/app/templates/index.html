@@ -214,7 +214,10 @@
                 <tbody>
                 <tr v-for="upload in current_uploads">
                   <td>{{ upload.filename }}</td>
-                  <td :title="upload.dataset_uuid">{{ upload.dataset_name }}</td>
+                  <td :title="upload.dataset_uuid">
+                    {{ upload.dataset_name }}
+                    <span class="subtitle">{{ upload.dataset_uuid }}</span>
+                  </td>
                   <td>{{ upload.filesize / 1000 }} kB</td>
                   <td>{{ upload.status }}</td>
                   <td>
@@ -258,7 +261,10 @@
                 <tbody>
                 <tr v-for="upload in finished_uploads">
                   <td>{{ upload.filename }}</td>
-                  <td :title="upload.dataset_uuid">{{ upload.dataset_name }}</td>
+                  <td :title="upload.dataset_uuid">
+                    {{ upload.dataset_name }}
+                    <span class="subtitle">{{ upload.dataset_uuid }}</span>
+                  </td>
                   <td>{{ upload.filesize / 1000 }} kB</td>
                   <td>{{ upload.status }}</td>
                   <td>{{ upload.started }}</td>
