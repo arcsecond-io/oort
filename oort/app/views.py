@@ -30,7 +30,7 @@ def uploads():
 
             yield state.sync_calibrations_uploads()
             yield state.sync_observations_uploads()
-            time.sleep(5)
+            time.sleep(2)
             count += 1
 
     # Using Server-Side Events. See https://blog.easyaspy.org/post/10/2019-04-30-creating-real-time-charts-with-flask

@@ -30,12 +30,12 @@ class FilesWalker:
     @property
     def datetime_start(self):
         year, month, day = self.context.current_date.split('-')
-        return datetime(year=year, month=month, day=day, hour=12, minute=0, second=0)
+        return datetime(year=int(year), month=int(month), day=int(day), hour=12, minute=0, second=0)
 
     @property
     def datetime_end(self):
         year, month, day = self.context.current_date.split('-')
-        return datetime(year=year, month=month, day=day, hour=11, minute=59, second=59) + timedelta(days=1)
+        return datetime(year=int(year), month=int(month), day=int(day), hour=11, minute=59, second=59) + timedelta(days=1)
 
     def reset(self):
         pass
@@ -52,13 +52,13 @@ class FilesWalker:
             if m:
                 sub = '20' + m.group(1)
                 year, month, day = sub[:4], sub[4:6], sub[6:8]
-                hour, min, sec = sub[9:11], sub[11:13], sub[13:15]
+                hour, minute, second = sub[9:11], sub[11:13], sub[13:15]
                 file_date = datetime(year=int(year),
                                      month=int(month),
                                      day=int(day),
                                      hour=int(hour),
-                                     minute=int(min),
-                                     second=int(sec))
+                                     minute=int(minute),
+                                     second=int(second))
 
                 if file_date >= self.datetime_start and file_date < self.datetime_end:
                     self.files.append(path)
