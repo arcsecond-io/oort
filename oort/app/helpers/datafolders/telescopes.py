@@ -33,4 +33,4 @@ class TelescopeFolder(FilesWalker):
         if self.calibrations is None:
             return
 
-        self.calibrations.sync_resources(payload_key, **kwargs)
+        self.calibrations_folder.sync_biases_darks_flats(payload_key, **kwargs)

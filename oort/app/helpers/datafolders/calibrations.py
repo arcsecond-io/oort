@@ -34,7 +34,7 @@ class CalibrationsFolder(FilesWalker):
                 pass
                 # self.files.append(path)
 
-    def sync_resources(self, payload_key, **kwargs):
+    def sync_biases_darks_flats(self, payload_key, **kwargs):
         calibrations = []
         datasets = []
 
