@@ -3,45 +3,7 @@ import os
 from arcsecond import Arcsecond
 
 from .filewalkers import FilesWalker
-
-
-class FiltersFolder(FilesWalker):
-    # A folder of Filters folders (no files)
-    def reset(self):
-        self.filters = []
-
-    def walk(self):
-        for name, path in self._walk_folder():
-            if not os.path.isdir(path):
-                continue
-            self.filters.append(FilesWalker(self.context, path, self.prefix))
-        for filter in self.filters:
-            filter.walk()
-
-    def sync_flats(self, api, **kwargs):
-        calibs_list = []
-        datasets_list = []
-
-        api_datasets = Arcsecond.build_datasets_api(debug=self.context.debug,
-                                                    organisation=self.context.organisation)
-
-        for flat_filter in self.filters:
-            kwargs.update(type="Flats")
-            kwargs.update(name=flat_filter.name)
-            flat_calib = flat_filter.sync_resource('Flats ' + flat_filter.name, api, **kwargs)
-            if flat_calib:
-                calibs_list.append(flat_calib)
-
-                flat_dataset = flat_filter.sync_resource('Dataset',
-                                                         api_datasets,
-                                                         calibration=flat_calib['uuid'],
-                                                         name=flat_filter.name,
-                                                         organisation=self.context.organisation)
-
-                if flat_dataset:
-                    datasets_list.append(flat_dataset)
-
-        return calibs_list, datasets_list
+from .filters import FiltersFolder
 
 
 class CalibrationsFolder(FilesWalker):
