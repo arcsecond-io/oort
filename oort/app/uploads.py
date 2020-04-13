@@ -82,8 +82,8 @@ class UploadsLocalState(State):
     def _update_context(self):
         current_uploads = [fw.to_dict() for fw in self.uploads.values() if fw.is_finished() is False]
         finished_uploads = [fw.to_dict() for fw in self.uploads.values() if fw.is_finished() is True]
-        self.context.payload_update('current_uploads', current_uploads)
-        self.context.payload_update('finished_uploads', finished_uploads)
+        self.context.payload_update(current_uploads=current_uploads)
+        self.context.payload_update(finished_uploads=finished_uploads)
 
     def _process_file_upload(self, filepath, dataset):
         fw = self.uploads.get(filepath)
