@@ -120,7 +120,10 @@ class FilesWalker:
         resource = self._find_or_create_remote_resource(message_name, api, **kwargs)
 
         if resource:
-            dataset_kwargs = {resource_key: resource['uuid'], 'name': resource['name']}
+            # Using same name as in kwargs for observations, as it will have the filter name inside it
+            # and not only the target name, since the Observation has no 'name' field.
+            dataset_kwargs = {resource_key: resource['uuid'],
+                              'name': resource.get('name') or kwargs.get('name')}
             if self.context.organisation:
                 dataset_kwargs.update(organisation=self.context.organisation)
 
