@@ -251,7 +251,6 @@ a[target="_blank"] {
 }
 
 /* Strip from links to own domain or with class no_icon */
-a[href^="https://www.arcsecond.io"]:after,
 a.no_icon:after {
   content: "" !important;
   padding-left: 0;

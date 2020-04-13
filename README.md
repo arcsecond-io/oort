@@ -21,6 +21,9 @@ This will also install the `arcsecond` [CLI](https://github.com/arcsecond-io/cli
 Usage
 ===
 
+Personal
+--- 
+
 ```sh
 $ arcsecond login 
 $ cd <parent folder where files are located>
@@ -30,6 +33,17 @@ $ oort
 $ oort -o saao
 ``` 
 
-That's it! Now, you can open a browser in `http://localhost:5000` and follow the operations.
+As an Organisation Member
+---
+
+For an organisation identified by its subdomain:' 
+
+```sh
+$ arcsecond login --organisation <subdomain>
+$ cd <parent folder where files are located>
+$ oort -o <subdomain> -t <telescope uuid>
+``` 
+
+That's it! Now, you can open a browser in `http://0.0.0.0:5000` and follow the operations.
 
 ![Oort in action](/assets/oort-cloud-basic.png)

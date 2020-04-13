@@ -1,6 +1,8 @@
+import datetime
 import json
 import os
-from configparser import ConfigParser
+
+from configparser import ConfigParser, DuplicateOptionError
 
 from arcsecond import Arcsecond
 
@@ -10,34 +12,78 @@ class Context:
         self.debug = config['debug']
         self.folder = config['folder']
         self.organisation = config['organisation']
-        self.telescopeUUID = config['telescope']
 
         self.username = Arcsecond.username(debug=self.debug)
         self.is_authenticated = Arcsecond.is_logged_in(debug=self.debug)
         self.memberships = Arcsecond.memberships(debug=self.debug)
 
         self.role = None
-        if self.organisation is not None:
+        if self.organisation is None:
+            self.can_upload = True
+        else:
             self.role = self.memberships.get(self.organisation, None)
+            self.can_upload = self.role in ['member', 'admin', 'superadmin']
 
-        self.can_upload = self.organisation is None or self.role in ['member', 'admin', 'superadmin']
+        self.config_filepath = os.path.expanduser('.oort.ini')
+
+        self._autostart = True
+        self._payload = {}
+        self._uploads = {}
+
+    def payload_update(self, **kwargs):
+        for key, value in kwargs.items():
+            self._payload[key] = value
+
+    def payload_append(self, **kwargs):
+        for key, value in kwargs.items():
+            if key not in self._payload.keys():
+                self._payload[key] = []
+            self._payload[key].append(value)
+
+    def get_payload(self, key):
+        return self._payload[key]
+
+    def payload_group_update(self, group, **kwargs):
+        if group not in self._payload.keys():
+            self._payload[group] = {}
+        for key, value in kwargs.items():
+            self._payload[group][key] = value
+
+    def get_group_payload(self, group, key):
+        if not group in self._payload.keys():
+            return None
+        if not key in self._payload[group]:
+            return None
+        return self._payload[group][key]
+
+    def get_yield_string(self):
+        json_data = json.dumps(self._payload)
+        return f"data:{json_data}\n\n"
+
+    @property
+    def current_date(self):
+        before_noon = datetime.datetime.now().hour < 12
+        if before_noon:
+            return (datetime.datetime.now() - datetime.timedelta(days=1)).date().isoformat()
+        else:
+            return datetime.datetime.now().date().isoformat()
 
     def to_dict(self):
-        return {'folder': self.folder,
-                'username': self.username,
-                'organisation': self.organisation,
-                'role': self.role,
-                'telescopeUUID': self.telescopeUUID,
-                'isAuthenticated': self.is_authenticated,
-                'canUpload': self.can_upload,
-                'debug': self.debug}
+        return {
+            'folder': self.folder,
+            'username': self.username,
+            'organisation': self.organisation,
+            'role': self.role,
+            'isAuthenticated': self.is_authenticated,
+            'canUpload': self.can_upload,
+            'debug': self.debug,
+            'current_date': self.current_date
+        }
 
 
-class LocalState:
+class State:
     def __init__(self, config):
         self.context = Context(config)
-        self._config_filepath = os.path.expanduser('.oort.ini')
-        self.payload = {}
 
     @property
     def _section(self):
@@ -46,11 +92,15 @@ class LocalState:
 
     def _get_config(self):
         _config = ConfigParser()
-        _config.read(self._config_filepath)
+        try:
+            _config.read(self.context.config_filepath)
+        except DuplicateOptionError:
+            os.remove(self.context.config_filepath)
+            _config.read(self.context.config_filepath)
         return _config
 
     def _save_config(self, config):
-        with open(self._config_filepath, 'w') as f:
+        with open(self.context.config_filepath, 'w') as f:
             config.write(f)
 
     def read(self, key):
@@ -67,14 +117,5 @@ class LocalState:
             config.set(self._section, k, v)
         self._save_config(config)
 
-    def update_payload(self, key, value, group=None):
-        if group:
-            if group not in self.payload.keys():
-                self.payload[group] = {}
-            self.payload[group][key] = value
-        else:
-            self.payload[key] = value
-
     def get_yield_string(self):
-        json_data = json.dumps(self.payload)
-        return f"data:{json_data}\n\n"
+        return self.context.get_yield_string()
