@@ -20,6 +20,7 @@ class UploadsLocalState(State):
         return self.context.get_yield_string()
 
     def sync_observations_and_calibrations(self):
+        self.root.walk_tree()
         self.root.sync_calibrations()
         return self.context.get_yield_string()
 
