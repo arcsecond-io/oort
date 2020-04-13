@@ -23,14 +23,12 @@ def uploads():
         count = 0
         while True:
             if count % 300 == 0:
-                yield state.sync_telescopes()
-                yield state.sync_night_logs()
+                yield state.sync_telescopes_and_night_logs()
 
             if (count < 30 and count % 10 == 0) or count % 60 == 0:
-                yield state.sync_calibrations()
+                yield state.sync_observations_and_calibrations()
 
-            state.sync_uploads()
-            yield state.get_yield_string()
+            yield state.sync_uploads()
             time.sleep(1)
             count += 1
 

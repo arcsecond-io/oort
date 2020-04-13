@@ -5,6 +5,7 @@ from arcsecond import Arcsecond
 
 from .filewalkers import FilesWalker
 from .telescopes import TelescopeFolder
+from .utils import find
 
 
 class RootFolder(FilesWalker):
@@ -86,3 +87,11 @@ class RootFolder(FilesWalker):
 
             if new_log:
                 self.context.payload_append(night_logs=new_log)
+
+    def sync_calibrations(self):
+        night_logs = self.context.get_payload('night_logs')
+        for telescope_folder in self.telescope_folders:
+            night_log = find(night_logs, telescope=telescope_folder.uuid)
+            if night_log:
+                payload_key = f'telescope_{telescope_folder.uuid}'
+                telescope_folder.sync_calibrations(payload_key, night_log=night_log['uuid'])

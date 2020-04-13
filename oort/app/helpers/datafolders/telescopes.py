@@ -29,8 +29,8 @@ class TelescopeFolder(FilesWalker):
             else:
                 self.target_folders.append(TargetFolder(self.context, path))
 
-    def sync_calibrations(self, **kwargs):
+    def sync_calibrations(self, payload_key, **kwargs):
         if self.calibrations is None:
             return
 
-        self.calibrations.sync_resources(**kwargs)
+        self.calibrations.sync_resources(payload_key, **kwargs)

@@ -1,4 +1,4 @@
-from .helpers import State, RootFolder, FileWrapper
+from .helpers import State, RootFolder, FileWrapper, find
 
 MAX_SIMULTANEOUS_UPLOADS = 3
 
@@ -13,33 +13,30 @@ class UploadsLocalState(State):
         self.uploads = {}
         self.autostart = True
 
-    def sync_telescopes(self):
+    def sync_telescopes_and_night_logs(self):
         self.root.walk()
         self.root.sync_telescopes()
-        return self.context.get_yield_string()
-
-    def sync_night_logs(self):
         self.root.sync_night_logs()
         return self.context.get_yield_string()
 
-    def sync_calibrations(self):
+    def sync_observations_and_calibrations(self):
         night_logs = self.context.get_payload('night_logs')
         for telescope_folder in self.root.telescope_folders:
-            night_log = self.find(night_logs, telescope=telescope_folder.uuid)
+            night_log = find(night_logs, telescope=telescope_folder.uuid)
             if night_log:
                 payload_key = f'telescope_{telescope_folder.uuid}'
                 telescope_folder.sync_calibrations(payload_key, night_log=night_log['uuid'])
-            yield self.context.get_yield_string()
+        return self.context.get_yield_string()
 
     def sync_uploads(self):
         if not self.context.can_upload:
             return
 
-        self.context.payload_update('showTables', True, 'state')
+        self.context.payload_group_update('state', showTables=True)
 
         night_logs = self.context.get_payload('night_logs')
         for telescope_folder in self.root.telescope_folders:
-            night_log = self.find(night_logs, telescope=telescope_folder.uuid)
+            night_log = find(night_logs, telescope=telescope_folder.uuid)
             if not night_log:
                 continue
 
@@ -47,47 +44,51 @@ class UploadsLocalState(State):
             datasets = self.context.get_group_payload(payload_key, 'datasets')
             calibrations = self.context.get_group_payload(payload_key, 'calibrations')
 
+            if not datasets or not calibrations:
+                continue
+
             # All Biases: One Dataset
 
-            bias_calib = self.find(calibrations, type='Biases')
-            bias_dataset = self.find(datasets, calibration=bias_calib['uuid'])
+            bias_calib = find(calibrations, type='Biases')
+            bias_dataset = find(datasets, calibration=bias_calib['uuid'])
             if bias_dataset:
                 if self.context.debug: print(f'Uploading biases...')
                 for filepath in telescope_folder.calibrations.biases.files:
                     self._process_file_upload(filepath, bias_dataset)
 
-            yield self._update_context()
+            self._update_context()
 
             # All Darks: One Dataset
 
-            dark_calib = self.find(calibrations, type='Darks')
-            dark_dataset = self.find(datasets, calibration=dark_calib['uuid'])
+            dark_calib = find(calibrations, type='Darks')
+            dark_dataset = find(datasets, calibration=dark_calib['uuid'])
             if dark_dataset:
                 if self.context.debug: print(f'Uploading darks...')
                 for filepath in telescope_folder.calibrations.darks.files:
                     self._process_file_upload(filepath, dark_dataset)
 
-            yield self._update_context()
+            self._update_context()
 
             # Flats: One Dataset per Flat Filter
 
-            flats_calibs = self.find(calibrations, type='Flats')
+            flats_calibs = find(calibrations, type='Flats')
             for flat_filter in telescope_folder.calibrations.flats.filters:
-                flat_calib = self.find(flats_calibs, name=flat_filter.name)
-                flat_dataset = self.find(datasets, calibration=flat_calib['uuid'])
+                flat_calib = find(flats_calibs, name=flat_filter.name)
+                flat_dataset = find(datasets, calibration=flat_calib['uuid'])
                 if flat_dataset:
                     if self.context.debug: print(f'Uploading flats {flat_filter.name} {flat_filter.files}...')
                     for filepath in flat_filter.files:
                         self._process_file_upload(filepath, flat_dataset)
 
-            yield self._update_context()
+            self._update_context()
+
+        return self.get_yield_string()
 
     def _update_context(self):
         current_uploads = [fw.to_dict() for fw in self.uploads.values() if fw.is_finished() is False]
         finished_uploads = [fw.to_dict() for fw in self.uploads.values() if fw.is_finished() is True]
         self.context.payload_update('current_uploads', current_uploads)
         self.context.payload_update('finished_uploads', finished_uploads)
-        yield self.get_yield_string()
 
     def _process_file_upload(self, filepath, dataset):
         fw = self.uploads.get(filepath)
