@@ -27,8 +27,8 @@ class RootFolder(FilesWalker):
                 tel_uuid = self._look_for_telescope_uuid(path)
                 if tel_uuid:
                     self.telescope_folders.append(TelescopeFolder(tel_uuid, self.context, path))
-                else:
-                    self.other_folders.append(FilesWalker(self.context, path))
+                # else:
+                #     self.other_folders.append(FilesWalker(self.context, path))
             else:
                 # These are files. Check if we are inside a Telescope folder already.
                 if name == '__oort__':
@@ -39,10 +39,10 @@ class RootFolder(FilesWalker):
                     else:
                         # Don't know what to do here. Skip for now.
                         pass
-                else:
+                # else:
                     # No, look for root files, if we are authorized to do so.
-                    if self.skip_root_files is False:
-                        raise AttributeError('One needs to support root datasets in night logs for that.')
+                    # if self.skip_root_files is False:
+                    #     raise AttributeError('One needs to support root datasets in night logs for that.')
                         # self.files.append(path)
 
     def _look_for_telescope_uuid(self, path):
