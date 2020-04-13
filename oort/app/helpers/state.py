@@ -112,6 +112,3 @@ class State:
 
     def get_yield_string(self):
         return self.context.get_yield_string()
-
-    def find(self, items, **kwargs):
-        return next((item for item in items if all([item[k] == v for k, v in kwargs.items()])), None)
