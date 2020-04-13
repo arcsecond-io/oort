@@ -53,7 +53,7 @@ class FileWrapper(object):
             return self._exists_remotely
 
         filename = os.path.basename(self.filepath)
-        response_list, error = self.api.list(dataset=self.dataset_uuid, name=filename)
+        response_list, error = self.api.list(name=filename)  # API is built already with dataset_uuid
         if error:
             print(error)
 

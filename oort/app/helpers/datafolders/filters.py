@@ -22,7 +22,7 @@ class FiltersFolder(FilesWalker):
 
         for filter_folder in self.filter_folders:
             kwargs.update(name=filter_folder.name)
-            resource, resource_dataset = filter_folder.sync_resource_pair(resource_name + filter_folder.name,
+            resource, resource_dataset = filter_folder.sync_resource_pair(filter_folder.name,
                                                                           resource_key,
                                                                           api,
                                                                           **kwargs)
