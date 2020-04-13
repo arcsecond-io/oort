@@ -2,7 +2,7 @@ import os
 
 from .filewalkers import FilesWalker
 from .calibrations import CalibrationsFolder
-from .targets import TargetFolder
+from .filters import FiltersFolder
 
 
 class TelescopeFolder(FilesWalker):
@@ -27,10 +27,15 @@ class TelescopeFolder(FilesWalker):
                 self.calibrations_folder = CalibrationsFolder(self.context, path)
             # We may wish to check for Biases, Darks etc at that level too...
             else:
-                self.target_folders.append(TargetFolder(self.context, path))
+                # Prefix Observation and Datasets names with target name.
+                self.target_folders.append(FiltersFolder(self.context, path, name))
 
     def sync_calibrations(self, payload_key, **kwargs):
         if self.calibrations_folder is None:
             return
 
         self.calibrations_folder.sync_biases_darks_flats(payload_key, **kwargs)
+
+    def sync_target_folders(self, payload_key, **kwargs):
+        for target_folder in self.target_folders:
+            target_folder.sync_filters(payload_key, **kwargs)
