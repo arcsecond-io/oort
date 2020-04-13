@@ -100,5 +100,5 @@ class FilesWalker:
     def sync_resource(self, name: str, api: ArcsecondAPI, **kwargs):
         assert name is not None and len(name) > 0
         assert api is not None
-        assert 'uuid' in kwargs.keys()
+        assert len(kwargs.keys()) > 0
         return self._find_or_create_remote_resource(name, api, **kwargs)
