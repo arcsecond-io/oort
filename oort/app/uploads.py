@@ -48,7 +48,7 @@ class UploadsLocalState(State):
             bias_dataset = find(datasets, calibration=bias_calib['uuid'])
             if bias_dataset:
                 if self.context.debug: print(f'Uploading biases...')
-                for filepath in telescope_folder.calibrations.biases.files:
+                for filepath in telescope_folder.calibrations.biases_folder.files:
                     self._process_file_upload(filepath, bias_dataset)
 
             self._update_context()
@@ -59,16 +59,17 @@ class UploadsLocalState(State):
             dark_dataset = find(datasets, calibration=dark_calib['uuid'])
             if dark_dataset:
                 if self.context.debug: print(f'Uploading darks...')
-                for filepath in telescope_folder.calibrations.darks.files:
+                for filepath in telescope_folder.calibrations.darks_folder.files:
                     self._process_file_upload(filepath, dark_dataset)
 
             self._update_context()
 
             # Flats: One Dataset per Flat Filter
 
-            flats_calibs = find(calibrations, type='Flats')
-            for flat_filter in telescope_folder.calibrations.flats.filters:
-                flat_calib = find(flats_calibs, name=flat_filter.name)
+            for flat_filter in telescope_folder.calibrations.flats_folders.filters:
+                flat_calib = find(calibrations, type='Flats', name=flat_filter.name)
+                if flat_calib is None:
+                    continue
                 flat_dataset = find(datasets, calibration=flat_calib['uuid'])
                 if flat_dataset:
                     if self.context.debug: print(f'Uploading flats {flat_filter.name} {flat_filter.files}...')
