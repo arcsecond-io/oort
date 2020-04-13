@@ -133,18 +133,22 @@
 
               <div>
                 <span v-if="selected_night_log">
-                  <strong>Selected night log</strong>: {{ selected_night_log.date }}
+                  <strong>Selected night log</strong>:
+                  <a :href="`https://${state.organisation}.arcsecond.io/${selected_night_log_url}`" target="_blank">
+                    {{ selected_night_log.date }}
+                  </a>
                   <span class="subtitle">(uuid: {{ selected_night_log.uuid }})</span>
                   <br/>
                   <span class="subtitle">Beware that night logs starts on local noon and last 24 hours.</span>
-                  [<a :href="`https://${state.organisation}.arcsecond.io/${selected_night_log_url}`" target="_blank">open night data in portal</a>]
                 </span>
                 <span v-else-if="night_logs && night_logs.length">
-                  <strong>All night logs</strong>: {{ night_logs[0].date }}
+                  <strong>All night logs</strong>:
+                  <a :href="`https://${state.organisation}.arcsecond.io/${selected_night_log_url}`" target="_blank">
+                    {{ night_logs[0].date }}
+                  </a>
                   [<span class="subtitle" v-for="night_log in night_logs">{{ night_log.uuid }}, </span>]
                   <br/>
                   <span class="subtitle">Beware that night logs starts on local noon and last 24 hours.</span>
-                  [<a :href="`https://${state.organisation}.arcsecond.io/${selected_night_log_url}`" target="_blank">open night data in portal</a>]
                 </span>
                 <span v-else>
                   No night log

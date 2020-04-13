@@ -30,6 +30,10 @@ var app = new Vue({
       self.telescopes = json.telescopes
       self.night_logs = json.night_logs
 
+      if (self.night_logs.length > 0) {
+        self.selected_night_log_url = 'data/' + self.night_logs[0]['date'].replace(/-/gi, '/')
+      }
+
       self.current_uploads = json.current_uploads
       self.finished_uploads = json.finished_uploads
 
@@ -61,6 +65,8 @@ var app = new Vue({
         this.selected_night_log = null
       }
       if (this.selected_night_log) {
+        this.selected_night_log_url = 'data/' + this.selected_night_log['date'].replace(/-/gi, '/')
+      } else if (this.night_logs.length > 0) {
         this.selected_night_log_url = 'data/' + this.night_logs[0]['date'].replace(/-/gi, '/')
       } else {
         this.selected_night_log_url = ''
