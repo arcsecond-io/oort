@@ -4,72 +4,86 @@ from arcsecond import Arcsecond
 
 from .filewalkers import FilesWalker
 from .filters import FiltersFolder
+from .utils import find
 
 
 class CalibrationsFolder(FilesWalker):
-    # A folder of files and Biases, Darks and Flats folders
-
-    def __init__(self, context, folderpath):
-        super().__init__(context, folderpath)
-        self.walk()
-
     def reset(self):
-        self.biases_folder = None
-        self.darks_folder = None
-        self.flats_folders = None
+        self.biases_folders = []
+        self.darks_folders = []
+        self.flats_folders = []
 
     def walk(self):
         self.reset()
         for name, path in self._walk_folder():
             if os.path.isdir(path) and name.lower().startswith('bias'):
-                self.biases_folder = FilesWalker(self.context, path)
-                self.biases_folder.walk()
+                if self.context.debug: print(f' >  > Found a [{self.prefix}] {name} folder.')
+                self.biases_folders.append(FilesWalker(self.context, path, self.prefix))
             elif os.path.isdir(path) and name.lower().startswith('dark'):
-                self.darks_folder = FilesWalker(self.context, path)
-                self.darks_folder.walk()
+                if self.context.debug: print(f' >  > Found a [{self.prefix}] {name} folder.')
+                self.darks_folders.append(FilesWalker(self.context, path, self.prefix))
             elif os.path.isdir(path) and name.lower().startswith('flat'):
-                self.flats_folders = FiltersFolder(self.context, path, 'Flats')
-                self.flats_folders.walk()
-            else:
-                pass
-                # self.files.append(path)
+                if self.context.debug: print(f' >  > Found a [{self.prefix}] {name} folder.')
+                self.flats_folders.append(FiltersFolder(self.context, path, self.prefix + ' Flats'))
 
     def sync_biases_darks_flats(self, payload_key, **kwargs):
-        calibrations = []
-        datasets = []
+        calibrations_list = []
+        datasets_list = []
 
-        api_calibrations = Arcsecond.build_calibrations_api(debug=self.context.debug,
-                                                            organisation=self.context.organisation)
+        api = Arcsecond.build_calibrations_api(debug=self.context.debug,
+                                               organisation=self.context.organisation)
 
-        if self.biases_folder:
+        for bias_folder in self.biases_folders:
             kwargs.update(type="Biases")
-            biases_calib, biases_dataset = self.biases_folder.sync_resource_pair("Biases",
-                                                                                 'calibration',
-                                                                                 api_calibrations,
-                                                                                 **kwargs)
+            kwargs.update(name=bias_folder.name)
+            biases_calib, biases_dataset = bias_folder.sync_resource_pair("Biases", 'calibration', api, **kwargs)
 
             if biases_calib:
-                calibrations.append(biases_calib)
+                calibrations_list.append(biases_calib)
             if biases_dataset:
-                datasets.append(biases_dataset)
+                datasets_list.append(biases_dataset)
 
-        if self.darks_folder:
+        for darks_folder in self.darks_folders:
             kwargs.update(type="Darks")
-            darks_calib, darks_dataset = self.darks_folder.sync_resource_pair("Darks",
-                                                                              'calibration',
-                                                                              api_calibrations,
-                                                                              **kwargs)
+            kwargs.update(name=darks_folder.name)
+            darks_calib, darks_dataset = darks_folder.sync_resource_pair("Darks", 'calibration', api, **kwargs)
 
             if darks_calib:
-                calibrations.append(darks_calib)
+                calibrations_list.append(darks_calib)
             if darks_dataset:
-                datasets.append(darks_dataset)
+                datasets_list.append(darks_dataset)
 
-        if self.flats_folders:
+        for flats_folder in self.flats_folders:
             kwargs.update(type="Flats")
-            flats_calibs, flats_datasets = self.flats_folders.sync_filters(api_calibrations, **kwargs)
-            calibrations += flats_calibs
-            datasets += flats_datasets
+            flats_calibs, flats_datasets = flats_folder.sync_filters("Flats", 'calibration', api, **kwargs)
+            calibrations_list += flats_calibs
+            datasets_list += flats_datasets
 
-        self.context.payload_group_update(payload_key, calibrations=calibrations)
-        self.context.payload_group_update(payload_key, datasets=datasets)
+        self.context.payload_group_update(payload_key, calibrations=calibrations_list)
+        self.context.payload_group_update(payload_key, calibrations_datasets=datasets_list)
+
+    def upload_biases_darks_flats(self, payload_key):
+        calibrations = self.context.get_group_payload(payload_key, 'calibrations')
+        calibrations_datasets = self.context.get_group_payload(payload_key, 'calibrations_datasets')
+
+        if not calibrations_datasets or not calibrations:
+            return
+
+        for bias_folder in self.biases_folders:
+            bias_calib = find(calibrations, type='Biases', name=bias_folder.name)
+            if bias_calib:
+                bias_dataset = find(calibrations_datasets, calibration=bias_calib['uuid'])
+                if bias_dataset:
+                    if self.context.debug: print(f'Uploading biases...')
+                    bias_folder.upload_files(bias_dataset)
+
+        for darks_folder in self.darks_folders:
+            dark_calib = find(calibrations, type='Biases', name=darks_folder.name)
+            if dark_calib:
+                dark_dataset = find(calibrations_datasets, calibration=dark_calib['uuid'])
+                if dark_dataset:
+                    if self.context.debug: print(f'Uploading darks...')
+                    darks_folder.upload_files(dark_dataset)
+
+        for flats_folder in self.flats_folders:
+            flats_folder.upload_filters(payload_key)

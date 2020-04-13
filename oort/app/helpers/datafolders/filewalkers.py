@@ -4,18 +4,23 @@ from datetime import datetime, timedelta
 from arcsecond import Arcsecond
 from arcsecond.api.main import ArcsecondAPI
 
+from .filewrapper import FileWrapper
+
+MAX_SIMULTANEOUS_UPLOADS = 3
+
 
 class FilesWalker:
     # A folder files
 
-    def __init__(self, context, folderpath, prefix=''):
+    def __init__(self, context, folderpath, prefix='', auto_walk=True):
         self.context = context
         self.folderpath = folderpath
         self.prefix = prefix
+        self.auto_walk = auto_walk
         self.files = []
-        self.api_datasets = Arcsecond.build_datasets_api(debug=self.context.debug,
-                                                         organisation=self.context.organisation)
         self.reset()
+        if self.auto_walk is True:
+            self.walk()
 
     @property
     def name(self):
@@ -112,9 +117,43 @@ class FilesWalker:
         assert len(kwargs.keys()) > 0
         resource_dataset = None
         resource = self._find_or_create_remote_resource(resource_name, api, **kwargs)
+
         if resource:
-            dataset_kwargs = {resource_key: resource['uuid'], 'name': resource['name']}
+            dataset_kwargs = {resource_key: resource['uuid'], 'name': resource['type']}
             if self.context.organisation:
                 dataset_kwargs.update(organisation=self.context.organisation)
-            resource_dataset = self._find_or_create_remote_resource('Dataset', self.api_datasets, **dataset_kwargs)
+
+            api_datasets = Arcsecond.build_datasets_api(debug=self.context.debug,
+                                                        organisation=self.context.organisation)
+
+            resource_dataset = self._find_or_create_remote_resource('Dataset', api_datasets, **dataset_kwargs)
+
         return resource, resource_dataset
+
+    def upload_files(self, dataset):
+        for filepath in self.files:
+            self._process_file_upload(filepath, dataset)
+        self._update_context()
+
+    def _update_context(self):
+        current_uploads = [fw.to_dict() for fw in self.context._uploads.values() if fw.is_finished() is False]
+        finished_uploads = [fw.to_dict() for fw in self.context._uploads.values() if fw.is_finished() is True]
+        self.context.payload_update(current_uploads=current_uploads)
+        self.context.payload_update(finished_uploads=finished_uploads)
+
+    def _process_file_upload(self, filepath, dataset):
+        upload_key = f"dataset_{dataset['uuid']}:{filepath}"
+        fw = self.context._uploads.get(upload_key)
+        if fw is None:
+            fw = FileWrapper(filepath, dataset['uuid'], dataset['name'], self.context.debug)
+            self.context._uploads[upload_key] = fw
+
+        started_count = len([u for u in self.context._uploads.values() if u.is_started()])
+        if self.context._autostart and started_count < MAX_SIMULTANEOUS_UPLOADS:
+            if fw.exists_remotely():
+                fw.finish()
+            else:
+                fw.start()
+
+        if fw.will_finish():
+            fw.finish()

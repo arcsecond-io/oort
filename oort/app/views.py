@@ -28,7 +28,8 @@ def uploads():
             if (count < 30 and count % 10 == 0) or count % 60 == 0:
                 yield state.sync_observations_and_calibrations()
 
-            yield state.sync_uploads()
+            yield state.sync_calibrations_uploads()
+            # yield state.sync_observations_uploads()
             time.sleep(1)
             count += 1
 

@@ -1,6 +1,7 @@
 import os
 
 from .filewalkers import FilesWalker
+from .utils import find
 
 
 class FiltersFolder(FilesWalker):
@@ -12,17 +13,16 @@ class FiltersFolder(FilesWalker):
         for name, path in self._walk_folder():
             if not os.path.isdir(path):
                 continue
+            if self.context.debug: print(f' >  >  > Found a [{self.prefix}] {name} folder.')
             self.filter_folders.append(FilesWalker(self.context, path, self.prefix))
-        for filter in self.filter_folders:
-            filter.walk()
 
-    def sync_filters(self, resource_key, api, **kwargs):
+    def sync_filters(self, resource_name, resource_key, api, **kwargs):
         resources_list = []
         datasets_list = []
 
         for filter_folder in self.filter_folders:
             kwargs.update(name=filter_folder.name)
-            resource, resource_dataset = filter_folder.sync_resource_pair(filter_folder.name,
+            resource, resource_dataset = filter_folder.sync_resource_pair(resource_name + filter_folder.name,
                                                                           resource_key,
                                                                           api,
                                                                           **kwargs)
@@ -32,3 +32,15 @@ class FiltersFolder(FilesWalker):
                 datasets_list.append(resource_dataset)
 
         return resources_list, datasets_list
+
+    def upload_filters(self, payload_key):
+        calibrations = self.context.get_group_payload(payload_key, 'calibrations')
+        calibrations_datasets = self.context.get_group_payload(payload_key, 'calibrations_datasets')
+
+        for filter_folder in self.filter_folders:
+            flat_calib = find(calibrations, type='Flats', name=filter_folder.name)
+            if flat_calib:
+                flat_dataset = find(calibrations_datasets, calibration=flat_calib['uuid'])
+                if flat_dataset:
+                    if self.context.debug: print(f'Uploading flats {filter_folder.name}...')
+                    filter_folder.upload_files(flat_dataset)

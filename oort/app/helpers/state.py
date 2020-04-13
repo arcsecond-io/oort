@@ -25,7 +25,10 @@ class Context:
             self.can_upload = self.role in ['member', 'admin', 'superadmin']
 
         self.config_filepath = os.path.expanduser('.oort.ini')
+
+        self._autostart = True
         self._payload = {}
+        self._uploads = {}
 
     def payload_update(self, **kwargs):
         for key, value in kwargs.items():
