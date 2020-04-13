@@ -13,7 +13,8 @@ class FilesWalker:
         self.folderpath = folderpath
         self.prefix = prefix
         self.files = []
-        self.api = Arcsecond.build_datafiles_api()
+        self.api_datasets = Arcsecond.build_datasets_api(debug=self.context.debug,
+                                                         organisation=self.context.organisation)
         self.reset()
 
     @property
@@ -103,3 +104,17 @@ class FilesWalker:
         assert api is not None
         assert len(kwargs.keys()) > 0
         return self._find_or_create_remote_resource(resource_name, api, **kwargs)
+
+    def sync_resource_pair(self, resource_name: str, resource_key: str, api: ArcsecondAPI, **kwargs):
+        assert resource_name is not None and len(resource_name) > 0
+        assert resource_key is not None and len(resource_key) > 0
+        assert api is not None
+        assert len(kwargs.keys()) > 0
+        resource_dataset = None
+        resource = self._find_or_create_remote_resource(resource_name, api, **kwargs)
+        if resource:
+            dataset_kwargs = {resource_key: resource['uuid'], 'name': resource['name']}
+            if self.context.organisation:
+                dataset_kwargs.update(organisation=self.context.organisation)
+            resource_dataset = self._find_or_create_remote_resource('Dataset', self.api_datasets, **dataset_kwargs)
+        return resource, resource_dataset
