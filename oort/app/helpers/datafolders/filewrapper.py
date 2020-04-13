@@ -36,7 +36,9 @@ class FileWrapper(object):
         self.error = None
         self._exists_remotely = False
 
-        self.api = Arcsecond.build_datafiles_api(debug=debug, organisation=organisation)
+        self.api = Arcsecond.build_datafiles_api(dataset=dataset_uuid,
+                                                 debug=debug,
+                                                 organisation=organisation)
 
         def update_progress(event, progress_percent):
             self.progress = progress_percent
@@ -53,8 +55,7 @@ class FileWrapper(object):
             return self._exists_remotely
 
         filename = os.path.basename(self.filepath)
-        # Prefer providing dataset UUID as filter instead of subresources as in constructor...
-        response_list, error = self.api.list(dataset=self.dataset_uuid, name=filename)
+        response_list, error = self.api.list(name=filename)
         if error:
             print(error)
 
