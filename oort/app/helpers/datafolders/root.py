@@ -101,10 +101,11 @@ class RootFolder(FilesWalker):
             payload_key = f'telescope_{telescope_folder.uuid}'
             telescope_folder.sync_calibrations(payload_key, night_log=night_log['uuid'])
 
+    def sync_target_folders(self):
         night_logs = self.context.get_payload('night_logs')
         for telescope_folder in self.telescope_folders:
             night_log = find(night_logs, telescope=telescope_folder.uuid)
-
-            if night_log:
-                payload_key = f'telescope_{telescope_folder.uuid}'
-                telescope_folder.sync_calibrations(payload_key, night_log=night_log['uuid'])
+            if night_log is None:
+                continue
+            payload_key = f'telescope_{telescope_folder.uuid}'
+            telescope_folder.sync_target_folders(payload_key, night_log=night_log['uuid'])
