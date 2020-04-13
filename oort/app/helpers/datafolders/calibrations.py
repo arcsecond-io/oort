@@ -41,39 +41,33 @@ class CalibrationsFolder(FilesWalker):
         api_calibrations = Arcsecond.build_calibrations_api(debug=self.context.debug,
                                                             organisation=self.context.organisation)
 
-        api_datasets = Arcsecond.build_datasets_api(debug=self.context.debug,
-                                                    organisation=self.context.organisation)
-
         if self.biases_folder:
             kwargs.update(type="Biases")
-            biases_calib = self.biases_folder.sync_resource("Biases", api_calibrations, **kwargs)
+            biases_calib, biases_dataset = self.biases_folder.sync_resource_pair("Biases",
+                                                                                 'calibration',
+                                                                                 api_calibrations,
+                                                                                 **kwargs)
 
             if biases_calib:
                 calibrations.append(biases_calib)
-                biases_dataset = self.biases_folder.sync_resource('Dataset',
-                                                                  api_datasets,
-                                                                  calibration=biases_calib['uuid'],
-                                                                  name=biases_calib['type'],
-                                                                  organisation=self.context.organisation)
-                if biases_dataset:
-                    datasets.append(biases_dataset)
+            if biases_dataset:
+                datasets.append(biases_dataset)
 
         if self.darks_folder:
             kwargs.update(type="Darks")
-            darks_calib = self.darks_folder.sync_resource("Darks", api_calibrations, **kwargs)
+            darks_calib, darks_dataset = self.darks_folder.sync_resource_pair("Darks",
+                                                                              'calibration',
+                                                                              api_calibrations,
+                                                                              **kwargs)
 
             if darks_calib:
                 calibrations.append(darks_calib)
-                darks_dataset = self.darks_folder.sync_resource('Dataset',
-                                                                api_datasets,
-                                                                calibration=darks_calib['uuid'],
-                                                                name=darks_calib['type'],
-                                                                organisation=self.context.organisation)
-                if darks_dataset:
-                    datasets.append(darks_dataset)
+            if darks_dataset:
+                datasets.append(darks_dataset)
 
         if self.flats_folders:
-            flats_calibs, flats_datasets = self.flats_folders.sync_flats(api_calibrations, **kwargs)
+            kwargs.update(type="Flats")
+            flats_calibs, flats_datasets = self.flats_folders.sync_filters(api_calibrations, **kwargs)
             calibrations += flats_calibs
             datasets += flats_datasets
 
