@@ -54,16 +54,16 @@ class FilesWalker:
         names = os.listdir(self.folderpath)
         return [(name, os.path.join(self.folderpath, name)) for name in names if name[0] != '.']
 
-    def _create_remote_resource(self, resource_name, api, **kwargs):
+    def _create_remote_resource(self, message_name, api, **kwargs):
         response_resource, error = api.create(kwargs)
         if error:
             if self.context.debug: print(str(error))
-            msg = f'Failed to create {resource_name} for date {self.context.current_date}. Retry is automatic.'
+            msg = f'Failed to create {message_name} for date {self.context.current_date}. Retry is automatic.'
             self.context.payload_group_update('messages', warning=msg)
         else:
             return response_resource
 
-    def _find_or_create_remote_resource(self, resource_name, api, **kwargs):
+    def _find_or_create_remote_resource(self, message_name, api, **kwargs):
         new_resource = None
         response_list, error = api.list(**kwargs)
 
@@ -75,17 +75,17 @@ class FilesWalker:
             if self.context.debug: print(str(error))
             self.context.payload_group_update('messages', warning=str(error))
         elif len(response_list) == 0:
-            new_resource = self._create_remote_resource(resource_name, api, **kwargs)
+            new_resource = self._create_remote_resource(message_name, api, **kwargs)
         elif len(response_list) == 1:
             new_resource = response_list[0]
         else:
-            msg = f'Multiple {resource_name} found for date {self.context.current_date}? Choosing first.'
+            msg = f'Multiple {message_name} found for date {self.context.current_date}? Choosing first.'
             if self.context.debug: print(msg)
             self.context.payload_group_update('messages', warning=msg)
 
         return new_resource
 
-    def _check_existing_remote_resource(self, resource_name, api, uuid):
+    def _check_existing_remote_resource(self, message_name, api, uuid):
         response_detail, error = api.read(uuid)
         if error:
             if self.context.debug: print(str(error))
@@ -93,30 +93,31 @@ class FilesWalker:
         elif response_detail:
             self.context.payload_group_update('messages', warning='')
         else:
-            msg = f"Unknown {resource_name} with UUID {uuid}"
+            msg = f"Unknown {message_name} with UUID {uuid}"
             if self.context.debug: print(msg)
             self.context.payload_group_update('messages', warning=msg)
         return response_detail
 
-    def fetch_resource(self, resource_name: str, api: ArcsecondAPI, uuid):
-        assert resource_name is not None and len(resource_name) > 0
+    def fetch_resource(self, message_name: str, api: ArcsecondAPI, uuid):
+        assert message_name is not None and len(message_name) > 0
         assert api is not None
         assert uuid is not None and len(uuid) > 0
-        return self._check_existing_remote_resource(resource_name, api, uuid)
+        return self._check_existing_remote_resource(message_name, api, uuid)
 
-    def sync_resource(self, resource_name: str, api: ArcsecondAPI, **kwargs):
-        assert resource_name is not None and len(resource_name) > 0
+    def sync_resource(self, message_name: str, api: ArcsecondAPI, **kwargs):
+        assert message_name is not None and len(message_name) > 0
         assert api is not None
         assert len(kwargs.keys()) > 0
-        return self._find_or_create_remote_resource(resource_name, api, **kwargs)
+        return self._find_or_create_remote_resource(message_name, api, **kwargs)
 
-    def sync_resource_pair(self, resource_name: str, resource_key: str, api: ArcsecondAPI, **kwargs):
-        assert resource_name is not None and len(resource_name) > 0
+    def sync_resource_pair(self, message_name: str, resource_key: str, api: ArcsecondAPI, **kwargs):
+        assert message_name is not None and len(message_name) > 0
         assert resource_key is not None and len(resource_key) > 0
         assert api is not None
         assert len(kwargs.keys()) > 0
         resource_dataset = None
-        resource = self._find_or_create_remote_resource(resource_name, api, **kwargs)
+
+        resource = self._find_or_create_remote_resource(message_name, api, **kwargs)
 
         if resource:
             dataset_kwargs = {resource_key: resource['uuid'], 'name': resource['name']}
