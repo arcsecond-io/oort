@@ -1,12 +1,12 @@
 import os
 
 from arcsecond import Arcsecond
+
 from .filewalkers import FilesWalker
 
 
 class FiltersFolder(FilesWalker):
     # A folder of Filters folders (no files)
-
     def reset(self):
         self.filters = []
 
@@ -14,7 +14,7 @@ class FiltersFolder(FilesWalker):
         for name, path in self._walk_folder():
             if not os.path.isdir(path):
                 continue
-            self.filters.append(FilesWalker(self.context, path))
+            self.filters.append(FilesWalker(self.context, path, self.prefix))
         for filter in self.filters:
             filter.walk()
 
@@ -50,7 +50,7 @@ class CalibrationsFolder(FilesWalker):
                 self.darks_folder = FilesWalker(self.context, path)
                 self.darks_folder.walk()
             elif os.path.isdir(path) and name.lower().startswith('flat'):
-                self.flats_folders = FiltersFolder(self.context, path)
+                self.flats_folders = FiltersFolder(self.context, path, 'Flats')
                 self.flats_folders.walk()
             else:
                 pass
