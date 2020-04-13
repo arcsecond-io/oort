@@ -149,7 +149,7 @@ class FilesWalker:
         upload_key = f"dataset_{dataset['uuid']}:{filepath}"
         fw = self.context._uploads.get(upload_key)
         if fw is None:
-            fw = FileWrapper(filepath, dataset['uuid'], dataset['name'], self.context.debug)
+            fw = FileWrapper(filepath, dataset['uuid'], dataset['name'], self.context.debug, self.context.organisation)
             self.context._uploads[upload_key] = fw
 
         started_count = len([u for u in self.context._uploads.values() if u.is_started()])
