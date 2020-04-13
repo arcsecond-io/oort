@@ -19,13 +19,29 @@ class FiltersFolder(FilesWalker):
             filter.walk()
 
     def sync_flats(self, api, **kwargs):
-        flats = []
+        calibs_list = []
+        datasets_list = []
+
+        api_datasets = Arcsecond.build_datasets_api(debug=self.context.debug,
+                                                    organisation=self.context.organisation)
+
         for flat_filter in self.filters:
-            kwargs.update(name=f"Flats : {flat_filter.name}")
-            flat = flat_filter.sync_resource(f'Flat for filter {flat_filter.name}', api, **kwargs)
-            if flat:
-                flats.append(flat)
-        return flats
+            kwargs.update(type="Flats")
+            kwargs.update(name=flat_filter.name)
+            flat_calib = flat_filter.sync_resource('Flats ' + flat_filter.name, api, **kwargs)
+            if flat_calib:
+                calibs_list.append(flat_calib)
+
+                flat_dataset = flat_filter.sync_resource('Dataset',
+                                                         api_datasets,
+                                                         calibration=flat_calib['uuid'],
+                                                         name=flat_filter.name,
+                                                         organisation=self.context.organisation)
+
+                if flat_dataset:
+                    datasets_list.append(flat_dataset)
+
+        return calibs_list, datasets_list
 
 
 class CalibrationsFolder(FilesWalker):
@@ -81,7 +97,7 @@ class CalibrationsFolder(FilesWalker):
                     datasets.append(biases_dataset)
 
         if self.darks_folder:
-            kwargs.update(type="Biases")
+            kwargs.update(type="Darks")
             darks_calib = self.darks_folder.sync_resource("Darks", api_calibrations, **kwargs)
 
             if darks_calib:
@@ -95,8 +111,9 @@ class CalibrationsFolder(FilesWalker):
                     datasets.append(darks_dataset)
 
         if self.flats_folders:
-            flats_calibs = self.flats_folders.sync_flats(api_calibrations, **kwargs)
+            flats_calibs, flats_datasets = self.flats_folders.sync_flats(api_calibrations, **kwargs)
             calibrations += flats_calibs
+            datasets += flats_datasets
 
         self.context.payload_group_update(payload_key, calibrations=calibrations)
         self.context.payload_group_update(payload_key, datasets=datasets)
