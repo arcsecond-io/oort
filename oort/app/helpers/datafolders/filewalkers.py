@@ -30,12 +30,12 @@ class FilesWalker:
     @property
     def datetime_start(self):
         year, month, day = self.context.current_date.split('-')
-        return datetime(year=year, month=month, day=day, hour=12, minute=0, second=0)
+        return datetime(year=int(year), month=int(month), day=int(day), hour=12, minute=0, second=0)
 
     @property
     def datetime_end(self):
         year, month, day = self.context.current_date.split('-')
-        return datetime(year=year, month=month, day=day, hour=11, minute=59, second=59) + timedelta(days=1)
+        return datetime(year=int(year), month=int(month), day=int(day), hour=11, minute=59, second=59) + timedelta(days=1)
 
     def reset(self):
         pass
