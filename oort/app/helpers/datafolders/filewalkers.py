@@ -8,16 +8,17 @@ from arcsecond.api.main import ArcsecondAPI
 class FilesWalker:
     # A folder files
 
-    def __init__(self, context, folderpath):
+    def __init__(self, context, folderpath, prefix=''):
         self.context = context
         self.folderpath = folderpath
+        self.prefix = prefix
         self.files = []
         self.api = Arcsecond.build_datafiles_api()
         self.reset()
 
     @property
     def name(self):
-        return os.path.basename(self.folderpath)
+        return f'{self.prefix} {os.path.basename(self.folderpath)}'.strip()
 
     @property
     def datetime_start(self):
