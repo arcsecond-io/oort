@@ -41,6 +41,7 @@
         <span class="small">
           uploads local data to <a href="https://www.arcsecond.io" target="_blank">Arcsecond</a>'s cloud.
           (It is open-source and available on <a href="https://github.com/arcsecond-io/oort" target="_blank">GitHub</a>.)
+          <a class="btn btn-info btn-xs" href="https://github.com/arcsecond-io/oort/issues/new">Report an problem</a>
         </span>
       </h3>
 
@@ -51,9 +52,8 @@
           {% if context.organisation %}-o {$ context.organisation $}{% endif %}
           {% if context.debug %}-d{% endif %}
         </code>
-      </div>
-      <div class="context">
-        <strong>Observed folder:</strong>
+        &nbsp;
+        <strong>Observed root folder:</strong>
         <code>{$ context.folder $}</code>
       </div>
     </div>
@@ -100,9 +100,9 @@
                   <i class="fa fa-arrow-right"></i>
                   &nbsp;Uploading to
                     <a :href="`https://api.arcsecond.io/${state.organisation}/`" target="_blank">
-                      api.arcsecond.io/{{ state.organisation }}/
+                      api.arcsecond.io/{{ state.organisation }}/datafiles
                     </a>
-                  (private API endpoints)
+                  (private API endpoint)
                 </span>
                 <span v-else-if="state.organisation">
                   &nbsp;<i class="fa fa-exclamation-triangle" style="color: orange;"></i>&nbsp;
@@ -117,38 +117,38 @@
               </div>
 
               <div>
-              <span v-if="state.telescopes && state.telescopes.length">
-                <label for="telescopes-select">Telescope(s)</label>:
-                <select id="telescopes-select" @change="selectTelescope($event.target.value)">
-                  <option value="__all__">All</option>
-                  <option v-for="(telescope, index) in state.telescopes" :key="telescope.uuid" :value="telescope.uuid">
-                    {{ telescope.name }} <span class="subtitle">(uuid: {{ telescope.uuid }})</span>
-                  </option>
-                </select>
-              </span>
+                <span v-if="telescopes.length">
+                  <label for="telescopes-select">Telescope(s)</label>:
+                  <select id="telescopes-select" @change="selectTelescope($event.target.value)">
+                    <option value="__all__">All</option>
+                    <option v-for="(telescope, index) in telescopes" :key="telescope.uuid" :value="telescope.uuid">
+                      {{ telescope.name }} <span class="subtitle">(uuid: {{ telescope.uuid }})</span>
+                    </option>
+                  </select>
+                </span>
                 <span v-else>
-                No telescope.
-              </span>
+                  No telescope found.
+                </span>
               </div>
 
               <div>
-              <span v-if="state.selected_night_log">
-                <strong>Selected night log</strong>: {{ state.selected_night_log.date }}
-                <span class="subtitle">(uuid: {{ state.selected_night_log.uuid }})</span>
-                <br/>
-                <span class="subtitle">Beware that night logs starts on local noon and last 24 hours.</span>
-                [<a :href="`https://${state.organisation}.arcsecond.io/${state.selected_night_log_url}`" target="_blank">open night data in portal</a>]
-              </span>
-                <span v-else-if="state.night_logs && state.night_logs.length">
-                <strong>All night logs</strong>: {{ state.night_logs[0].date }}
-                [<span class="subtitle" v-for="night_log in state.night_logs">{{ night_log.uuid }}, </span>]
-                <br/>
-                <span class="subtitle">Beware that night logs starts on local noon and last 24 hours.</span>
-                [<a :href="`https://${state.organisation}.arcsecond.io/${state.selected_night_log_url}`" target="_blank">open night data in portal</a>]
-              </span>
+                <span v-if="selected_night_log">
+                  <strong>Selected night log</strong>: {{ selected_night_log.date }}
+                  <span class="subtitle">(uuid: {{ selected_night_log.uuid }})</span>
+                  <br/>
+                  <span class="subtitle">Beware that night logs starts on local noon and last 24 hours.</span>
+                  [<a :href="`https://${state.organisation}.arcsecond.io/${selected_night_log_url}`" target="_blank">open night data in portal</a>]
+                </span>
+                <span v-else-if="night_logs && night_logs.length">
+                  <strong>All night logs</strong>: {{ night_logs[0].date }}
+                  [<span class="subtitle" v-for="night_log in night_logs">{{ night_log.uuid }}, </span>]
+                  <br/>
+                  <span class="subtitle">Beware that night logs starts on local noon and last 24 hours.</span>
+                  [<a :href="`https://${state.organisation}.arcsecond.io/${selected_night_log_url}`" target="_blank">open night data in portal</a>]
+                </span>
                 <span v-else>
-                No night log
-              </span>
+                  No night log
+                </span>
               </div>
 
               <div v-if="messages.info">
