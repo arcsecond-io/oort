@@ -20,12 +20,7 @@ class UploadsLocalState(State):
         return self.context.get_yield_string()
 
     def sync_observations_and_calibrations(self):
-        night_logs = self.context.get_payload('night_logs')
-        for telescope_folder in self.root.telescope_folders:
-            night_log = find(night_logs, telescope=telescope_folder.uuid)
-            if night_log:
-                payload_key = f'telescope_{telescope_folder.uuid}'
-                telescope_folder.sync_calibrations(payload_key, night_log=night_log['uuid'])
+        self.root.sync_calibrations()
         return self.context.get_yield_string()
 
     def sync_uploads(self):
