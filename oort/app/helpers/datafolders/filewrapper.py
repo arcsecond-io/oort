@@ -65,9 +65,7 @@ class FileWrapper(object):
         if len(response_list) == 0:
             return False
         elif len(response_list) == 1:
-            file_field = response_list[0].get('file')
-            if file_field:
-                self._exists_remotely = 'amazonaws.com' in file_field.get('download_url')
+            self._exists_remotely = 'amazonaws.com' in response_list[0].get('file', '')
             return self._exists_remotely
         else:
             print(f'Multiple files for dataset {self.dataset_uuid} and filename {filename}???')
