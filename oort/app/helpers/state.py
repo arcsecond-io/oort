@@ -27,12 +27,6 @@ class Context:
         self.config_filepath = os.path.expanduser('.oort.ini')
         self._payload = {}
 
-    def payload_group_update(self, group, **kwargs):
-        if group not in self._payload.keys():
-            self._payload[group] = {}
-        for key, value in kwargs.items():
-            self._payload[group][key] = value
-
     def payload_update(self, **kwargs):
         for key, value in kwargs.items():
             self._payload[key] = value
@@ -45,6 +39,15 @@ class Context:
 
     def get_payload(self, key):
         return self._payload[key]
+
+    def payload_group_update(self, group, **kwargs):
+        if group not in self._payload.keys():
+            self._payload[group] = {}
+        for key, value in kwargs.items():
+            self._payload[group][key] = value
+
+    def get_group_payload(self, group, key):
+        return self._payload[group][key]
 
     def get_yield_string(self):
         json_data = json.dumps(self._payload)
@@ -109,3 +112,6 @@ class State:
 
     def get_yield_string(self):
         return self.context.get_yield_string()
+
+    def find(self, items, **kwargs):
+        return next((item for item in items if all([item[k] == v for k, v in kwargs.items()])), None)

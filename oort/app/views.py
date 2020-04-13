@@ -26,16 +26,11 @@ def uploads():
                 yield state.sync_telescopes()
                 yield state.sync_night_logs()
 
-            # if (count < 30 and count % 10 == 0) or count % 60 == 0:
-            #     state.refresh()
-            #     yield state.get_yield_string()
-            #     state.sync_calibrations()
-            #     yield state.get_yield_string()
-            #     state.sync_datasets()
-            #     yield state.get_yield_string()
-            #
-            # state.sync_uploads()
-            # yield state.get_yield_string()
+            if (count < 30 and count % 10 == 0) or count % 60 == 0:
+                yield state.sync_calibrations()
+
+            state.sync_uploads()
+            yield state.get_yield_string()
             time.sleep(1)
             count += 1
 

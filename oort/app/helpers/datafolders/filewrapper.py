@@ -34,6 +34,7 @@ class FileWrapper(object):
         self.duration = None
         self.result = None
         self.error = None
+        self._exists_remotely = False
 
         self.api = Arcsecond.build_datafiles_api(debug=debug, dataset=dataset_uuid)
 
@@ -48,6 +49,9 @@ class FileWrapper(object):
         return (100 - self.progress) * self.filesize / 1000
 
     def exists_remotely(self):
+        if self._exists_remotely:
+            return self._exists_remotely
+
         filename = os.path.basename(self.filepath)
         response_list, error = self.api.list(dataset=self.dataset_uuid, name=filename)
         if error:
@@ -60,9 +64,11 @@ class FileWrapper(object):
         if len(response_list) == 0:
             return False
         elif len(response_list) == 1:
-            return 'amazonaws.com' in response_list[0]['file']
+            self._exists_remotely = 'amazonaws.com' in response_list[0]['file']
+            return self._exists_remotely
         else:
             print(f'Multiple files for dataset {self.dataset_uuid} and filename {filename}???')
+            return False
 
     def start(self):
         if self.started is not None:
@@ -97,7 +103,7 @@ class FileWrapper(object):
         return self.started is not None and self.ended is None
 
     def will_finish(self):
-        return self.is_started() and self.remaining_bytes / 1000 < 100
+        return self.is_started() and self.progress == 100
 
     def is_finished(self):
         return self.ended is not None and (datetime.now() - self.ended).total_seconds() > 2

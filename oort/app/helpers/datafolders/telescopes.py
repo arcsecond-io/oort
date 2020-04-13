@@ -1,7 +1,5 @@
 import os
 
-from arcsecond import Arcsecond
-
 from .filewalkers import FilesWalker
 from .calibrations import CalibrationsFolder
 from .targets import TargetFolder
@@ -30,3 +28,9 @@ class TelescopeFolder(FilesWalker):
             # We may wish to checkk for Biases, Darks etc at that level too...
             else:
                 self.target_folders.append(TargetFolder(self.context, path))
+
+    def sync_calibrations(self, **kwargs):
+        if self.calibrations is None:
+            return
+
+        self.calibrations.sync_resources(**kwargs)

@@ -2,6 +2,7 @@ import os
 from datetime import datetime, timedelta
 
 from arcsecond import Arcsecond
+from arcsecond.api.main import ArcsecondAPI
 
 
 class FilesWalker:
@@ -32,6 +33,7 @@ class FilesWalker:
         pass
 
     def walk(self):
+        """Default implementation: look for files only."""
         for name, path in self._walk_folder():
             if not os.path.exists(path) or os.path.isdir(path):
                 continue
@@ -44,9 +46,6 @@ class FilesWalker:
             return zip([], [])
         names = os.listdir(self.folderpath)
         return [(name, os.path.join(self.folderpath, name)) for name in names if name[0] != '.']
-
-    def sync(self, infos=None):
-        pass
 
     def _create_remote_resource(self, resource_name, api, **kwargs):
         response_resource, error = api.create(kwargs)
@@ -76,6 +75,7 @@ class FilesWalker:
             msg = f'Multiple {resource_name} found for date {self.context.current_date}? Choosing first.'
             if self.context.debug: print(msg)
             self.context.payload_group_update('messages', warning=msg)
+
         return new_resource
 
     def _check_existing_remote_resource(self, resource_name, api, uuid):
@@ -90,3 +90,15 @@ class FilesWalker:
             if self.context.debug: print(msg)
             self.context.payload_group_update('messages', warning=msg)
         return response_detail
+
+    def fetch_resource(self, name: str, api: ArcsecondAPI, uuid):
+        assert name is not None and len(name) > 0
+        assert api is not None
+        assert uuid is not None and len(uuid) > 0
+        return self._check_existing_remote_resource(name, api, uuid)
+
+    def sync_resource(self, name: str, api: ArcsecondAPI, **kwargs):
+        assert name is not None and len(name) > 0
+        assert api is not None
+        assert 'uuid' in kwargs.keys()
+        return self._find_or_create_remote_resource(name, api, **kwargs)

@@ -63,12 +63,10 @@ class RootFolder(FilesWalker):
 
     def sync_telescopes(self):
         self.context.payload_group_update('messages', warning='')
+        self.context.payload_update(telescopes=[])
 
         for telescope_folder in self.telescope_folders:
-            telescope = self._check_existing_remote_resource('Telescope',
-                                                             self.telescopes_api,
-                                                             telescope_folder.uuid)
-
+            telescope = self.fetch_resource('Telescope', self.telescopes_api, telescope_folder.uuid)
             if telescope:
                 self.context.payload_append(telescopes=telescope)
 
@@ -77,11 +75,14 @@ class RootFolder(FilesWalker):
             self.context.payload_group_update('messages', warning=msg)
 
     def sync_night_logs(self):
+        self.context.payload_group_update('messages', warning='')
+        self.context.payload_update(night_logs=[])
+
         for telescope in self.context.get_payload('telescopes'):
-            new_log = self._find_or_create_remote_resource('Night Log',
-                                                           self.logs_api,
-                                                           date=self.context.current_date,
-                                                           telescope=telescope['uuid'])
+            new_log = self.sync_resource('Night Log',
+                                         self.logs_api,
+                                         date=self.context.current_date,
+                                         telescope=telescope['uuid'])
 
             if new_log:
                 self.context.payload_append(night_logs=new_log)
