@@ -50,6 +50,7 @@ class TelescopeFolder(FilesWalker):
                                                organisation=self.context.organisation)
 
         for observations_folder in self.observations_folders:
+            kwargs.update(target_name=observations_folder.prefix)
             resources_list, datasets_list = observations_folder.sync_filters('Observations',
                                                                              'observation',
                                                                              api,
