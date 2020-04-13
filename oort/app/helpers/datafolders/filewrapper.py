@@ -60,7 +60,6 @@ class FileWrapper(object):
         if isinstance(response_list, dict) and 'count' in response_list.keys() and 'results' in response_list.keys():
             response_list = response_list['results']
 
-        print(response_list)
         if len(response_list) == 0:
             return False
         elif len(response_list) == 1:
