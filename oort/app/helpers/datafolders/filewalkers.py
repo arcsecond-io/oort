@@ -119,7 +119,7 @@ class FilesWalker:
         resource = self._find_or_create_remote_resource(resource_name, api, **kwargs)
 
         if resource:
-            dataset_kwargs = {resource_key: resource['uuid'], 'name': resource['type']}
+            dataset_kwargs = {resource_key: resource['uuid'], 'name': resource['name']}
             if self.context.organisation:
                 dataset_kwargs.update(organisation=self.context.organisation)
 
