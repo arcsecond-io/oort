@@ -1,4 +1,5 @@
 import os
+import re
 from datetime import datetime, timedelta
 
 from arcsecond import Arcsecond
@@ -45,8 +46,22 @@ class FilesWalker:
             if not os.path.exists(path) or os.path.isdir(path):
                 continue
             # Todo: deal with timezones and filename formats!
-            if self.context.current_date in name:
-                self.files.append(path)
+
+            pattern = r'.*(20[0-9]{4}_[0-9]{6}_[0-9]{3}).*'
+            m = re.search(pattern, name)
+            if m:
+                sub = '20' + m.group(1)
+                year, month, day = sub[:4], sub[4:6], sub[6:8]
+                hour, min, sec = sub[9:11], sub[11:13], sub[13:15]
+                file_date = datetime(year=int(year),
+                                     month=int(month),
+                                     day=int(day),
+                                     hour=int(hour),
+                                     minute=int(min),
+                                     second=int(sec))
+
+                if file_date >= self.datetime_start and file_date < self.datetime_end:
+                    self.files.append(path)
 
     def _walk_folder(self):
         if not os.path.exists(self.folderpath) or not os.path.isdir(self.folderpath):
