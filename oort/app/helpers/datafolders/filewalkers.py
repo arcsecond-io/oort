@@ -91,14 +91,14 @@ class FilesWalker:
             self.context.payload_group_update('messages', warning=msg)
         return response_detail
 
-    def fetch_resource(self, name: str, api: ArcsecondAPI, uuid):
-        assert name is not None and len(name) > 0
+    def fetch_resource(self, resource_name: str, api: ArcsecondAPI, uuid):
+        assert resource_name is not None and len(resource_name) > 0
         assert api is not None
         assert uuid is not None and len(uuid) > 0
-        return self._check_existing_remote_resource(name, api, uuid)
+        return self._check_existing_remote_resource(resource_name, api, uuid)
 
-    def sync_resource(self, name: str, api: ArcsecondAPI, **kwargs):
-        assert name is not None and len(name) > 0
+    def sync_resource(self, resource_name: str, api: ArcsecondAPI, **kwargs):
+        assert resource_name is not None and len(resource_name) > 0
         assert api is not None
         assert len(kwargs.keys()) > 0
-        return self._find_or_create_remote_resource(name, api, **kwargs)
+        return self._find_or_create_remote_resource(resource_name, api, **kwargs)
