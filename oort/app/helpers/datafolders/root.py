@@ -37,7 +37,8 @@ class RootFolder(FilesWalker):
                     tel_uuid = self._look_for_telescope_uuid(parent_path)
                     if tel_uuid:
                         if self.context.debug: print(f'Found a Telescope folder: {name}')
-                        self.telescope_folders.append(TelescopeFolder(tel_uuid, self.context, parent_path))
+                        astronomer = self._look_for_astronomer(parent_path)
+                        self.telescope_folders.append(TelescopeFolder(tel_uuid, astronomer, self.context, parent_path))
                     else:
                         # Don't know what to do here. Skip for now.
                         pass
@@ -47,15 +48,26 @@ class RootFolder(FilesWalker):
                 #     raise AttributeError('One needs to support root datasets in night logs for that.')
                 # self.files.append(path)
 
-    def _look_for_telescope_uuid(self, path):
+    def _get_oort_config(self, path):
+        _config = None
         oort_filepath = os.path.join(path, '__oort__')
         if os.path.exists(oort_filepath) and os.path.isfile(oort_filepath):
             # Below will fail if the info is missing / wrong.
             with open(oort_filepath, 'r') as f:
                 _config = ConfigParser()
                 _config.read(oort_filepath)
-                return _config['telescope']['uuid']
+        return _config
 
+    def _look_for_telescope_uuid(self, path):
+        _config = self._get_oort_config(path)
+        if _config:
+            return _config['telescope']['uuid']
+        return None
+
+    def _look_for_astronomer(self, path):
+        _config = self._get_oort_config(path)
+        if _config and 'astronomer' in _config:
+            return (_config['astronomer']['username'], _config['astronomer']['api_key'])
         return None
 
     def walk_telescope_folders(self):
