@@ -11,23 +11,12 @@ class UploadsLocalState(State):
         self.context.payload_update(current_uploads=[], finished_uploads=[])
         self.root = RootFolder(self.context)
 
-    def sync_telescopes_and_night_logs(self):
+    def sync_telescopes(self):
         if not self.context.can_upload:
             return self.get_yield_string()
 
         self.root.walk()  # Only first depth level.
         self.root.sync_telescopes()
-        self.root.sync_night_logs()
-
-        return self.context.get_yield_string()
-
-    def sync_observations_and_calibrations(self):
-        if not self.context.can_upload:
-            return self.get_yield_string()
-
-        self.root.walk_telescope_folders()
-        self.root.sync_telescopes_calibrations()
-        self.root.sync_telescopes_observations()
 
         return self.context.get_yield_string()
 

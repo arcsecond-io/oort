@@ -8,7 +8,7 @@ from arcsecond import Arcsecond
 
 
 class FileWrapper(object):
-    def __init__(self, filepath, dataset_uuid, dataset_name, debug=False, organisation=None):
+    def __init__(self, filepath, dataset_uuid, dataset_name, context, astronomer=None):
         if not filepath:
             raise ValueError(f'Missing / wrong filepath: {filepath}')
         if not os.path.exists(filepath):
@@ -34,11 +34,19 @@ class FileWrapper(object):
         self.duration = None
         self.result = None
         self.error = None
+
+        self._context = context
+        self._astronomer = astronomer
         self._exists_remotely = False
 
-        self.api = Arcsecond.build_datafiles_api(dataset=dataset_uuid,
-                                                 debug=debug,
-                                                 organisation=organisation)
+        if self._astronomer:
+            self.api = Arcsecond.build_datafiles_api(dataset=dataset_uuid,
+                                                     debug=self._context.debug,
+                                                     api_key=self._astronomer[1])
+        else:
+            self.api = Arcsecond.build_datafiles_api(dataset=dataset_uuid,
+                                                     debug=self._context.debug,
+                                                     organisation=self._context.organisation)
 
         def update_progress(event, progress_percent):
             self.progress = progress_percent

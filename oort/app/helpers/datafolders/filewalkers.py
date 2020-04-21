@@ -8,17 +8,17 @@ from arcsecond import Arcsecond
 from arcsecond.api.main import ArcsecondAPI
 
 from .filewrapper import FileWrapper
+from .utils import find
 
 MAX_SIMULTANEOUS_UPLOADS = 3
-
-DATE_PARSE_SETTINGS = {'TIMEZONE': 'UTC', 'RETURN_AS_TIMEZONE_AWARE': True}
 
 
 class FilesWalker:
     # A folder files
 
-    def __init__(self, context, folderpath, prefix='', auto_walk=True):
+    def __init__(self, context, astronomer, folderpath, prefix='', auto_walk=True):
         self.context = context
+        self.astronomer = astronomer
         self.folderpath = folderpath
         self.prefix = prefix
         self.auto_walk = auto_walk
@@ -42,6 +42,50 @@ class FilesWalker:
         return datetime(year=int(year), month=int(month), day=int(day), hour=11, minute=59, second=59) + timedelta(
             days=1)
 
+    @property
+    def api_datasets(self):
+        # This will work for organisation only, overriding user inside organisation,
+        # and no organisation without api_key either.
+        if self.astronomer:
+            return Arcsecond.build_datasets_api(debug=self.context.debug,
+                                                api_key=self.astronomer[1])
+        else:
+            return Arcsecond.build_datasets_api(debug=self.context.debug,
+                                                organisation=self.context.organisation)
+
+    @property
+    def api_calibrations(self):
+        # This will work for organisation only, overriding user inside organisation,
+        # and no organisation without api_key either.
+        if self.astronomer:
+            return Arcsecond.build_calibrations_api(debug=self.context.debug,
+                                                    api_key=self.astronomer[1])
+        else:
+            return Arcsecond.build_calibrations_api(debug=self.context.debug,
+                                                    organisation=self.context.organisation)
+
+    @property
+    def api_observations(self):
+        # This will work for organisation only, overriding user inside organisation,
+        # and no organisation without api_key either.
+        if self.astronomer:
+            return Arcsecond.build_observations_api(debug=self.context.debug,
+                                                    api_key=self.astronomer[1])
+        else:
+            return Arcsecond.build_observations_api(debug=self.context.debug,
+                                                    organisation=self.context.organisation)
+
+    @property
+    def api_nightlogs(self):
+        # This will work for organisation only, overriding user inside organisation,
+        # and no organisation without api_key either.
+        if self.astronomer:
+            return Arcsecond.build_nightlogs_api(debug=self.context.debug,
+                                                 api_key=self.astronomer[1])
+        else:
+            return Arcsecond.build_nightlogs_api(debug=self.context.debug,
+                                                 organisation=self.context.organisation)
+
     def reset(self):
         pass
 
@@ -59,7 +103,7 @@ class FilesWalker:
                 file_date = None
                 for hdu in hdulist:
                     date_header = hdu.header['DATE'] or hdu.header['DATE-OBS']
-                    file_date = dateparser.parse(date_header, settings=DATE_PARSE_SETTINGS)
+                    file_date = dateparser.parse(date_header)
                     if file_date:
                         break
                 if file_date:
@@ -88,16 +132,16 @@ class FilesWalker:
         names = os.listdir(self.folderpath)
         return [(name, os.path.join(self.folderpath, name)) for name in names if name[0] != '.']
 
-    def _create_remote_resource(self, message_name, api, **kwargs):
+    def _create_remote_resource(self, api, **kwargs):
         response_resource, error = api.create(kwargs)
         if error:
             if self.context.debug: print(str(error))
-            msg = f'Failed to create {message_name} for date {self.context.current_date}. Retry is automatic.'
+            msg = f'Failed to create resource in {api} endpoint. Retry is automatic.'
             self.context.payload_group_update('messages', warning=msg)
         else:
             return response_resource
 
-    def _find_or_create_remote_resource(self, message_name, api, **kwargs):
+    def _find_or_create_remote_resource(self, api, **kwargs):
         new_resource = None
         response_list, error = api.list(**kwargs)
 
@@ -109,17 +153,17 @@ class FilesWalker:
             if self.context.debug: print(str(error))
             self.context.payload_group_update('messages', warning=str(error))
         elif len(response_list) == 0:
-            new_resource = self._create_remote_resource(message_name, api, **kwargs)
+            new_resource = self._create_remote_resource(api, **kwargs)
         elif len(response_list) == 1:
             new_resource = response_list[0]
         else:
-            msg = f'Multiple {message_name} found for date {self.context.current_date}? Choosing first.'
+            msg = f'Multiple resources found for API {api}? Choosing first.'
             if self.context.debug: print(msg)
             self.context.payload_group_update('messages', warning=msg)
 
         return new_resource
 
-    def _check_existing_remote_resource(self, message_name, api, uuid):
+    def _check_existing_remote_resource(self, api, uuid):
         response_detail, error = api.read(uuid)
         if error:
             if self.context.debug: print(str(error))
@@ -127,51 +171,80 @@ class FilesWalker:
         elif response_detail:
             self.context.payload_group_update('messages', warning='')
         else:
-            msg = f"Unknown {message_name} with UUID {uuid}"
+            msg = f"Unknown resource in {api} endpoint with UUID {uuid}"
             if self.context.debug: print(msg)
             self.context.payload_group_update('messages', warning=msg)
         return response_detail
 
-    def fetch_resource(self, message_name: str, api: ArcsecondAPI, uuid):
-        assert message_name is not None and len(message_name) > 0
+    def fetch_resource(self, api: ArcsecondAPI, uuid):
         assert api is not None
         assert uuid is not None and len(uuid) > 0
-        return self._check_existing_remote_resource(message_name, api, uuid)
+        return self._check_existing_remote_resource(api, uuid)
 
-    def sync_resource(self, message_name: str, api: ArcsecondAPI, **kwargs):
-        assert message_name is not None and len(message_name) > 0
+    def sync_resource(self, api: ArcsecondAPI, **kwargs):
         assert api is not None
         assert len(kwargs.keys()) > 0
-        return self._find_or_create_remote_resource(message_name, api, **kwargs)
+        return self._find_or_create_remote_resource(api, **kwargs)
 
-    def sync_resource_pair(self, message_name: str, resource_key: str, api: ArcsecondAPI, **kwargs):
-        assert message_name is not None and len(message_name) > 0
+    def sync_resource_pair(self, resource_key: str, api: ArcsecondAPI, **kwargs):
         assert resource_key is not None and len(resource_key) > 0
         assert api is not None
         assert len(kwargs.keys()) > 0
-        resource_dataset = None
 
-        resource = self._find_or_create_remote_resource(message_name, api, **kwargs)
+        resource_dataset = None
+        resource = self._find_or_create_remote_resource(api, **kwargs)
 
         if resource:
             # Using same name as in kwargs for observations, as it will have the filter name inside it
             # and not only the target name, since the Observation has no 'name' field.
             dataset_kwargs = {resource_key: resource['uuid'],
                               'name': resource.get('name') or kwargs.get('name')}
-            if self.context.organisation:
+
+            if self.context.organisation and not self.astronomer:
                 dataset_kwargs.update(organisation=self.context.organisation)
 
-            api_datasets = Arcsecond.build_datasets_api(debug=self.context.debug,
-                                                        organisation=self.context.organisation)
-
-            resource_dataset = self._find_or_create_remote_resource('Dataset', api_datasets, **dataset_kwargs)
+            resource_dataset = self._find_or_create_remote_resource(self.api_datasets, **dataset_kwargs)
 
         return resource, resource_dataset
 
-    def upload_files(self, dataset):
-        for filepath in self.files:
-            self._process_file_upload(filepath, dataset)
-        self._update_context()
+    def upload_files(self, telescope_key, resources_key, **kwargs):
+        night_logs = self.context.get_group_payload(telescope_key, 'night_logs')
+        resources = self.context.get_group_payload(telescope_key, resources_key)
+
+        resources_datasets_key = f'{resources_key}_datasets'
+        resources_datasets = self.context.get_group_payload(telescope_key, resources_datasets_key)
+
+        for filepath, filedate in self.files:
+            date_string = filedate.date().isoformat()
+            telescope_uuid = telescope_key.split('_')[1]
+
+            night_log = find(night_logs, date=date_string)
+            if not night_log:
+                night_log = self.sync_resource(self.api_nightlogs,
+                                               date=date_string,
+                                               telescope=telescope_uuid)
+
+            if night_log:
+                self.context.payload_group_append(telescope_key, night_logs=night_log)
+
+                kwargs.update(night_log=night_log['uuid'])
+                resource_key = resources_key[:-1] if resources_key[-1] == 's' else resources_key
+
+                resource_dataset = None
+                resource = find(resources, **kwargs)
+                if resource:
+                    resource_dataset = find(resources_datasets, **{resource_key: resource['uuid']})
+
+                if not resource or not resource_dataset:
+                    api = getattr(self, 'api_' + resource_key)
+                    resource, resource_dataset = self.sync_resource_pair(resource_key, api, **kwargs)
+                    self.context.payload_group_append(telescope_key, resources_key=resource)
+                    self.context.payload_group_append(telescope_key, resources_datasets_key=resource_dataset)
+
+                if resource_dataset:
+                    self._process_file_upload(filepath, resource_dataset)
+
+            self._update_context()
 
     def _update_context(self):
         current_uploads = [fw.to_dict() for fw in self.context._uploads.values() if fw.is_finished() is False]
@@ -183,7 +256,7 @@ class FilesWalker:
         upload_key = f"dataset_{dataset['uuid']}:{filepath}"
         fw = self.context._uploads.get(upload_key)
         if fw is None:
-            fw = FileWrapper(filepath, dataset['uuid'], dataset['name'], self.context.debug, self.context.organisation)
+            fw = FileWrapper(filepath, dataset['uuid'], dataset['name'], self.context, self.astronomer)
             self.context._uploads[upload_key] = fw
 
         started_count = len([u for u in self.context._uploads.values() if u.is_started()])

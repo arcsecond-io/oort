@@ -28,45 +28,38 @@ class TelescopeFolder(FilesWalker):
                 continue
             if name.lower().startswith('calib'):
                 if self.context.debug: print(f' > Found a {self.prefix} {name} folder.')
-                self.calibrations_folders.append(CalibrationsFolder(self.context, path, name))
+                self.calibrations_folders.append(CalibrationsFolder(self.context, self.astronomer, path, name))
             # We may wish to check for Biases, Darks etc at that level too...
             else:
                 # Prefix Observation and Datasets names with target name.
                 if self.context.debug: print(f' > Found a {self.prefix} {name} folder.')
-                self.observations_folders.append(FiltersFolder(self.context, path, name))
+                self.observations_folders.append(FiltersFolder(self.context, self.astronomer, path, name))
 
     @property
     def telescope_key(self):
         return f'telescope_{self.uuid}'
 
-    def sync_calibrations_folders(self, **kwargs):
-        for calibrations_folder in self.calibrations_folders:
-            calibrations_folder.sync_biases_darks_flats(self.telescope_key, **kwargs)
+    def sync(self):
+        if self.astronomer:
+            telescopes_api = Arcsecond.build_telescopes_api(debug=self.context.debug,
+                                                            api_key=self.astronomer[1])
+        else:
+            telescopes_api = Arcsecond.build_telescopes_api(debug=self.context.debug,
+                                                            organisation=self.context.organisation)
 
-    def sync_observations_folders(self, **kwargs):
-        observations = []
-        datasets = []
-
-        api = Arcsecond.build_observations_api(debug=self.context.debug,
-                                               organisation=self.context.organisation)
-
-        for observations_folder in self.observations_folders:
-            kwargs.update(target_name=observations_folder.prefix)
-            resources_list, datasets_list = observations_folder.sync_filters('Observations',
-                                                                             'observation',
-                                                                             api,
-                                                                             **kwargs)
-            observations += resources_list
-            datasets += datasets_list
-
-        self.context.payload_group_update(self.telescope_key, observations=observations)
-        self.context.payload_group_update(self.telescope_key, observations_datasets=datasets)
+        telescope = self.fetch_resource('Telescope', telescopes_api, self.uuid)
+        if telescope:
+            self.context.payload_append(telescopes=telescope)
+        else:
+            msg = f'Unknown telescope with UUID {self.uuid}'
+            self.context.payload_group_update('messages', warning=msg)
 
     def uploads_calibrations_folders(self):
         for calibrations_folder in self.calibrations_folders:
             calibrations_folder.upload_biases_darks_flats(self.telescope_key)
 
     def uploads_observations_folders(self):
-        for observations_folder in self.observations_folders:
-            # The second parameter must match the key in above self.context.payload_group_update...
-            observations_folder.upload_filters(self.telescope_key, 'observations')
+        pass
+        # for observations_folder in self.observations_folders:
+        #     # The second parameter must match the key in above self.context.payload_group_update...
+        #     observations_folder.upload_filters(self.telescope_key, 'observations')
