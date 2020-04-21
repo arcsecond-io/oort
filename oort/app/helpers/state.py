@@ -50,6 +50,14 @@ class Context:
         for key, value in kwargs.items():
             self._payload[group][key] = value
 
+    def payload_group_append(self, group, **kwargs):
+        if group not in self._payload.keys():
+            self._payload[group] = {}
+        for key, value in kwargs.items():
+            if key not in self._payload.keys():
+                self._payload[key] = []
+            self._payload[key].append(value)
+
     def get_group_payload(self, group, key):
         if not group in self._payload.keys():
             return None
