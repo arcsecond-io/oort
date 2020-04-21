@@ -30,6 +30,8 @@ setup(
     install_requires=[
         'flask',
         'arcsecond>=0.9.1',
+        'pyfits',
+        'dateparser',
         'python-dotenv'
     ],
     entry_points={
