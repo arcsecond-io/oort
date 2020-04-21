@@ -1,5 +1,7 @@
 import os
-import re
+import pyfits
+import dateparser
+
 from datetime import datetime, timedelta
 
 from arcsecond import Arcsecond
@@ -8,6 +10,8 @@ from arcsecond.api.main import ArcsecondAPI
 from .filewrapper import FileWrapper
 
 MAX_SIMULTANEOUS_UPLOADS = 3
+
+DATE_PARSE_SETTINGS = {'TIMEZONE': 'UTC', 'RETURN_AS_TIMEZONE_AWARE': True}
 
 
 class FilesWalker:
@@ -35,7 +39,8 @@ class FilesWalker:
     @property
     def datetime_end(self):
         year, month, day = self.context.current_date.split('-')
-        return datetime(year=int(year), month=int(month), day=int(day), hour=11, minute=59, second=59) + timedelta(days=1)
+        return datetime(year=int(year), month=int(month), day=int(day), hour=11, minute=59, second=59) + timedelta(
+            days=1)
 
     def reset(self):
         pass
@@ -45,23 +50,37 @@ class FilesWalker:
         for name, path in self._walk_folder():
             if not os.path.exists(path) or os.path.isdir(path):
                 continue
-            # Todo: deal with timezones and filename formats!
 
-            pattern = r'.*(20[0-9]{4}_[0-9]{6}_[0-9]{3}).*'
-            m = re.search(pattern, name)
-            if m:
-                sub = '20' + m.group(1)
-                year, month, day = sub[:4], sub[4:6], sub[6:8]
-                hour, minute, second = sub[9:11], sub[11:13], sub[13:15]
-                file_date = datetime(year=int(year),
-                                     month=int(month),
-                                     day=int(day),
-                                     hour=int(hour),
-                                     minute=int(minute),
-                                     second=int(second))
+            try:
+                hdulist = pyfits.open(path)
+            except Exception as error:
+                if self.context.debug: print(str(error))
+            else:
+                file_date = None
+                for hdu in hdulist:
+                    date_header = hdu.header['DATE'] or hdu.header['DATE-OBS']
+                    file_date = dateparser.parse(date_header, settings=DATE_PARSE_SETTINGS)
+                    if file_date:
+                        break
+                if file_date:
+                    self.files.append((path, file_date))
+                hdulist.close()
 
-                if file_date >= self.datetime_start and file_date < self.datetime_end:
-                    self.files.append(path)
+            # pattern = r'.*(20[0-9]{4}_[0-9]{6}_[0-9]{3}).*'
+            # m = re.search(pattern, name)
+            # if m:
+            #     sub = '20' + m.group(1)
+            #     year, month, day = sub[:4], sub[4:6], sub[6:8]
+            #     hour, minute, second = sub[9:11], sub[11:13], sub[13:15]
+            #     file_date = datetime(year=int(year),
+            #                          month=int(month),
+            #                          day=int(day),
+            #                          hour=int(hour),
+            #                          minute=int(minute),
+            #                          second=int(second))
+            # TIMEZONE ???
+            #     if file_date >= self.datetime_start and file_date < self.datetime_end:
+            #         self.files.append(path)
 
     def _walk_folder(self):
         if not os.path.exists(self.folderpath) or not os.path.isdir(self.folderpath):
