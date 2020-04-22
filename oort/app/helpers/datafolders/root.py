@@ -1,24 +1,19 @@
 import os
 from configparser import ConfigParser
 
-from arcsecond import Arcsecond
-
-from .filewalkers import FilesWalker
+from .filewalker import FilesWalker
 from .telescopes import TelescopeFolder
 
 
 class RootFolder(FilesWalker):
-    # Either a folder of multiple telescopes folders, or itself a telescope folder.
-
-    def __init__(self, context, skip_root_files=True):
-        super().__init__(context, context.folder)
-        self.skip_root_files = skip_root_files
+    def __init__(self, context):
+        super().__init__(context, None, context.folder)
 
     def reset(self):
         self.other_folders = []
         self.telescope_folders = []
 
-    def walk(self):
+    def find_telescope_folders(self):
         self.reset()
         for name, path in self._walk_folder():
             # If it's a folder, check if it is a telescope one.
@@ -74,12 +69,12 @@ class RootFolder(FilesWalker):
         for telescope_folder in self.telescope_folders:
             telescope_folder.walk()
 
-    def sync_telescopes(self):
+    def read_remote_telescopes(self):
         self.context.payload_group_update('messages', warning='')
         self.context.payload_update(telescopes=[])
 
         for telescope_folder in self.telescope_folders:
-            telescope_folder.sync()
+            telescope_folder.read_remote_telescope()
 
         if len(self.context.get_payload('telescopes')) == 0:
             msg = 'No telescopes detected. Make sure this folder or sub-ones contain a file named __oort__ with a telescope UUID and relaunch command.'
