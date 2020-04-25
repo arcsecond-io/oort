@@ -124,7 +124,9 @@
                   <select id="telescopes-select" @change="selectTelescope($event.target.value)">
                     <option value="__all__">All</option>
                     <option v-for="(telescope, index) in telescopes" :key="telescope.uuid" :value="telescope.uuid">
-                      {{ telescope.name }} <span class="subtitle">(uuid: {{ telescope.uuid }})</span>
+                      {{ telescope.name }}
+                      <span class="subtitle">(uuid: {{ telescope.uuid }})</span>
+                      <span v-if="telescope.astronomer">for @{{ telescope.astronomer.username }}</span>
                     </option>
                   </select>
                 </span>

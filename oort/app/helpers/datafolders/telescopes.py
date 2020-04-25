@@ -1,3 +1,4 @@
+import copy
 import os
 
 from arcsecond import Arcsecond
@@ -41,9 +42,11 @@ class TelescopeFolder(FilesWalker):
         telescopes_api = Arcsecond.build_telescopes_api(**self.api_kwargs)
         response_detail, error = telescopes_api.read(self.uuid)
         if response_detail:
+            if self.astronomer:
+                response_detail.astronomer = copy.deepcopy(self.astronomer)
             self.context.payload_append(telescopes=response_detail)
         else:
-            msg = f'Unknown telescope with UUID {self.uuid}'
+            msg = f'Unknown telescope with UUID {self.uuid}: {str(error)}'
             self.context.payload_group_update('messages', warning=msg)
 
     def uploads_calibrations_folders(self):

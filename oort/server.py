@@ -41,6 +41,9 @@ def main(ctx, state, version=False, v=False, o=None, org=None, organisation=None
         if organisation:
             if Arcsecond.memberships().get(organisation) is None:
                 raise InvalidOrgMembershipInOortCloudError(organisation)
+            _, error = Arcsecond.build_telescopes_api(debug=state.debug, organisation=organisation).list()
+            if error:
+                raise OortCloudError(str(error))
 
         port = 5000
         while is_port_in_use(port):
