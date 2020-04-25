@@ -1,9 +1,8 @@
 import os
-import pyfits
 import dateparser
 
 from datetime import datetime, timedelta
-
+from astropy.io import fits as pyfits
 
 class FilesWalker:
     # A folder files
