@@ -126,7 +126,7 @@
                     <option v-for="(telescope, index) in telescopes" :key="telescope.uuid" :value="telescope.uuid">
                       {{ telescope.name }}
                       <span class="subtitle">(uuid: {{ telescope.uuid }})</span>
-                      <span v-if="telescope.astronomer">for @{{ telescope.astronomer.username }}</span>
+                      <span v-if="telescope.astronomer.length">for @{{ telescope.astronomer }}</span>
                     </option>
                   </select>
                 </span>

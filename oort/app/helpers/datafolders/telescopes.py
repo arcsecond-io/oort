@@ -1,4 +1,3 @@
-import copy
 import os
 
 from arcsecond import Arcsecond
@@ -13,7 +12,6 @@ class TelescopeFolder(FilesWalker):
 
     def __init__(self, uuid, context, astronomer, folderpath):
         self.uuid = uuid
-        self.astronomer = astronomer
         super().__init__(context, astronomer, folderpath, '')
 
     def reset(self):
@@ -43,7 +41,9 @@ class TelescopeFolder(FilesWalker):
         response_detail, error = telescopes_api.read(self.uuid)
         if response_detail:
             if self.astronomer:
-                response_detail.astronomer = copy.deepcopy(self.astronomer)
+                response_detail['astronomer'] = self.astronomer[0]
+            else:
+                response_detail['astronomer'] = ''
             self.context.payload_append(telescopes=response_detail)
         else:
             msg = f'Unknown telescope with UUID {self.uuid}: {str(error)}'
