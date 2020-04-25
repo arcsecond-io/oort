@@ -5,14 +5,14 @@
 }
 
 .row.row-header {
-    height: 120px;
+    height: 100px;
     border-bottom: 1px solid #4dbce9;
     padding-bottom: 0.5em;
 }
 
 .row.row-tables {
-    padding-top: 0.5em;
-    height: calc(100% - 120px);
+    padding-top: 1.5em;
+    height: calc(100% - 100px);
     overflow-y: scroll;
 }
 
