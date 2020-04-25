@@ -124,7 +124,7 @@
                   <select id="telescopes-select" @change="selectTelescope($event.target.value)">
                     <option value="__all__">All</option>
                     <option v-for="(telescope, index) in telescopes" :key="telescope.uuid" :value="telescope.uuid">
-                      {{ telescope.name }}
+                      {{ telescope.name }} (folder: {{ telescope.folder_name }})
                       <span class="subtitle">(uuid: {{ telescope.uuid }})</span>
                       <span v-if="telescope.astronomer.length">for @{{ telescope.astronomer }}</span>
                     </option>
@@ -204,6 +204,8 @@
                 <tr>
                   <th>Filename</th>
                   <th>Dataset</th>
+                  <th>Night Log</th>
+                  <th>Telescope</th>
                   <th>Size</th>
                   <th>Status</th>
                   <th>Progress</th>
@@ -216,9 +218,17 @@
                 <tbody>
                 <tr v-for="upload in current_uploads">
                   <td>{{ upload.filename }}</td>
-                  <td :title="upload.dataset_uuid">
-                    {{ upload.dataset_name }}
-                    <span class="subtitle">{{ upload.dataset_uuid }}</span>
+                  <td :title="upload.dataset.uuid">
+                    {{ upload.dataset.name }}
+                    <div class="subtitle">{{ upload.dataset.uuid }}</div>
+                  </td>
+                  <td>
+                    {{ upload.night_log.date }}
+                    <div class="subtitle">{{ upload.night_log.uuid }}</div>
+                  </td>
+                  <td>
+                    {{ upload.telescope.name }} ({{ upload.telescope.folder_name }})
+                    <div class="subtitle">{{ upload.telescope.uuid }}</div>
                   </td>
                   <td>{{ upload.filesize / 1000 }} kB</td>
                   <td>{{ upload.status }}</td>
@@ -252,6 +262,8 @@
                 <tr>
                   <th>Filename</th>
                   <th>Dataset</th>
+                  <th>Night Log</th>
+                  <th>Telescope</th>
                   <th>Size (kB)</th>
                   <th>Status</th>
                   <th>Started</th>
@@ -263,9 +275,17 @@
                 <tbody>
                 <tr v-for="upload in finished_uploads">
                   <td>{{ upload.filename }}</td>
-                  <td :title="upload.dataset_uuid">
-                    {{ upload.dataset_name }}
-                    <span class="subtitle">{{ upload.dataset_uuid }}</span>
+                  <td :title="upload.dataset.uuid">
+                    {{ upload.dataset.name }}
+                    <div class="subtitle">{{ upload.dataset.uuid }}</div>
+                  </td>
+                  <td>
+                    {{ upload.night_log.date }}
+                    <div class="subtitle">{{ upload.night_log.uuid }}</div>
+                  </td>
+                  <td>
+                    {{ upload.telescope.name }} ({{ upload.telescope.folder_name }})
+                    <div class="subtitle">{{ upload.telescope.uuid }}</div>
                   </td>
                   <td>{{ upload.filesize / 1000 }} kB</td>
                   <td>{{ upload.status }}</td>

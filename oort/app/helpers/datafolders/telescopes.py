@@ -44,6 +44,7 @@ class TelescopeFolder(FilesWalker):
         telescopes_api = Arcsecond.build_telescopes_api(**self.api_kwargs)
         response_detail, error = telescopes_api.read(self.uuid)
         if response_detail:
+            response_detail['folder_name'] = self.name
             if self.astronomer:
                 response_detail['astronomer'] = self.astronomer[0]
             else:

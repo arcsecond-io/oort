@@ -8,7 +8,7 @@ from arcsecond import Arcsecond
 
 
 class FileWrapper(object):
-    def __init__(self, filepath, dataset_uuid, dataset_name, context, astronomer=None):
+    def __init__(self, context, astronomer, filepath, dataset, night_log, telescope):
         if not filepath:
             raise ValueError(f'Missing / wrong filepath: {filepath}')
         if not os.path.exists(filepath):
@@ -16,16 +16,17 @@ class FileWrapper(object):
         if not os.path.isfile(filepath):
             raise ValueError(f'Filepath is not a file: {filepath}')
 
-        if not dataset_uuid:
-            raise ValueError(f'Missing / wrong dataset UUID: {dataset_uuid}')
+        if not dataset or not dataset['uuid']:
+            raise ValueError(f'Missing / wrong dataset UUID: {dataset["uuid"]}')
         try:
-            uuid.UUID(dataset_uuid)
+            uuid.UUID(dataset['uuid'])
         except ValueError:
-            raise ValueError(f'Missing / wrong dataset UUID: {dataset_uuid}')
+            raise ValueError(f'Missing / wrong dataset UUID: {dataset["uuid"]}')
 
         self.filepath = filepath
-        self.dataset_uuid = dataset_uuid
-        self.dataset_name = dataset_name
+        self.dataset = dataset
+        self.night_log = night_log
+        self.telescope = telescope
         self.filesize = os.path.getsize(filepath)
         self.status = 'new'
         self.progress = 0
@@ -40,11 +41,11 @@ class FileWrapper(object):
         self._exists_remotely = False
 
         if self._astronomer:
-            self.api = Arcsecond.build_datafiles_api(dataset=dataset_uuid,
+            self.api = Arcsecond.build_datafiles_api(dataset=self.dataset['uuid'],
                                                      debug=self._context.debug,
                                                      api_key=self._astronomer[1])
         else:
-            self.api = Arcsecond.build_datafiles_api(dataset=dataset_uuid,
+            self.api = Arcsecond.build_datafiles_api(dataset=self.dataset['uuid'],
                                                      debug=self._context.debug,
                                                      organisation=self._context.organisation)
 
@@ -76,7 +77,7 @@ class FileWrapper(object):
             self._exists_remotely = 'amazonaws.com' in response_list[0].get('file', '')
             return self._exists_remotely
         else:
-            print(f'Multiple files for dataset {self.dataset_uuid} and filename {filename}???')
+            print(f'Multiple files for dataset {self.dataset["uuid"]} and filename {filename}???')
             return False
 
     def start(self):
@@ -137,7 +138,9 @@ class FileWrapper(object):
             'started': self.started.strftime('%Y-%m-%dT%H:%M:%S') if self.started else '',
             'ended': self.ended.strftime('%Y-%m-%dT%H:%M:%S') if self.ended else '',
             'duration': '{:.1f}'.format(self.duration) if self.duration else '',
-            'dataset_uuid': self.dataset_uuid,
-            'dataset_name': self.dataset_name,
+            'dataset': self.dataset,
+            'night_log': self.night_log,
+            'telescope': self.telescope,
+            'astronomer': self._astronomer,
             'error': self.error or ''
         }
