@@ -42,8 +42,8 @@
         Your <span class="text-value">Oort</span> server
         <span class="small">
           uploads local data to <a href="https://www.arcsecond.io" target="_blank">Arcsecond</a>'s cloud.
-          (It is open-source and available on <a href="https://github.com/arcsecond-io/oort" target="_blank">GitHub</a>.)
-          <a class="btn btn-info btn-xs" href="https://github.com/arcsecond-io/oort/issues/new">Report an problem</a>
+          It is open-source and available on <a href="https://github.com/arcsecond-io/oort" target="_blank">GitHub</a>.
+          <a class="btn btn-info btn-xs" href="https://github.com/arcsecond-io/oort/issues/new">Report a problem</a>
         </span>
       </h3>
 
@@ -124,7 +124,9 @@
                   <select id="telescopes-select" @change="selectTelescope($event.target.value)">
                     <option value="__all__">All</option>
                     <option v-for="(telescope, index) in telescopes" :key="telescope.uuid" :value="telescope.uuid">
-                      {{ telescope.name }} <span class="subtitle">(uuid: {{ telescope.uuid }})</span>
+                      {{ telescope.name }} (folder: {{ telescope.folder_name }})
+                      <span class="subtitle">(uuid: {{ telescope.uuid }})</span>
+                      <span v-if="telescope.astronomer.length">for @{{ telescope.astronomer }}</span>
                     </option>
                   </select>
                 </span>
@@ -140,20 +142,7 @@
                     {{ selected_night_log.date }}
                   </a>
                   <span class="subtitle">(uuid: {{ selected_night_log.uuid }})</span>
-                  <br/>
                   <span class="subtitle">Beware that night logs starts on local noon and last 24 hours.</span>
-                </span>
-                <span v-else-if="night_logs && night_logs.length">
-                  <strong>All night logs</strong> (1/telescope):
-                  <a :href="`https://${state.organisation}.arcsecond.io/${selected_night_log_url}`" target="_blank">
-                    {{ night_logs[0].date }}
-                  </a>
-                  [<span class="subtitle" v-for="night_log in night_logs">{{ night_log.uuid }}, </span>]
-                  <br/>
-                  <span class="subtitle">Beware that night logs starts on local noon and last 24 hours.</span>
-                </span>
-                <span v-else>
-                  No night log
                 </span>
               </div>
 
@@ -194,14 +183,16 @@
 
             <div class="table-block" v-if="isAlive && state.showTables">
               <div class="table-title">
-                Active Uploads ({{ current_uploads.length }})
+                Active Uploads ({{ filtered_current_uploads.length }})
                 <i class="fa fa-spin fa-spinner"></i>
               </div>
-              <table class="table table-striped text-small" v-if="current_uploads.length > 0">
+              <table class="table table-striped text-small" v-if="filtered_current_uploads.length > 0">
                 <thead>
                 <tr>
                   <th>Filename</th>
                   <th>Dataset</th>
+                  <th>Night Log</th>
+                  <th>Telescope</th>
                   <th>Size</th>
                   <th>Status</th>
                   <th>Progress</th>
@@ -212,11 +203,19 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr v-for="upload in current_uploads">
+                <tr v-for="upload in filtered_current_uploads">
                   <td>{{ upload.filename }}</td>
-                  <td :title="upload.dataset_uuid">
-                    {{ upload.dataset_name }}
-                    <span class="subtitle">{{ upload.dataset_uuid }}</span>
+                  <td :title="upload.dataset.uuid">
+                    {{ upload.dataset.name }}
+                    <div class="subtitle">{{ upload.dataset.uuid }}</div>
+                  </td>
+                  <td>
+                    {{ upload.night_log.date }}
+                    <div class="subtitle">{{ upload.night_log.uuid }}</div>
+                  </td>
+                  <td>
+                    {{ upload.telescope.name }} ({{ upload.telescope.folder_name }})
+                    <div class="subtitle">{{ upload.telescope.uuid }}</div>
                   </td>
                   <td>{{ upload.filesize / 1000 }} kB</td>
                   <td>{{ upload.status }}</td>
@@ -244,12 +243,14 @@
             </div>
 
             <div class="table-block" v-if="state.showTables">
-              <div class="table-title">Finished Uploads ({{ finished_uploads.length }})</div>
-              <table class="table table-striped text-small" v-if="finished_uploads.length > 0">
+              <div class="table-title">Finished Uploads ({{ filtered_finished_uploads.length }})</div>
+              <table class="table table-striped text-small" v-if="filtered_finished_uploads.length > 0">
                 <thead>
                 <tr>
                   <th>Filename</th>
                   <th>Dataset</th>
+                  <th>Night Log</th>
+                  <th>Telescope</th>
                   <th>Size (kB)</th>
                   <th>Status</th>
                   <th>Started</th>
@@ -259,11 +260,19 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr v-for="upload in finished_uploads">
+                <tr v-for="upload in filtered_finished_uploads">
                   <td>{{ upload.filename }}</td>
-                  <td :title="upload.dataset_uuid">
-                    {{ upload.dataset_name }}
-                    <span class="subtitle">{{ upload.dataset_uuid }}</span>
+                  <td :title="upload.dataset.uuid">
+                    {{ upload.dataset.name }}
+                    <div class="subtitle">{{ upload.dataset.uuid }}</div>
+                  </td>
+                  <td>
+                    {{ upload.night_log.date }}
+                    <div class="subtitle">{{ upload.night_log.uuid }}</div>
+                  </td>
+                  <td>
+                    {{ upload.telescope.name }} ({{ upload.telescope.folder_name }})
+                    <div class="subtitle">{{ upload.telescope.uuid }}</div>
                   </td>
                   <td>{{ upload.filesize / 1000 }} kB</td>
                   <td>{{ upload.status }}</td>

@@ -774,6 +774,7 @@ ul.no_bullet li.asteroids {
 
 /* subtitle */
 
+div.subtitle,
 span.subtitle {
   color: darkgray;
   font-size: small;

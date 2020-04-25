@@ -1,4 +1,4 @@
-from .helpers import State, RootFolder, FileWrapper, find
+from .helpers import State, RootFolder
 
 MAX_SIMULTANEOUS_UPLOADS = 3
 
@@ -9,25 +9,15 @@ class UploadsLocalState(State):
         self.context.payload_group_update('state', **self.context.to_dict())
         self.context.payload_group_update('state', showTables=False)
         self.context.payload_update(current_uploads=[], finished_uploads=[])
-        self.root = RootFolder(self.context)
+        self.root_folder = RootFolder(self.context)
 
-    def sync_telescopes_and_night_logs(self):
+    def sync_telescopes(self):
         if not self.context.can_upload:
             return self.get_yield_string()
 
-        self.root.walk()  # Only first depth level.
-        self.root.sync_telescopes()
-        self.root.sync_night_logs()
-
-        return self.context.get_yield_string()
-
-    def sync_observations_and_calibrations(self):
-        if not self.context.can_upload:
-            return self.get_yield_string()
-
-        self.root.walk_telescope_folders()
-        self.root.sync_telescopes_calibrations()
-        self.root.sync_telescopes_observations()
+        self.root_folder.find_telescope_folders()
+        self.root_folder.read_remote_telescopes()
+        self.root_folder.walk_telescope_folders()
 
         return self.context.get_yield_string()
 
@@ -36,7 +26,7 @@ class UploadsLocalState(State):
             return self.get_yield_string()
 
         self.context.payload_group_update('state', showTables=True)
-        self.root.upload_telescopes_calibrations()
+        self.root_folder.upload_telescopes_calibrations()
 
         return self.context.get_yield_string()
 
@@ -45,6 +35,6 @@ class UploadsLocalState(State):
             return self.get_yield_string()
 
         self.context.payload_group_update('state', showTables=True)
-        self.root.upload_telescopes_observations()
+        self.root_folder.upload_telescopes_observations()
 
         return self.context.get_yield_string()
