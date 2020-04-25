@@ -22,7 +22,8 @@ class RootFolder(FilesWalker):
                 if tel_uuid:
                     if self.context.debug: print(f'Found a Telescope folder: {name}')
                     astronomer = self._look_for_astronomer(path)
-                    self.telescope_folders.append(TelescopeFolder(tel_uuid, astronomer, self.context, path))
+                    if astronomer and self.context.debug: print(f'For astronomer: {astronomer}')
+                    self.telescope_folders.append(TelescopeFolder(tel_uuid, self.context, astronomer, path))
                 # else:
                 #     self.other_folders.append(FilesWalker(self.context, path))
             else:
@@ -33,7 +34,8 @@ class RootFolder(FilesWalker):
                     if tel_uuid:
                         if self.context.debug: print(f'Found a Telescope folder: {name}')
                         astronomer = self._look_for_astronomer(parent_path)
-                        self.telescope_folders.append(TelescopeFolder(tel_uuid, astronomer, self.context, parent_path))
+                        if astronomer and self.context.debug: print(f'For astronomer: {astronomer}')
+                        self.telescope_folders.append(TelescopeFolder(tel_uuid, self.context, astronomer, parent_path))
                     # else:
                     #     # Don't know what to do here. Skip for now.
                     #     pass

@@ -10,10 +10,10 @@ from .filters import FiltersFolder
 class TelescopeFolder(FilesWalker):
     # A folder of calibrations folders and target folders (no files)
 
-    def __init__(self, uuid, astronomer, context, folderpath):
+    def __init__(self, uuid, context, astronomer, folderpath):
         self.uuid = uuid
         self.astronomer = astronomer
-        super().__init__(context, folderpath, '')
+        super().__init__(context, astronomer, folderpath, '')
 
     def reset(self):
         self.calibrations_folders = []
