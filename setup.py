@@ -29,8 +29,8 @@ setup(
     platforms='any',
     install_requires=[
         'flask',
-        'arcsecond>=0.9.2',
-        'pyfits',
+        'arcsecond>=0.9.4',
+        'astropy',
         'dateparser',
         'python-dotenv'
     ],
