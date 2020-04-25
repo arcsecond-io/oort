@@ -17,6 +17,7 @@ class UploadsLocalState(State):
 
         self.root_folder.find_telescope_folders()
         self.root_folder.read_remote_telescopes()
+        self.root_folder.walk_telescope_folders()
 
         return self.context.get_yield_string()
 

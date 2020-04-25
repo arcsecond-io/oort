@@ -26,11 +26,15 @@ class TelescopeFolder(FilesWalker):
                 continue
             if name.lower().startswith('calib'):
                 if self.context.debug: print(f' > Found a {self.prefix} {name} folder.')
-                self.calibrations_folders.append(CalibrationsFolder(self.context, self.astronomer, path, name))
+                folder = CalibrationsFolder(self.context, self.astronomer, path, name)
+                folder.walk()
+                self.calibrations_folders.append(folder)
             else:
                 # Prefix Observation and Datasets names with target name.
                 if self.context.debug: print(f' > Found a {self.prefix} {name} folder.')
-                self.observations_folders.append(FiltersFolder(self.context, self.astronomer, path, name))
+                folder = FiltersFolder(self.context, self.astronomer, path, name)
+                folder.walk()
+                self.observations_folders.append(folder)
 
     @property
     def telescope_key(self):
