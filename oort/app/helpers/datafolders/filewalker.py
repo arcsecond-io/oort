@@ -50,7 +50,9 @@ class FilesWalker:
             if self.context.debug: print(str(error))
         else:
             for hdu in hdulist:
-                date_header = hdu.header['DATE'] or hdu.header['DATE-OBS']
+                date_header = hdu.header.get('DATE') or hdu.header.get('DATE-OBS')
+                if not date_header:
+                    continue
                 file_date = dateparser.parse(date_header)
                 if file_date:
                     break
