@@ -19,13 +19,13 @@ class CalibrationsFolder(FilesWalker):
         self.reset()
         for name, path in self._walk_folder():
             if os.path.isdir(path) and name.lower().startswith('bias'):
-                if self.context.debug: print(f' >  > Found a [{self.prefix}] {name} folder.')
+                if self.context.debug: print(f' >> Found a [{self.prefix}] {name} folder.')
                 self.biases_folders.append(FilesSyncer(self.context, self.astronomer, path, self.prefix))
             elif os.path.isdir(path) and name.lower().startswith('dark'):
-                if self.context.debug: print(f' >  > Found a [{self.prefix}] {name} folder.')
+                if self.context.debug: print(f' >> Found a [{self.prefix}] {name} folder.')
                 self.darks_folders.append(FilesSyncer(self.context, self.astronomer, path, self.prefix))
             elif os.path.isdir(path) and name.lower().startswith('flat'):
-                if self.context.debug: print(f' >  > Found a [{self.prefix}] {name} folder.')
+                if self.context.debug: print(f' >> Found a [{self.prefix}] {name} folder.')
                 self.flats_folders.append(FiltersFolder(self.context, self.astronomer, path, self.prefix + ' Flats'))
 
     def upload_biases_darks_flats(self, telescope_key):
@@ -38,4 +38,5 @@ class CalibrationsFolder(FilesWalker):
             darks_folder.upload_files(telescope_key, 'calibrations', type='Darks', name=darks_folder.name)
 
         for flats_folder in self.flats_folders:
+            if self.context.debug: print(f'Uploading Flats (filters)...')
             flats_folder.upload_filters(telescope_key, 'calibrations', type='Flats')
