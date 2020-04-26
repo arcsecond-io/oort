@@ -101,8 +101,8 @@
                 <span v-if="state.organisation && state.role">
                   <i class="fa fa-arrow-right"></i>
                   &nbsp;Uploading to
-                    <a :href="`https://api.arcsecond.io/${state.organisation}/`" target="_blank">
-                      api.arcsecond.io/{{ state.organisation }}/datafiles
+                    <a :href="`https://${state.organisation}.arcsecond.io/data/`" target="_blank">
+                      https://{{ state.organisation }}.arcsecond.io/data
                     </a>
                   (private API endpoint)
                 </span>
@@ -114,7 +114,7 @@
                 </span>
                 <span v-else>
                   &nbsp;<i class="fa fa-arrow-right"></i>&nbsp;
-                  Uploading to <a href="https://api.arcsecond.io">api.arcsecond.io/datafiles</a> (Personal account)
+                  Uploading to <a href="https://www.arcsecond.io">www.arcsecond.io/datasets</a> (Personal account)
                 </span>
               </div>
 
