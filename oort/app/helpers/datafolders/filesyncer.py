@@ -27,6 +27,9 @@ class FilesSyncer(FilesWalker):
                 self.files.append((path, file_date))
 
     def upload_files(self, telescope_key, resources_key, **resource_kwargs):
+        if len(self.files) == 0:
+            return
+
         telescope_uuid = telescope_key.split('_')[1]
         telescope = find_first_in_list(self.context.payload.get('telescopes'), uuid=telescope_uuid)
         night_logs = self.context.payload.group_get(telescope_key, 'night_logs') or []
