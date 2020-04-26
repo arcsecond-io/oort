@@ -6,6 +6,10 @@ from .filesyncer import FilesSyncer
 
 
 class CalibrationsFolder(FilesWalker):
+    def __init__(self, context, astronomer, folderpath, prefix=''):
+        super().__init__(context, astronomer, folderpath, prefix)
+        self.walk()
+
     def reset(self):
         self.biases_folders = []
         self.darks_folders = []
