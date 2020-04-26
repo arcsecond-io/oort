@@ -24,7 +24,9 @@ class FiltersFolder(FilesSyncer):
                     self.files.append((path, file_date))
 
     def upload_filters(self, telescope_key, resources_key, **kwargs):
-        self.upload_files(telescope_key, resources_key, name=self.name)
+        own_kwargs = copy.deepcopy(kwargs)
+        own_kwargs.update(name=self.name)
+        self.upload_files(telescope_key, resources_key, **own_kwargs)
 
         for filter_folder in self.filter_folders:
             filter_kwargs = copy.deepcopy(kwargs)

@@ -27,47 +27,10 @@ class Context:
         self.config_filepath = os.path.expanduser('.oort.ini')
         self.current_date = config.get('current_date', self._get_current_date())
 
+        self.payload = Payload()
+
         self._autostart = True
-        self._payload = {}
         self._uploads = {}
-
-    def payload_update(self, **kwargs):
-        for key, value in kwargs.items():
-            self._payload[key] = value
-
-    def payload_append(self, **kwargs):
-        for key, value in kwargs.items():
-            if key not in self._payload.keys():
-                self._payload[key] = []
-            self._payload[key].append(value)
-
-    def get_payload(self, key):
-        return self._payload[key]
-
-    def payload_group_update(self, group, **kwargs):
-        if group not in self._payload.keys():
-            self._payload[group] = {}
-        for key, value in kwargs.items():
-            self._payload[group][key] = value
-
-    def payload_group_append(self, group, **kwargs):
-        if group not in self._payload.keys():
-            self._payload[group] = {}
-        for key, value in kwargs.items():
-            if key not in self._payload.keys():
-                self._payload[key] = []
-            self._payload[key].append(value)
-
-    def get_group_payload(self, group, key):
-        if not group in self._payload.keys():
-            return None
-        if not key in self._payload[group]:
-            return None
-        return self._payload[group][key]
-
-    def get_yield_string(self):
-        json_data = json.dumps(self._payload)
-        return f"data:{json_data}\n\n"
 
     def _get_current_date(self):
         before_noon = datetime.datetime.now().hour < 12
@@ -87,6 +50,50 @@ class Context:
             'debug': self.debug,
             'current_date': self.current_date
         }
+
+    def get_yield_string(self):
+        json_data = json.dumps(self.payload._payload)
+        return f"data:{json_data}\n\n"
+
+
+class Payload:
+    def __init__(self):
+        self._payload = {}
+
+    def update(self, **kwargs):
+        for key, value in kwargs.items():
+            self._payload[key] = value
+
+    def append(self, **kwargs):
+        for key, value in kwargs.items():
+            if key not in self._payload.keys():
+                self._payload[key] = []
+            self._payload[key].append(value)
+
+    def get(self, key):
+        return self._payload[key]
+
+    def group_update(self, group, **kwargs):
+        if group not in self._payload.keys():
+            self._payload[group] = {}
+        for key, value in kwargs.items():
+            self._payload[group][key] = value
+
+    def group_append(self, group, **kwargs):
+        if group not in self._payload.keys():
+            self._payload[group] = {}
+        for key, value in kwargs.items():
+            if key not in self._payload[group].keys():
+                self._payload[group][key] = []
+            if value not in self._payload[group][key]:
+                self._payload[group][key].append(value)
+
+    def group_get(self, group, key):
+        if not group in self._payload.keys():
+            return None
+        if not key in self._payload[group]:
+            return None
+        return self._payload[group][key]
 
 
 class State:
