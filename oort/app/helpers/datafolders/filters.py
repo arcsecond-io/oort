@@ -1,21 +1,32 @@
+import copy
 import os
 
-from .filewalker import FilesWalker
+from .constants import OORT_FILENAME
 from .filesyncer import FilesSyncer
 
 
-class FiltersFolder(FilesWalker):
+class FiltersFolder(FilesSyncer):
+    def __init__(self, context, astronomer, folderpath, prefix=''):
+        super().__init__(context, astronomer, folderpath, prefix)
+        self.walk()
+
     def reset(self):
         self.filter_folders = []
 
     def walk(self):
         for name, path in self._walk_folder():
-            if not os.path.isdir(path):
-                continue
-            if self.context.debug: print(f' >  >  > Found a [{self.prefix}] {name} folder.')
-            self.filter_folders.append(FilesSyncer(self.context, self.astronomer, path, self.prefix))
+            if os.path.isdir(path):
+                if self.context.debug: print(f' >  >  > Found a [{self.prefix}] {name} folder.')
+                self.filter_folders.append(FilesSyncer(self.context, self.astronomer, path, self.prefix))
+            elif os.path.isfile(path) and name != OORT_FILENAME:
+                file_date = self._get_fits_filedate(path)
+                if file_date:
+                    self.files.append((path, file_date))
 
     def upload_filters(self, telescope_key, resources_key, **kwargs):
+        self.upload_files(telescope_key, resources_key, name=self.name)
+
         for filter_folder in self.filter_folders:
-            kwargs.update(name=filter_folder.name)
-            filter_folder.upload_files(telescope_key, resources_key, **kwargs)
+            filter_kwargs = copy.deepcopy(kwargs)
+            filter_kwargs.update(name=filter_folder.name)
+            filter_folder.upload_files(telescope_key, resources_key, **filter_kwargs)
