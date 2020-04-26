@@ -16,7 +16,7 @@ class FiltersFolder(FilesSyncer):
     def walk(self):
         for name, path in self._walk_folder():
             if os.path.isdir(path):
-                if self.context.debug: print(f' >  >  > Found a [{self.prefix}] {name} folder.')
+                if self.context.debug: print(f' >>> Found a [{self.prefix}] {name} folder.')
                 self.filter_folders.append(FilesSyncer(self.context, self.astronomer, path, self.prefix))
             elif os.path.isfile(path) and name != OORT_FILENAME:
                 file_date = self._get_fits_filedate(path)
