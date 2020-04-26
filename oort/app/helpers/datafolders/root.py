@@ -3,6 +3,7 @@ from configparser import ConfigParser
 
 from arcsecond import ArcsecondConnectionError
 
+from .constants import OORT_FILENAME
 from .filewalker import FilesWalker
 from .telescopes import TelescopeFolder
 
@@ -30,7 +31,7 @@ class RootFolder(FilesWalker):
                 #     self.other_folders.append(FilesWalker(self.context, path))
             else:
                 # These are files. Check if we are inside a Telescope folder already.
-                if name == '__oort__':
+                if name == OORT_FILENAME:
                     parent_path = os.path.dirname(path)
                     tel_uuid = self._look_for_telescope_uuid(parent_path)
                     if tel_uuid:
@@ -49,7 +50,7 @@ class RootFolder(FilesWalker):
 
     def _get_oort_config(self, path):
         _config = None
-        oort_filepath = os.path.join(path, '__oort__')
+        oort_filepath = os.path.join(path, OORT_FILENAME)
         if os.path.exists(oort_filepath) and os.path.isfile(oort_filepath):
             # Below will fail if the info is missing / wrong.
             _config = ConfigParser()
@@ -83,8 +84,9 @@ class RootFolder(FilesWalker):
         except ArcsecondConnectionError as error:
             self.context.payload_group_update('messages', warning=str(error))
         else:
-            if len(self.context.get_payload('telescopes')) == 0 and self.context.get_group_payload('messages', 'warning') == '':
-                msg = 'No telescopes detected. Make sure this folder or sub-ones contain a file named __oort__ '
+            if len(self.context.get_payload('telescopes')) == 0 and \
+                    self.context.get_group_payload('messages', 'warning') == '':
+                msg = f'No telescopes detected. Make sure this folder or sub-ones contain a file named {OORT_FILENAME} '
                 msg += 'with a telescope UUID and relaunch command.'
                 self.context.payload_group_update('messages', warning=msg)
 
