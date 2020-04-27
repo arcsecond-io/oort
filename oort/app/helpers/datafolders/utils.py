@@ -3,6 +3,24 @@
 def find_first_in_list(items, **kwargs):
     return next((item for item in items if all([item[k] == v for k, v in kwargs.items()])), None)
 
+
+class SafeDict(dict):
+    def __init__(self, *args):
+        dict.__init__(self, args)
+
+    def __getitem__(self, key):
+        try:
+            return super().__getitem__(key)
+        except KeyError:
+            return None
+
+    def append(self, key, *items):
+        if key not in self.keys():
+            self[key] = []
+        for item in items:
+            if item not in self[key]:
+                self[key].append(item)
+
 # class Config:
 #     def __init__(self, config):
 #         self.context = Context(config)
