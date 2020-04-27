@@ -2,8 +2,6 @@ import datetime
 import json
 import os
 
-from configparser import ConfigParser, DuplicateOptionError
-
 from arcsecond import Arcsecond
 
 
