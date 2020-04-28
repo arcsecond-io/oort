@@ -17,7 +17,7 @@ class FilesWalker:
 
     @property
     def name(self):
-        return f'{self.prefix} {os.path.basename(self.folderpath)}'.strip()
+        return f'{self.prefix.strip()} {os.path.basename(self.folderpath)}'.strip()
 
     @property
     def datetime_start(self):
