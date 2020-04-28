@@ -219,11 +219,11 @@
                     <div class="subtitle">{{ upload.dataset.uuid }}</div>
                   </td>
                   <td>
-                    <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/nightlogs/${upload.night_log.date}` target="_blank">
+                    <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/nightlogs/${upload.night_log.uuid}` target="_blank">
                       {{ upload.night_log.date }}
                     </a>
                     <a v-else
-                       :href=`https://${upload.organisation}.arcsecond.io/nights/${upload.night_log.date}`
+                       :href=`https://${upload.organisation}.arcsecond.io/nights/${upload.night_log.uuid}`
                        target="_blank"
                     >
                       {{ upload.night_log.date }}
@@ -297,11 +297,11 @@
                     <div class="subtitle">{{ upload.dataset.uuid }}</div>
                   </td>
                   <td>
-                    <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/nightlogs/${upload.night_log.date}` target="_blank">
+                    <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/nightlogs/${upload.night_log.uuid}` target="_blank">
                       {{ upload.night_log.date }}
                     </a>
                     <a v-else
-                       :href=`https://${upload.organisation}.arcsecond.io/nights/${upload.night_log.date}`
+                       :href=`https://${upload.organisation}.arcsecond.io/nights/${upload.night_log.uuid}`
                        target="_blank"
                     >
                       {{ upload.night_log.date }}
