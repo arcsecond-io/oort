@@ -1,11 +1,12 @@
 import copy
 import os
+from datetime import datetime, timedelta
 
 from arcsecond import Arcsecond
 from arcsecond.api.main import ArcsecondAPI
 
 from .filewalker import FilesWalker
-from .filewrapper import FileWrapper
+from .fileuploader import FileUploader
 from .utils import find_first_in_list
 
 MAX_SIMULTANEOUS_UPLOADS = 3
@@ -23,12 +24,12 @@ class FilesSyncer(FilesWalker):
 
     def walk(self):
         """Default implementation: look for files only."""
-        for name, path in self._walk_folder():
-            if not os.path.exists(path) or os.path.isdir(path):
+        for filename, filepath in self._walk_folder():
+            if not os.path.exists(filepath) or os.path.isdir(filepath):
                 continue
-            file_date = self._get_fits_filedate(path)
-            if file_date:
-                self.files.append((path, file_date))
+            filedate = self._get_fits_filedate(filepath)
+            if filedate:
+                self.files.append((filepath, filedate))
 
     def upload_files(self, telescope_key, resources_key, **raw_resource_kwargs):
         if len(self.files) == 0:
@@ -44,7 +45,9 @@ class FilesSyncer(FilesWalker):
 
         for filepath, filedate in self.files:
             # --- night log ---
-            date_string = filedate.date().isoformat()
+            # Night Logs starts on local noon and lasts 24 hours!
+            x = 0 if filedate.hour >= 12 else 1
+            date_string = (filedate - timedelta(days=x)).date().isoformat()
 
             # Organisation automatically attached to night log...
             night_log = self._sync_resource(self.api_nightlogs,
@@ -83,7 +86,7 @@ class FilesSyncer(FilesWalker):
                 continue
 
             # # --- resource upload ---
-            self._process_file_upload(filepath, resource_dataset, night_log, telescope)
+            self._process_file_upload(filepath, filedate, resource_dataset, night_log, telescope)
 
     def _sync_resource(self, api, local_list, **kwargs):
         local_resource = find_first_in_list(local_list, **kwargs)
@@ -131,7 +134,7 @@ class FilesSyncer(FilesWalker):
 
         return new_resource
 
-    def _check_existing_remote_resource(self, api: ArcsecondAPI, uuid):
+    def _check_existing_remote_resource(self, api: ArcsecondAPI, uuid: str):
         response_detail, error = api.read(uuid)
         if error:
             if self.context.debug: print(str(error))
@@ -144,19 +147,27 @@ class FilesSyncer(FilesWalker):
             self.context.messages['warning'] = msg
             return response_detail
 
-    def _process_file_upload(self, filepath, dataset, night_log, telescope):
+    def _process_file_upload(self, filepath: str, filedate: datetime, dataset: dict, night_log: dict, telescope: dict):
         upload_key = f"dataset_{dataset['uuid']}:{filepath}"
-        fw = self.context.uploads.get(upload_key)
-        if fw is None:
-            fw = FileWrapper(self.context, self.astronomer, filepath, dataset, night_log, telescope)
-            self.context.uploads[upload_key] = fw
+        fu = self.context.uploads.get(upload_key)
+        if fu is None:
+            fu = FileUploader(filepath,
+                              filedate,
+                              dataset,
+                              night_log,
+                              telescope,
+                              self.astronomer,
+                              self.context.organisation,
+                              self.context.debug)
+
+            self.context.uploads[upload_key] = fu
 
         started_count = len([u for u in self.context.uploads.values() if u.is_started()])
         if self.context._autostart and started_count < MAX_SIMULTANEOUS_UPLOADS:
-            fw.start()
+            fu.start()
 
-        if fw.will_finish():
-            fw.finish()
+        if fu.will_finish():
+            fu.finish()
 
         self.context.current_uploads = [fw.to_dict() for fw in self.context.uploads.values() if not fw.is_finished()]
         self.context.finished_uploads = [fw.to_dict() for fw in self.context.uploads.values() if fw.is_finished()]

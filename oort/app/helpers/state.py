@@ -4,7 +4,7 @@ import os
 
 from arcsecond import Arcsecond
 
-from .datafolders import SafeDict
+from .utils import SafeDict
 
 
 class Context:
