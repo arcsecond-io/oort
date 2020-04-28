@@ -108,10 +108,8 @@ class FilesSyncer(FilesWalker):
     def _find_or_create_remote_resource(self, api: ArcsecondAPI, **kwargs):
         new_resource = None
 
-        # Do not use name as filter argument.
-        kwargs_name = None
-        if 'name' in kwargs.keys():
-            kwargs_name = kwargs.pop('name')
+        # Do not use name as filter argument for list API request.
+        kwargs_name = kwargs.pop('name', None)
         response_list, error = api.list(**kwargs)
 
         # Dealing with paginated results
