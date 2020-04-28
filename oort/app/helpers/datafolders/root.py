@@ -27,8 +27,6 @@ class RootFolder(FilesWalker):
                     astronomer = self._look_for_astronomer(path)
                     if astronomer and self.context.debug: print(f'For astronomer: {astronomer[0]}')
                     self.telescope_folders.append(TelescopeFolder(tel_uuid, self.context, astronomer, path))
-                # else:
-                #     self.other_folders.append(FilesWalker(self.context, path))
             else:
                 # These are files. Check if we are inside a Telescope folder already.
                 if name == OORT_FILENAME:
@@ -39,14 +37,6 @@ class RootFolder(FilesWalker):
                         astronomer = self._look_for_astronomer(parent_path)
                         if astronomer and self.context.debug: print(f'For astronomer: {astronomer[0]}')
                         self.telescope_folders.append(TelescopeFolder(tel_uuid, self.context, astronomer, parent_path))
-                    # else:
-                    #     # Don't know what to do here. Skip for now.
-                    #     pass
-                # else:
-                # No, look for root files, if we are authorized to do so.
-                # if self.skip_root_files is False:
-                #     raise AttributeError('One needs to support root datasets in night logs for that.')
-                # self.files.append(path)
 
     def _get_oort_config(self, path):
         _config = None
