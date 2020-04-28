@@ -46,7 +46,7 @@ class FilesSyncer(FilesWalker):
             # --- night log ---
             date_string = filedate.date().isoformat()
 
-            # Organisation autonatically attached to night log...
+            # Organisation automatically attached to night log...
             night_log = self._sync_resource(self.api_nightlogs,
                                             self.night_logs,
                                             date=date_string,
@@ -63,18 +63,23 @@ class FilesSyncer(FilesWalker):
             resource = self._sync_resource(api_resources, self.resources, **resource_kwargs)
             if not resource:
                 if self.context.debug:
-                    print('>>> No ' + resource_key, filedate, filepath, resource_kwargs)
+                    print('*** No ' + resource_key, filedate, filepath, resource_kwargs)
                 continue
 
             # --- resource dataset ---
+            # Organisation automatically attached to dataset...
+            ### warning : changing the way we build datasets kwargs values may end up with an error: ###
+            ### "Target Calibration is already linked to a dataset." ###
             dataset_name = resource.get('name') or resource_kwargs.get('name')
+            if 'type' in resource_kwargs:
+                dataset_name = f"{resource_kwargs.get('type')} {dataset_name}"
             dataset_kwargs = {resource_key: resource['uuid'], 'name': dataset_name}
-            # if self.context.organisation and not self.astronomer:
-            #     dataset_kwargs.update(organisation=self.context.organisation)
+            ### end warning ###
 
             resource_dataset = self._sync_resource(self.api_datasets, self.resources_datasets, **dataset_kwargs)
             if not resource_dataset:
-                print(f'>>> No {resource_key} dataset', filedate, filepath, dataset_kwargs)
+                if self.context.debug:
+                    print(f'*** No {resource_key} dataset', filedate, filepath, dataset_kwargs)
                 continue
 
             # # --- resource upload ---
@@ -93,12 +98,17 @@ class FilesSyncer(FilesWalker):
         if error:
             if self.context.debug: print(str(error))
             msg = f'Failed to create resource in {api} endpoint. Retry is automatic.'
-            self.context.payload.group_update('messages', warning=msg)
+            self.context.messages['warning'] = msg
         else:
             return response_resource
 
     def _find_or_create_remote_resource(self, api: ArcsecondAPI, **kwargs):
         new_resource = None
+
+        # Do not use name as filter argument.
+        kwargs_name = None
+        if 'name' in kwargs.keys():
+            kwargs_name = kwargs.pop('name')
         response_list, error = api.list(**kwargs)
 
         # Dealing with paginated results
@@ -107,15 +117,17 @@ class FilesSyncer(FilesWalker):
 
         if error:
             if self.context.debug: print(str(error))
-            self.context.payload.group_update('messages', warning=str(error))
+            self.context.messages['warning'] = str(error)
         elif len(response_list) == 0:
+            # Reintroduce name into resource creation.
+            if kwargs_name: kwargs.update(name=kwargs_name)
             new_resource = self._create_remote_resource(api, **kwargs)
         elif len(response_list) == 1:
             new_resource = response_list[0]
         else:
             msg = f'Multiple resources found for API {api}? Choosing first.'
             if self.context.debug: print(msg)
-            self.context.payload.group_update('messages', warning=msg)
+            self.context.messages['warning'] = msg
 
         return new_resource
 
@@ -123,14 +135,14 @@ class FilesSyncer(FilesWalker):
         response_detail, error = api.read(uuid)
         if error:
             if self.context.debug: print(str(error))
-            self.context.payload.group_update('messages', warning=str(error))
+            self.context.messages['warning'] = str(error)
         elif response_detail:
-            self.context.payload.group_update('messages', warning='')
+            self.context.messages['warning'] = ''
         else:
             msg = f"Unknown resource in {api} endpoint with UUID {uuid}"
             if self.context.debug: print(msg)
-            self.context.payload.group_update('messages', warning=msg)
-        return response_detail
+            self.context.messages['warning'] = msg
+            return response_detail
 
     def _process_file_upload(self, filepath, dataset, night_log, telescope):
         upload_key = f"dataset_{dataset['uuid']}:{filepath}"
