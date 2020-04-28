@@ -14,7 +14,7 @@ MAX_SIMULTANEOUS_UPLOADS = 3
 
 class FilesSyncer(FilesWalker):
     def __init__(self, context, astronomer, folderpath, prefix=''):
-        super().__init__(context, astronomer, folderpath, prefix='')
+        super().__init__(context, astronomer, folderpath, prefix=prefix)
         self.api_nightlogs = Arcsecond.build_nightlogs_api(**self.api_kwargs)
         self.api_datasets = Arcsecond.build_datasets_api(**self.api_kwargs)
         self.night_logs = []
