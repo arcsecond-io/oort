@@ -141,6 +141,7 @@ class FileWrapper(object):
             'dataset': self.dataset,
             'night_log': self.night_log,
             'telescope': self.telescope,
-            'astronomer': self._astronomer,
+            'organisation': self._context.organisation or '',
+            'astronomer': self._astronomer[0] if self._astronomer else '',
             'error': self.error or ''
         }
