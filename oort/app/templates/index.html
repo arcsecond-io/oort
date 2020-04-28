@@ -193,6 +193,7 @@
                   <th>Dataset</th>
                   <th>Night Log</th>
                   <th>Telescope</th>
+                  <th>Owner</th>
                   <th>Size</th>
                   <th>Status</th>
                   <th>Progress</th>
@@ -210,12 +211,24 @@
                     <div class="subtitle">{{ upload.dataset.uuid }}</div>
                   </td>
                   <td>
-                    {{ upload.night_log.date }}
+                    <a v-if="upload.organisation"
+                       :href=`https://${upload.organisation}.arcsecond.io/data/${upload.night_log.date}`
+                       target="_blank"
+                    >
+                      {{ upload.night_log.date }}
+                    </a>
+                    <a v-else :href=`https://www.arcsecond.io/nightlogs/${upload.night_log.date}` target="_blank">
+                      {{ upload.night_log.date }}
+                    </a>
                     <div class="subtitle">{{ upload.night_log.uuid }}</div>
                   </td>
                   <td>
                     {{ upload.telescope.name }} ({{ upload.telescope.folder_name }})
                     <div class="subtitle">{{ upload.telescope.uuid }}</div>
+                  </td>
+                  <td>
+                    <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/@${upload.astronomer}` target="_blank">@{{ upload.astronomer }}</a>
+                    <a v-else :href=`https://${upload.organisation}.arcsecond.io` target="_blank">{{ upload.organisation }}</a>
                   </td>
                   <td>{{ upload.filesize / 1000 }} kB</td>
                   <td>{{ upload.status }}</td>
@@ -251,6 +264,7 @@
                   <th>Dataset</th>
                   <th>Night Log</th>
                   <th>Telescope</th>
+                  <th>Owner</th>
                   <th>Size (kB)</th>
                   <th>Status</th>
                   <th>Started</th>
@@ -267,12 +281,24 @@
                     <div class="subtitle">{{ upload.dataset.uuid }}</div>
                   </td>
                   <td>
-                    {{ upload.night_log.date }}
+                    <a v-if="upload.organisation"
+                       :href=`https://${upload.organisation}.arcsecond.io/data/${upload.night_log.date}`
+                       target="_blank"
+                    >
+                      {{ upload.night_log.date }}
+                    </a>
+                    <a v-else :href=`https://www.arcsecond.io/nightlogs/${upload.night_log.date}` target="_blank">
+                      {{ upload.night_log.date }}
+                    </a>
                     <div class="subtitle">{{ upload.night_log.uuid }}</div>
                   </td>
                   <td>
                     {{ upload.telescope.name }} ({{ upload.telescope.folder_name }})
                     <div class="subtitle">{{ upload.telescope.uuid }}</div>
+                  </td>
+                  <td>
+                    <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/@${upload.astronomer}` target="_blank">@{{ upload.astronomer }}</a>
+                    <a v-else :href=`https://${upload.organisation}.arcsecond.io` target="_blank">{{ upload.organisation }}</a>
                   </td>
                   <td>{{ upload.filesize / 1000 }} kB</td>
                   <td>{{ upload.status }}</td>
