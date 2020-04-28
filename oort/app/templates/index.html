@@ -207,17 +207,25 @@
                 <tr v-for="upload in filtered_current_uploads">
                   <td>{{ upload.filename }}</td>
                   <td :title="upload.dataset.uuid">
-                    {{ upload.dataset.name }}
-                    <div class="subtitle">{{ upload.dataset.uuid }}</div>
-                  </td>
-                  <td>
-                    <a v-if="upload.organisation"
+                    <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/datasets/${upload.dataset.uuid}` target="_blank">
+                      {{ upload.dataset.name }}
+                    </a>
+                    <a v-else
                        :href=`https://${upload.organisation}.arcsecond.io/data/${upload.night_log.date}`
                        target="_blank"
                     >
+                      {{ upload.dataset.name }}
+                    </a>
+                    <div class="subtitle">{{ upload.dataset.uuid }}</div>
+                  </td>
+                  <td>
+                    <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/nightlogs/${upload.night_log.date}` target="_blank">
                       {{ upload.night_log.date }}
                     </a>
-                    <a v-else :href=`https://www.arcsecond.io/nightlogs/${upload.night_log.date}` target="_blank">
+                    <a v-else
+                       :href=`https://${upload.organisation}.arcsecond.io/nights/${upload.night_log.date}`
+                       target="_blank"
+                    >
                       {{ upload.night_log.date }}
                     </a>
                     <div class="subtitle">{{ upload.night_log.uuid }}</div>
@@ -277,17 +285,25 @@
                 <tr v-for="upload in filtered_finished_uploads">
                   <td>{{ upload.filename }}</td>
                   <td :title="upload.dataset.uuid">
-                    {{ upload.dataset.name }}
-                    <div class="subtitle">{{ upload.dataset.uuid }}</div>
-                  </td>
-                  <td>
-                    <a v-if="upload.organisation"
+                    <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/datasets/${upload.dataset.uuid}` target="_blank">
+                      {{ upload.dataset.name }}
+                    </a>
+                    <a v-else
                        :href=`https://${upload.organisation}.arcsecond.io/data/${upload.night_log.date}`
                        target="_blank"
                     >
+                      {{ upload.dataset.name }}
+                    </a>
+                    <div class="subtitle">{{ upload.dataset.uuid }}</div>
+                  </td>
+                  <td>
+                    <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/nightlogs/${upload.night_log.date}` target="_blank">
                       {{ upload.night_log.date }}
                     </a>
-                    <a v-else :href=`https://www.arcsecond.io/nightlogs/${upload.night_log.date}` target="_blank">
+                    <a v-else
+                       :href=`https://${upload.organisation}.arcsecond.io/nights/${upload.night_log.date}`
+                       target="_blank"
+                    >
                       {{ upload.night_log.date }}
                     </a>
                     <div class="subtitle">{{ upload.night_log.uuid }}</div>
