@@ -1,16 +1,12 @@
 import os
 
-from .filewalker import FilesWalker
 from .filters import FiltersFolder
 from .filesyncer import FilesSyncer
 
 
-class CalibrationsFolder(FilesWalker):
-    def __init__(self, context, astronomer, folderpath, prefix=''):
-        super().__init__(context, astronomer, folderpath, prefix)
-        self.walk()
-
+class CalibrationsFolder(FilesSyncer):
     def reset(self):
+        self.files = []
         self.biases_folders = []
         self.darks_folders = []
         self.flats_folders = []

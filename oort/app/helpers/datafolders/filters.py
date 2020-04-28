@@ -6,14 +6,12 @@ from .filesyncer import FilesSyncer
 
 
 class FiltersFolder(FilesSyncer):
-    def __init__(self, context, astronomer, folderpath, prefix=''):
-        super().__init__(context, astronomer, folderpath, prefix)
-        self.walk()
-
     def reset(self):
+        self.files = []
         self.filter_folders = []
 
     def walk(self):
+        self.reset()
         for name, path in self._walk_folder():
             if os.path.isdir(path):
                 if self.context.debug: print(f' >>> Found a [{self.prefix}] {name} folder.')
@@ -22,6 +20,8 @@ class FiltersFolder(FilesSyncer):
                 file_date = self._get_fits_filedate(path)
                 if file_date:
                     self.files.append((path, file_date))
+                else:
+                    if self.context.debug: f'{path} ignored, date can\'t be found inside FITS.'
 
     def upload_filters(self, telescope_key, resources_key, **kwargs):
         own_kwargs = copy.deepcopy(kwargs)

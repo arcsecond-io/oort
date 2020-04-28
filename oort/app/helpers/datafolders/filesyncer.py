@@ -1,3 +1,4 @@
+import copy
 import os
 
 from arcsecond import Arcsecond
@@ -15,6 +16,9 @@ class FilesSyncer(FilesWalker):
         super().__init__(context, astronomer, folderpath, prefix='')
         self.api_nightlogs = Arcsecond.build_nightlogs_api(**self.api_kwargs)
         self.api_datasets = Arcsecond.build_datasets_api(**self.api_kwargs)
+        self.night_logs = []
+        self.resources = []
+        self.resources_datasets = []
         self.walk()
 
     def walk(self):
@@ -26,65 +30,62 @@ class FilesSyncer(FilesWalker):
             if file_date:
                 self.files.append((path, file_date))
 
-    def upload_files(self, telescope_key, resources_key, **resource_kwargs):
+    def upload_files(self, telescope_key, resources_key, **raw_resource_kwargs):
         if len(self.files) == 0:
             return
 
+        print(f'Uploading {len(self.files)} files')
         telescope_uuid = telescope_key.split('_')[1]
-        telescope = find_first_in_list(self.context.payload.get('telescopes'), uuid=telescope_uuid)
-        night_logs = self.context.payload.group_get(telescope_key, 'night_logs') or []
-
-        resources = self.context.payload.group_get(telescope_key, resources_key) or []
-        resources_datasets_key = f'{resources_key}_datasets'
-        resources_datasets = self.context.payload.group_get(telescope_key, resources_datasets_key) or []
+        telescope = find_first_in_list(self.context.telescopes, uuid=telescope_uuid)
 
         # Getting singular of 'calibrations' or 'observations'
         resource_key = resources_key[:-1] if resources_key[-1] == 's' else resources_key
-
-        # print(f'Uploading {len(self.files)} files {resources_key} ...')
         api_resources = getattr(Arcsecond, 'build_' + resources_key + '_api')(**self.api_kwargs)
 
         for filepath, filedate in self.files:
             # --- night log ---
             date_string = filedate.date().isoformat()
 
-            night_log = self._sync_resource(self.api_nightlogs, night_logs, date=date_string, telescope=telescope_uuid)
-            if not night_log:
-                if self.context.debug: print('>>> No night log', filedate, filepath, date_string, telescope_uuid)
-                continue
+            # Organisation autonatically attached to night log...
+            night_log = self._sync_resource(self.api_nightlogs,
+                                            self.night_logs,
+                                            date=date_string,
+                                            telescope=telescope_uuid)
 
-            self.context.payload.group_append(telescope_key, night_logs=night_log)
+            if not night_log:
+                if self.context.debug:
+                    print('>>> No night log', filedate, filepath, date_string, telescope_uuid)
+                continue
 
             # --- resource (calibration or observation) ---
+            resource_kwargs = copy.deepcopy(raw_resource_kwargs)
             resource_kwargs.update(night_log=night_log['uuid'])
-            resource = self._sync_resource(api_resources, resources, **resource_kwargs)
+            resource = self._sync_resource(api_resources, self.resources, **resource_kwargs)
             if not resource:
-                if self.context.debug: print('>>> No ' + resource_key, filedate, filepath, resource_kwargs)
+                if self.context.debug:
+                    print('>>> No ' + resource_key, filedate, filepath, resource_kwargs)
                 continue
 
-            self.context.payload.group_append(telescope_key, **{resources_key: resource})
-
             # --- resource dataset ---
-            dataset_kwargs = {resource_key: resource['uuid'],
-                              'name': resource.get('name') or resource_kwargs.get('name')}
-            if self.context.organisation and not self.astronomer:
-                dataset_kwargs.update(organisation=self.context.organisation)
+            dataset_name = resource.get('name') or resource_kwargs.get('name')
+            dataset_kwargs = {resource_key: resource['uuid'], 'name': dataset_name}
+            # if self.context.organisation and not self.astronomer:
+            #     dataset_kwargs.update(organisation=self.context.organisation)
 
-            resource_dataset = self._sync_resource(self.api_datasets, resources_datasets, **dataset_kwargs)
+            resource_dataset = self._sync_resource(self.api_datasets, self.resources_datasets, **dataset_kwargs)
             if not resource_dataset:
                 print(f'>>> No {resource_key} dataset', filedate, filepath, dataset_kwargs)
                 continue
 
-            self.context.payload.group_append(telescope_key, **{resources_datasets_key: resource_dataset})
-
-            # --- resource upload ---
+            # # --- resource upload ---
             self._process_file_upload(filepath, resource_dataset, night_log, telescope)
-            self._update_context()
 
     def _sync_resource(self, api, local_list, **kwargs):
         local_resource = find_first_in_list(local_list, **kwargs)
         if not local_resource:
             local_resource = self._find_or_create_remote_resource(api, **kwargs)
+            if local_resource:
+                local_list.append(local_resource)
         return local_resource
 
     def _create_remote_resource(self, api: ArcsecondAPI, **kwargs):
@@ -131,22 +132,19 @@ class FilesSyncer(FilesWalker):
             self.context.payload.group_update('messages', warning=msg)
         return response_detail
 
-    def _update_context(self):
-        current_uploads = [fw.to_dict() for fw in self.context._uploads.values() if fw.is_finished() is False]
-        finished_uploads = [fw.to_dict() for fw in self.context._uploads.values() if fw.is_finished() is True]
-        self.context.payload.update(current_uploads=current_uploads)
-        self.context.payload.update(finished_uploads=finished_uploads)
-
     def _process_file_upload(self, filepath, dataset, night_log, telescope):
         upload_key = f"dataset_{dataset['uuid']}:{filepath}"
-        fw = self.context._uploads.get(upload_key)
+        fw = self.context.uploads.get(upload_key)
         if fw is None:
             fw = FileWrapper(self.context, self.astronomer, filepath, dataset, night_log, telescope)
-            self.context._uploads[upload_key] = fw
+            self.context.uploads[upload_key] = fw
 
-        started_count = len([u for u in self.context._uploads.values() if u.is_started()])
+        started_count = len([u for u in self.context.uploads.values() if u.is_started()])
         if self.context._autostart and started_count < MAX_SIMULTANEOUS_UPLOADS:
             fw.start()
 
         if fw.will_finish():
             fw.finish()
+
+        self.context.current_uploads = [fw.to_dict() for fw in self.context.uploads.values() if not fw.is_finished()]
+        self.context.finished_uploads = [fw.to_dict() for fw in self.context.uploads.values() if fw.is_finished()]

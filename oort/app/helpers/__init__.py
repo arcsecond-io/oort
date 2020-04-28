@@ -1,2 +1,2 @@
-from .state import Context, State
+from .state import Context
 from .datafolders import *

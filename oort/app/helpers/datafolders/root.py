@@ -75,20 +75,19 @@ class RootFolder(FilesWalker):
             telescope_folder.walk()
 
     def read_remote_telescopes(self):
-        self.context.payload.group_update('messages', warning='')
-        self.context.payload.update(telescopes=[])
+        self.context.messages['warning'] = ''
+        self.context.telescopes = []
 
         try:
             for telescope_folder in self.telescope_folders:
                 telescope_folder.read_remote_telescope()
         except ArcsecondConnectionError as error:
-            self.context.payload.group_update('messages', warning=str(error))
+            self.context.messages['warning'] = str(error)
         else:
-            if len(self.context.payload.get('telescopes')) == 0 and \
-                    self.context.payload.group_get('messages', 'warning') == '':
+            if len(self.context.telescopes) == 0 and self.context.messages['warning'] == '':
                 msg = f'No telescopes detected. Make sure this folder or sub-ones contain a file named {OORT_FILENAME} '
                 msg += 'with a telescope UUID and relaunch command.'
-                self.context.payload.group_update('messages', warning=msg)
+                self.context.messages['warning'] = msg
 
     def upload_telescopes_calibrations(self):
         for telescope_folder in self.telescope_folders:
