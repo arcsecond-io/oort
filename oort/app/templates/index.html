@@ -205,7 +205,10 @@
                 </thead>
                 <tbody>
                 <tr v-for="upload in filtered_current_uploads">
-                  <td>{{ upload.filename }}</td>
+                  <td>
+                    {{ upload.filename }}
+                    <div class="subtitle">{{ upload.filedate }}</div>
+                  </td>
                   <td :title="upload.dataset.uuid">
                     <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/datasets/${upload.dataset.uuid}` target="_blank">
                       {{ upload.dataset.name }}
@@ -283,7 +286,10 @@
                 </thead>
                 <tbody>
                 <tr v-for="upload in filtered_finished_uploads">
-                  <td>{{ upload.filename }}</td>
+                  <td>
+                    {{ upload.filename }}
+                    <div class="subtitle">{{ upload.filedate }}</div>
+                  </td>
                   <td :title="upload.dataset.uuid">
                     <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/datasets/${upload.dataset.uuid}` target="_blank">
                       {{ upload.dataset.name }}
