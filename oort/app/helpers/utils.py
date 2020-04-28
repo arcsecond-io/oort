@@ -1,7 +1,10 @@
 # from configparser import ConfigParser, DuplicateOptionError
 
-def find_first_in_list(items, **kwargs):
-    return next((item for item in items if all([item[k] == v for k, v in kwargs.items()])), None)
+def find_first_in_list(objects, **kwargs):
+    return next((obj for obj in objects if
+                 len(set(obj.keys()).intersection(kwargs.keys())) > 0 and
+                 all([obj[k] == v for k, v in kwargs.items() if k in obj.keys()])),
+                None)
 
 
 class SafeDict(dict):
