@@ -26,15 +26,11 @@ class TelescopeFolder(FilesWalker):
                 continue
             if name.lower().startswith('calib'):
                 if self.context.debug: print(f' > Found a {self.prefix} {name} folder.')
-                folder = CalibrationsFolder(self.context, self.astronomer, path, name)
-                folder.walk()
-                self.calibrations_folders.append(folder)
+                self.calibrations_folders.append(CalibrationsFolder(self.context, self.astronomer, path, name))
             else:
                 # Prefix Observation and Datasets names with target name.
                 if self.context.debug: print(f' > Found a {self.prefix} {name} folder.')
-                folder = FiltersFolder(self.context, self.astronomer, path, name)
-                folder.walk()
-                self.observations_folders.append(folder)
+                self.observations_folders.append(FiltersFolder(self.context, self.astronomer, path, f'[{name}]'))
 
     @property
     def telescope_key(self):
@@ -49,10 +45,10 @@ class TelescopeFolder(FilesWalker):
                 response_detail['astronomer'] = self.astronomer[0]
             else:
                 response_detail['astronomer'] = ''
-            self.context.payload_append(telescopes=response_detail)
+            self.context.telescopes.append(response_detail)
         else:
             msg = f'Unknown telescope with UUID {self.uuid}: {str(error)}'
-            self.context.payload_group_update('messages', warning=msg)
+            self.context.messages['warning'] = msg
 
     def uploads_calibrations_folders(self):
         for calibrations_folder in self.calibrations_folders:

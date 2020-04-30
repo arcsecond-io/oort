@@ -101,8 +101,8 @@
                 <span v-if="state.organisation && state.role">
                   <i class="fa fa-arrow-right"></i>
                   &nbsp;Uploading to
-                    <a :href="`https://api.arcsecond.io/${state.organisation}/`" target="_blank">
-                      api.arcsecond.io/{{ state.organisation }}/datafiles
+                    <a :href="`https://${state.organisation}.arcsecond.io/data/`" target="_blank">
+                      https://{{ state.organisation }}.arcsecond.io/data
                     </a>
                   (private API endpoint)
                 </span>
@@ -114,7 +114,7 @@
                 </span>
                 <span v-else>
                   &nbsp;<i class="fa fa-arrow-right"></i>&nbsp;
-                  Uploading to <a href="https://api.arcsecond.io">api.arcsecond.io/datafiles</a> (Personal account)
+                  Uploading to <a href="https://www.arcsecond.io">www.arcsecond.io/datasets</a> (Personal account)
                 </span>
               </div>
 
@@ -193,6 +193,7 @@
                   <th>Dataset</th>
                   <th>Night Log</th>
                   <th>Telescope</th>
+                  <th>Owner</th>
                   <th>Size</th>
                   <th>Status</th>
                   <th>Progress</th>
@@ -204,18 +205,41 @@
                 </thead>
                 <tbody>
                 <tr v-for="upload in filtered_current_uploads">
-                  <td>{{ upload.filename }}</td>
+                  <td>
+                    {{ upload.filename }}
+                    <div class="subtitle">{{ upload.filedate }}</div>
+                  </td>
                   <td :title="upload.dataset.uuid">
-                    {{ upload.dataset.name }}
+                    <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/datasets/${upload.dataset.uuid}` target="_blank">
+                      {{ upload.dataset.name }}
+                    </a>
+                    <a v-else
+                       :href=`https://${upload.organisation}.arcsecond.io/data/${upload.night_log.date}`
+                       target="_blank"
+                    >
+                      {{ upload.dataset.name }}
+                    </a>
                     <div class="subtitle">{{ upload.dataset.uuid }}</div>
                   </td>
                   <td>
-                    {{ upload.night_log.date }}
+                    <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/nightlogs/${upload.night_log.uuid}` target="_blank">
+                      {{ upload.night_log.date }}
+                    </a>
+                    <a v-else
+                       :href=`https://${upload.organisation}.arcsecond.io/nights/${upload.night_log.uuid}`
+                       target="_blank"
+                    >
+                      {{ upload.night_log.date }}
+                    </a>
                     <div class="subtitle">{{ upload.night_log.uuid }}</div>
                   </td>
                   <td>
                     {{ upload.telescope.name }} ({{ upload.telescope.folder_name }})
                     <div class="subtitle">{{ upload.telescope.uuid }}</div>
+                  </td>
+                  <td>
+                    <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/@${upload.astronomer}` target="_blank">@{{ upload.astronomer }}</a>
+                    <a v-else :href=`https://${upload.organisation}.arcsecond.io` target="_blank">{{ upload.organisation }}</a>
                   </td>
                   <td>{{ upload.filesize / 1000 }} kB</td>
                   <td>{{ upload.status }}</td>
@@ -251,6 +275,7 @@
                   <th>Dataset</th>
                   <th>Night Log</th>
                   <th>Telescope</th>
+                  <th>Owner</th>
                   <th>Size (kB)</th>
                   <th>Status</th>
                   <th>Started</th>
@@ -261,18 +286,41 @@
                 </thead>
                 <tbody>
                 <tr v-for="upload in filtered_finished_uploads">
-                  <td>{{ upload.filename }}</td>
+                  <td>
+                    {{ upload.filename }}
+                    <div class="subtitle">{{ upload.filedate }}</div>
+                  </td>
                   <td :title="upload.dataset.uuid">
-                    {{ upload.dataset.name }}
+                    <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/datasets/${upload.dataset.uuid}` target="_blank">
+                      {{ upload.dataset.name }}
+                    </a>
+                    <a v-else
+                       :href=`https://${upload.organisation}.arcsecond.io/data/${upload.night_log.date}`
+                       target="_blank"
+                    >
+                      {{ upload.dataset.name }}
+                    </a>
                     <div class="subtitle">{{ upload.dataset.uuid }}</div>
                   </td>
                   <td>
-                    {{ upload.night_log.date }}
+                    <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/nightlogs/${upload.night_log.uuid}` target="_blank">
+                      {{ upload.night_log.date }}
+                    </a>
+                    <a v-else
+                       :href=`https://${upload.organisation}.arcsecond.io/nights/${upload.night_log.uuid}`
+                       target="_blank"
+                    >
+                      {{ upload.night_log.date }}
+                    </a>
                     <div class="subtitle">{{ upload.night_log.uuid }}</div>
                   </td>
                   <td>
                     {{ upload.telescope.name }} ({{ upload.telescope.folder_name }})
                     <div class="subtitle">{{ upload.telescope.uuid }}</div>
+                  </td>
+                  <td>
+                    <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/@${upload.astronomer}` target="_blank">@{{ upload.astronomer }}</a>
+                    <a v-else :href=`https://${upload.organisation}.arcsecond.io` target="_blank">{{ upload.organisation }}</a>
                   </td>
                   <td>{{ upload.filesize / 1000 }} kB</td>
                   <td>{{ upload.status }}</td>

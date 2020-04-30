@@ -7,14 +7,25 @@ from datetime import datetime
 from arcsecond import Arcsecond
 
 
-class FileWrapper(object):
-    def __init__(self, context, astronomer, filepath, dataset, night_log, telescope):
+class FileUploader(object):
+    def __init__(self,
+                 filepath: str,
+                 filedate: datetime,
+                 dataset: dict,
+                 night_log: dict,
+                 telescope: dict,
+                 astronomer: tuple,
+                 organisation: str,
+                 debug: bool):
+
         if not filepath:
             raise ValueError(f'Missing / wrong filepath: {filepath}')
         if not os.path.exists(filepath):
             raise ValueError(f'File not found at path: {filepath}')
         if not os.path.isfile(filepath):
             raise ValueError(f'Filepath is not a file: {filepath}')
+        if not filedate:
+            raise ValueError(f'Missing / wrong filedate: {filedate}')
 
         if not dataset or not dataset['uuid']:
             raise ValueError(f'Missing / wrong dataset UUID: {dataset["uuid"]}')
@@ -24,9 +35,14 @@ class FileWrapper(object):
             raise ValueError(f'Missing / wrong dataset UUID: {dataset["uuid"]}')
 
         self.filepath = filepath
+        self.filedate = filedate
+        self.organisation = organisation
+        self.astronomer = astronomer
         self.dataset = dataset
         self.night_log = night_log
         self.telescope = telescope
+        self.debug = debug
+
         self.filesize = os.path.getsize(filepath)
         self.status = 'new'
         self.progress = 0
@@ -36,18 +52,16 @@ class FileWrapper(object):
         self.result = None
         self.error = None
 
-        self._context = context
-        self._astronomer = astronomer
         self._exists_remotely = False
 
-        if self._astronomer:
+        if self.astronomer:
             self.api = Arcsecond.build_datafiles_api(dataset=self.dataset['uuid'],
-                                                     debug=self._context.debug,
-                                                     api_key=self._astronomer[1])
+                                                     debug=self.debug,
+                                                     api_key=self.astronomer[1])
         else:
             self.api = Arcsecond.build_datafiles_api(dataset=self.dataset['uuid'],
-                                                     debug=self._context.debug,
-                                                     organisation=self._context.organisation)
+                                                     debug=self.debug,
+                                                     organisation=self.organisation)
 
         def update_progress(event, progress_percent):
             self.progress = progress_percent
@@ -109,7 +123,8 @@ class FileWrapper(object):
     def _process_error(self, error):
         try:
             error_body = json.loads(error)
-        except Exception:
+        except Exception as err:
+            if self.debug: print(str(err))
             pass
         else:
             if 'detail' in error_body.keys():
@@ -133,6 +148,7 @@ class FileWrapper(object):
             'filename': os.path.basename(self.filepath),
             'filepath': self.filepath,
             'filesize': self.filesize,
+            'filedate': self.filedate.isoformat(),
             'status': self.status,
             'progress': self.progress,
             'started': self.started.strftime('%Y-%m-%dT%H:%M:%S') if self.started else '',
@@ -141,6 +157,7 @@ class FileWrapper(object):
             'dataset': self.dataset,
             'night_log': self.night_log,
             'telescope': self.telescope,
-            'astronomer': self._astronomer,
+            'organisation': self.organisation or '',
+            'astronomer': self.astronomer[0] if self.astronomer else '',
             'error': self.error or ''
         }

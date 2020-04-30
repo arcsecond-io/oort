@@ -1,8 +1,8 @@
 import os
 import dateparser
 
-from datetime import datetime, timedelta
 from astropy.io import fits as pyfits
+
 
 class FilesWalker:
     # A folder files
@@ -17,18 +17,7 @@ class FilesWalker:
 
     @property
     def name(self):
-        return f'{self.prefix} {os.path.basename(self.folderpath)}'.strip()
-
-    @property
-    def datetime_start(self):
-        year, month, day = self.context.current_date.split('-')
-        return datetime(year=int(year), month=int(month), day=int(day), hour=12, minute=0, second=0)
-
-    @property
-    def datetime_end(self):
-        year, month, day = self.context.current_date.split('-')
-        return datetime(year=int(year), month=int(month), day=int(day), hour=11, minute=59, second=59) + timedelta(
-            days=1)
+        return f'{self.prefix.strip()} {os.path.basename(self.folderpath)}'.strip()
 
     @property
     def api_kwargs(self):
@@ -41,6 +30,12 @@ class FilesWalker:
 
     def reset(self):
         pass
+
+    def _walk_folder(self):
+        if not os.path.exists(self.folderpath) or not os.path.isdir(self.folderpath):
+            return zip([], [])
+        names = os.listdir(self.folderpath)
+        return [(name, os.path.join(self.folderpath, name)) for name in names if name[0] != '.']
 
     def _get_fits_filedate(self, path):
         file_date = None
@@ -58,9 +53,3 @@ class FilesWalker:
                     break
             hdulist.close()
         return file_date
-
-    def _walk_folder(self):
-        if not os.path.exists(self.folderpath) or not os.path.isdir(self.folderpath):
-            return zip([], [])
-        names = os.listdir(self.folderpath)
-        return [(name, os.path.join(self.folderpath, name)) for name in names if name[0] != '.']
