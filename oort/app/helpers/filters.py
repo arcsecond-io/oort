@@ -19,6 +19,8 @@ class FiltersFolder(FilesFolderSyncer):
             if os.path.isdir(path):
                 if self.context.debug: print(f' >>> Found a [{self.prefix}] {name} folder.')
                 self.filter_folders.append(FilesSyncer(self.context, self.astronomer, path, self.prefix))
+        for filter_folder in self.filter_folders:
+            filter_folder.walk()
 
     def upload_filters(self, telescope_key, resources_key, **kwargs):
         if self.context.verbose:

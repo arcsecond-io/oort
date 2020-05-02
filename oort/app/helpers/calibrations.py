@@ -31,7 +31,14 @@ class CalibrationsFolder(FilesFolderSyncer):
                 if self.context.debug or self.context.verbose: print(f' >> Found a {name} folder.')
                 self.flats_folders.append(FiltersFolder(self.context, self.astronomer, path, '[Flats]'))
 
-    def upload_biases_darks_flats(self, telescope_key):
+        for bias_folder in self.biases_folders:
+            bias_folder.walk()
+        for darks_folder in self.darks_folders:
+            darks_folder.walk()
+        for flats_folder in self.flats_folders:
+            flats_folder.walk()
+
+    def upload(self, telescope_key):
         if self.context.verbose:
             print(f'Syncing calibrations for telescope {telescope_key}')
 

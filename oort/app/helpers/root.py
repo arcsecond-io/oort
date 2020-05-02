@@ -87,12 +87,13 @@ class RootFolder(FilesFolder):
 
     def walk_telescope_folders(self):
         for telescope_folder in self.telescope_folders:
-            telescope_folder.walk()
+            telescope_folder.reset_obscal_folders()
+            telescope_folder.walk_telescope_folder()
 
-    def upload_telescopes_calibrations(self):
+    def upload_telescopes_calibrations_folders(self):
         for telescope_folder in self.telescope_folders:
             telescope_folder.uploads_calibrations_folders()
 
-    def upload_telescopes_observations(self):
+    def upload_telescopes_observations_folders(self):
         for telescope_folder in self.telescope_folders:
             telescope_folder.uploads_observations_folders()

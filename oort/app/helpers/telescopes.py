@@ -20,8 +20,7 @@ class TelescopeFolder(FilesFolder):
         self.observations_folders = []
         self.calibrations_folders = []
 
-    def walk(self):
-        self.reset()
+    def walk_telescope_folder(self):
         for name, path in self._walk_folder():
             if not os.path.isdir(path):
                 # If not a directory, skip it. Will skip __oort__.ini files too.
@@ -33,6 +32,11 @@ class TelescopeFolder(FilesFolder):
                 # Prefix Observation and Datasets names with target name.
                 if self.context.debug: print(f' > Found a {self.prefix} {name} folder.')
                 self.observations_folders.append(FiltersFolder(self.context, self.astronomer, path, f'[{name}]'))
+
+        for calibrations_folder in self.calibrations_folders:
+            calibrations_folder.walk()
+        for observations_folder in self.observations_folders:
+            observations_folder.walk()
 
     @property
     def telescope_key(self):
@@ -55,7 +59,7 @@ class TelescopeFolder(FilesFolder):
 
     def uploads_calibrations_folders(self):
         for calibrations_folder in self.calibrations_folders:
-            calibrations_folder.upload_biases_darks_flats(self.telescope_key)
+            calibrations_folder.upload(self.telescope_key)
 
     def uploads_observations_folders(self):
         for observations_folder in self.observations_folders:

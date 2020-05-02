@@ -20,13 +20,13 @@ class UploadsLocalState:
     def sync_calibrations_uploads(self):
         if self.context.can_upload:
             self.context.state['showTables'] = True
-            self.root_folder.upload_telescopes_calibrations()
+            self.root_folder.upload_telescopes_calibrations_folders()
 
         return self.context.get_yield_string()
 
     def sync_observations_uploads(self):
         if self.context.can_upload:
             self.context.state['showTables'] = True
-            self.root_folder.upload_telescopes_observations()
+            self.root_folder.upload_telescopes_observations_folders()
 
         return self.context.get_yield_string()
