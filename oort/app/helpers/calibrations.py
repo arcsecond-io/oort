@@ -1,5 +1,7 @@
+import copy
 import os
 
+from .constants import OORT_FILENAME
 from .filters import FiltersFolder
 from .filesyncer import FilesSyncer
 
@@ -23,8 +25,22 @@ class CalibrationsFolder(FilesSyncer):
             elif os.path.isdir(path) and name.lower().startswith('flat'):
                 if self.context.debug or self.context.verbose: print(f' >> Found a [{self.prefix}] {name} folder.')
                 self.flats_folders.append(FiltersFolder(self.context, self.astronomer, path, '[Flats]'))
+            elif os.path.isfile(path) and name != OORT_FILENAME:
+                file_date = self._get_fits_filedate(path)
+                if file_date:
+                    self.files.append((path, file_date))
+                else:
+                    if self.context.debug or self.context.verbose:
+                        print(f'{path} ignored, date can\'t be found inside FITS.')
 
     def upload_biases_darks_flats(self, telescope_key):
+        if self.context.verbose:
+            print(f'Syncing calibrations for telescope {telescope_key}')
+
+        own_kwargs = {}
+        own_kwargs.update(name=self.name)
+        self.upload_files(telescope_key, 'calibrations', **own_kwargs)
+
         for bias_folder in self.biases_folders:
             if self.context.debug or self.context.verbose: print(f'Uploading {bias_folder.name}...')
             bias_folder.upload_files(telescope_key, 'calibrations', type='Biases', name=bias_folder.name)
