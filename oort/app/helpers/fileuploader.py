@@ -16,7 +16,8 @@ class FileUploader(object):
                  telescope: dict,
                  astronomer: tuple,
                  organisation: str,
-                 debug: bool):
+                 debug: bool,
+                 verbose: bool):
 
         if not filepath:
             raise ValueError(f'Missing / wrong filepath: {filepath}')
@@ -42,6 +43,7 @@ class FileUploader(object):
         self.night_log = night_log
         self.telescope = telescope
         self.debug = debug
+        self.verbose = verbose
 
         self.filesize = os.path.getsize(filepath)
         self.status = 'new'
@@ -124,7 +126,7 @@ class FileUploader(object):
         try:
             error_body = json.loads(error)
         except Exception as err:
-            if self.debug: print(str(err))
+            if self.debug or self.verbose: print(str(err))
             pass
         else:
             if 'detail' in error_body.keys():

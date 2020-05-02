@@ -19,15 +19,18 @@ class RootFolder(FilesWalker):
         self.telescope_folders = []
 
     def find_telescope_folders(self):
+        if self.context.verbose: print('find_telescope_folders')
         # Do not reset every time.
         for name, path in self._walk_folder():
             # If it's a folder, check if it is a telescope one.
             if os.path.isdir(path):
                 tel_uuid = self._look_for_telescope_uuid(path)
                 if tel_uuid:
-                    if self.context.debug: print(f'Found a Telescope folder: {name}')
+                    if self.context.debug or self.context.verbose:
+                        print(f'Found a Telescope folder: {name}')
                     astronomer = self._look_for_astronomer(path)
-                    if astronomer and self.context.debug: print(f'For astronomer: {astronomer[0]}')
+                    if astronomer and (self.context.debug or self.context.verbose):
+                        print(f'For astronomer: {astronomer[0]}')
                     self.telescope_folders.append(TelescopeFolder(tel_uuid, self.context, astronomer, path))
             else:
                 # These are files. Check if we are inside a Telescope folder already.
@@ -35,9 +38,11 @@ class RootFolder(FilesWalker):
                     parent_path = os.path.dirname(path)
                     tel_uuid = self._look_for_telescope_uuid(parent_path)
                     if tel_uuid:
-                        if self.context.debug: print(f'Found a Telescope folder: {name}')
+                        if self.context.debug or self.context.verbose:
+                            print(f'Found a Telescope folder: {name}')
                         astronomer = self._look_for_astronomer(parent_path)
-                        if astronomer and self.context.debug: print(f'For astronomer: {astronomer[0]}')
+                        if astronomer and (self.context.debug or self.context.verbose):
+                            print(f'For astronomer: {astronomer[0]}')
                         self.telescope_folders.append(TelescopeFolder(tel_uuid, self.context, astronomer, parent_path))
 
     def _get_oort_config(self, path):
@@ -72,11 +77,13 @@ class RootFolder(FilesWalker):
                     telescope_folder.read_remote_telescope()
         except ArcsecondConnectionError as error:
             self.context.messages['warning'] = str(error)
+            if self.context.debug or self.context.verbose: print(str(error))
         else:
             if len(self.context.telescopes) == 0 and self.context.messages['warning'] == '':
                 msg = f'No telescopes detected. Make sure this folder or sub-ones contain a file named {OORT_FILENAME} '
                 msg += 'with a telescope UUID declared in a [telescope] section and relaunch command.'
                 self.context.messages['warning'] = msg
+                if self.context.debug or self.context.verbose: print(msg)
 
     def walk_telescope_folders(self):
         for telescope_folder in self.telescope_folders:

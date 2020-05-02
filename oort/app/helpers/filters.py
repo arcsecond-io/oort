@@ -21,9 +21,13 @@ class FiltersFolder(FilesSyncer):
                 if file_date:
                     self.files.append((path, file_date))
                 else:
-                    if self.context.debug: f'{path} ignored, date can\'t be found inside FITS.'
+                    if self.context.debug or self.context.verbose:
+                        print(f'{path} ignored, date can\'t be found inside FITS.')
 
     def upload_filters(self, telescope_key, resources_key, **kwargs):
+        if self.context.verbose:
+           print(f'Uploading filters {resources_key} for telescope {telescope_key}')
+
         own_kwargs = copy.deepcopy(kwargs)
         own_kwargs.update(name=self.name)
         self.upload_files(telescope_key, resources_key, **own_kwargs)

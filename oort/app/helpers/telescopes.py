@@ -37,6 +37,7 @@ class TelescopeFolder(FilesWalker):
         return f'telescope_{self.uuid}'
 
     def read_remote_telescope(self):
+        if self.context.verbose: print(f'Reading remote telescope with uuid {self.uuid}')
         telescopes_api = Arcsecond.build_telescopes_api(**self.api_kwargs)
         response_detail, error = telescopes_api.read(self.uuid)
         if response_detail:
