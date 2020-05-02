@@ -2,24 +2,25 @@ import os
 
 from arcsecond import Arcsecond
 
-from .filewalker import FilesWalker
+from .filesfolder import FilesFolder
 from .calibrations import CalibrationsFolder
 from .filters import FiltersFolder
 
 
-class TelescopeFolder(FilesWalker):
+class TelescopeFolder(FilesFolder):
     # A folder of calibrations folders and target folders (no files)
 
     def __init__(self, uuid, context, astronomer, folderpath):
+        self.observations_folders = []
+        self.calibrations_folders = []
         self.uuid = uuid
         super().__init__(context, astronomer, folderpath, '')
 
-    def reset(self):
-        self.calibrations_folders = []
+    def reset_obscal_folders(self):
         self.observations_folders = []
+        self.calibrations_folders = []
 
-    def walk(self):
-        self.reset()
+    def walk_telescope_folder(self):
         for name, path in self._walk_folder():
             if not os.path.isdir(path):
                 # If not a directory, skip it. Will skip __oort__.ini files too.
@@ -31,6 +32,11 @@ class TelescopeFolder(FilesWalker):
                 # Prefix Observation and Datasets names with target name.
                 if self.context.debug: print(f' > Found a {self.prefix} {name} folder.')
                 self.observations_folders.append(FiltersFolder(self.context, self.astronomer, path, f'[{name}]'))
+
+        for calibrations_folder in self.calibrations_folders:
+            calibrations_folder.walk()
+        for observations_folder in self.observations_folders:
+            observations_folder.walk()
 
     @property
     def telescope_key(self):
@@ -53,7 +59,7 @@ class TelescopeFolder(FilesWalker):
 
     def uploads_calibrations_folders(self):
         for calibrations_folder in self.calibrations_folders:
-            calibrations_folder.upload_biases_darks_flats(self.telescope_key)
+            calibrations_folder.upload(self.telescope_key)
 
     def uploads_observations_folders(self):
         for observations_folder in self.observations_folders:

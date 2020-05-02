@@ -1,30 +1,51 @@
 import os
 
 from .filters import FiltersFolder
-from .filesyncer import FilesSyncer
+from .filesfoldersyncer import FilesFolderSyncer
 
 
-class CalibrationsFolder(FilesSyncer):
+class CalibrationsFolder(FilesFolderSyncer):
+    def __init__(self, context, astronomer, folderpath, prefix=''):
+        self.biases_folders = []
+        self.darks_folders = []
+        self.flats_folders = []
+        super().__init__(context, astronomer, folderpath, prefix=prefix)
+
     def reset(self):
-        self.files = []
+        super().reset()
         self.biases_folders = []
         self.darks_folders = []
         self.flats_folders = []
 
     def walk(self):
-        self.reset()
+        super().walk()
+
         for name, path in self._walk_folder():
             if os.path.isdir(path) and name.lower().startswith('bias'):
-                if self.context.debug or self.context.verbose: print(f' >> Found a [{self.prefix}] {name} folder.')
-                self.biases_folders.append(FilesSyncer(self.context, self.astronomer, path))
+                if self.context.debug or self.context.verbose: print(f' >> Found a {self.prefix} {name} folder.')
+                self.biases_folders.append(FilesFolderSyncer(self.context, self.astronomer, path))
             elif os.path.isdir(path) and name.lower().startswith('dark'):
-                if self.context.debug or self.context.verbose: print(f' >> Found a [{self.prefix}] {name} folder.')
-                self.darks_folders.append(FilesSyncer(self.context, self.astronomer, path))
+                if self.context.debug or self.context.verbose: print(f' >> Found a {self.prefix} {name} folder.')
+                self.darks_folders.append(FilesFolderSyncer(self.context, self.astronomer, path))
             elif os.path.isdir(path) and name.lower().startswith('flat'):
-                if self.context.debug or self.context.verbose: print(f' >> Found a [{self.prefix}] {name} folder.')
+                if self.context.debug or self.context.verbose: print(f' >> Found a {name} folder.')
                 self.flats_folders.append(FiltersFolder(self.context, self.astronomer, path, '[Flats]'))
 
-    def upload_biases_darks_flats(self, telescope_key):
+        for bias_folder in self.biases_folders:
+            bias_folder.walk()
+        for darks_folder in self.darks_folders:
+            darks_folder.walk()
+        for flats_folder in self.flats_folders:
+            flats_folder.walk()
+
+    def upload(self, telescope_key):
+        if self.context.verbose:
+            print(f'Syncing calibrations for {telescope_key}')
+
+        own_kwargs = {}
+        own_kwargs.update(name=self.name)
+        self.upload_files(telescope_key, 'calibrations', **own_kwargs)
+
         for bias_folder in self.biases_folders:
             if self.context.debug or self.context.verbose: print(f'Uploading {bias_folder.name}...')
             bias_folder.upload_files(telescope_key, 'calibrations', type='Biases', name=bias_folder.name)

@@ -45,15 +45,19 @@ def start(state, o=None, org=None, organisation=None, t=None, tel=None, telescop
 
     organisation = o or org or organisation
     if organisation:
-        if state.verbose: click.echo('Checking organisation membership...')
+        if state.verbose:
+            click.echo(f'Checking organisation {organisation} membership...')
         if Arcsecond.memberships().get(organisation) is None:
             raise InvalidOrgMembershipInOortCloudError(organisation)
-        if state.verbose: click.echo('Checking telescopes API access...')
+        if state.verbose:
+            click.echo('Checking telescopes API access...')
         _, error = Arcsecond.build_telescopes_api(debug=state.debug, organisation=organisation).list()
         if error:
             raise OortCloudError(str(error))
 
-    if state.verbose: click.echo('Starting server...')
+    if state.verbose:
+        click.echo('Starting server...')
+
     port = 5000
     while is_port_in_use(port):
         port += 1

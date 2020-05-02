@@ -21,6 +21,8 @@ def uploads():
 
     def generate():
         count = 0
+        yield state.context.get_yield_string()
+
         while True:
             if state.context.verbose: print(f'Loop count {count}')
             if count % 300 == 0:

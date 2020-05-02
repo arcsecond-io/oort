@@ -50,8 +50,9 @@
       <div class="context">
         <strong>Launch command used:</strong>
         <code>
-          oort
+          oort start
           {% if context.organisation %}-o {$ context.organisation $}{% endif %}
+          {% if context.verbose %}-v{% endif %}
           {% if context.debug %}-d{% endif %}
         </code>
         &nbsp;

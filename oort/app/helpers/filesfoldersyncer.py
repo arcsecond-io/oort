@@ -5,14 +5,15 @@ from datetime import datetime, timedelta
 from arcsecond import Arcsecond
 from arcsecond.api.main import ArcsecondAPI
 
-from .filewalker import FilesWalker
+from .constants import OORT_FILENAME
+from .filesfolder import FilesFolder
 from .fileuploader import FileUploader
-from .utils import find_first_in_list
+from .utils import find_first_in_list, find_fits_filedate, find_xisf_filedate
 
 MAX_SIMULTANEOUS_UPLOADS = 3
 
 
-class FilesSyncer(FilesWalker):
+class FilesFolderSyncer(FilesFolder):
     def __init__(self, context, astronomer, folderpath, prefix=''):
         super().__init__(context, astronomer, folderpath, prefix=prefix)
         self.api_nightlogs = Arcsecond.build_nightlogs_api(**self.api_kwargs)
@@ -20,22 +21,27 @@ class FilesSyncer(FilesWalker):
         self.night_logs = []
         self.resources = []
         self.resources_datasets = []
-        self.walk()
+
+    def reset(self):
+        self.files = []
 
     def walk(self):
         """Default implementation: look for files only."""
         for filename, filepath in self._walk_folder():
             if not os.path.exists(filepath) or os.path.isdir(filepath):
                 continue
-            filedate = self._get_fits_filedate(filepath)
-            if filedate:
-                self.files.append((filepath, filedate))
+            if os.path.isfile(filepath) and filename != OORT_FILENAME:
+                filedate = find_fits_filedate(filepath, self.context.debug)
+                if filedate is None:
+                    filedate = find_xisf_filedate(filepath, self.context.debug)
+                if filedate:
+                    self.files.append((filepath, filedate))
 
     def upload_files(self, telescope_key, resources_key, **raw_resource_kwargs):
         if len(self.files) == 0:
             return
 
-        print(f'Uploading {len(self.files)} files')
+        print(f'Syncing {len(self.files)} files')
         telescope_uuid = telescope_key.split('_')[1]
         telescope = find_first_in_list(self.context.telescopes, uuid=telescope_uuid)
 

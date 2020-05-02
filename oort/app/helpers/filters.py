@@ -1,38 +1,44 @@
 import copy
 import os
 
-from .constants import OORT_FILENAME
-from .filesyncer import FilesSyncer
+from .filesfoldersyncer import FilesFolderSyncer
 
 
-class FiltersFolder(FilesSyncer):
+class FiltersFolder(FilesFolderSyncer):
+    def __init__(self, context, astronomer, folderpath, prefix=''):
+        self.filter_folders = []
+        super().__init__(context, astronomer, folderpath, prefix=prefix)
+
     def reset(self):
-        self.files = []
+        super().reset()
         self.filter_folders = []
 
     def walk(self):
-        self.reset()
+        super().walk()
+
         for name, path in self._walk_folder():
             if os.path.isdir(path):
-                if self.context.debug: print(f' >>> Found a [{self.prefix}] {name} folder.')
-                self.filter_folders.append(FilesSyncer(self.context, self.astronomer, path, self.prefix))
-            elif os.path.isfile(path) and name != OORT_FILENAME:
-                file_date = self._get_fits_filedate(path)
-                if file_date:
-                    self.files.append((path, file_date))
-                else:
-                    if self.context.debug or self.context.verbose:
-                        print(f'{path} ignored, date can\'t be found inside FITS.')
+                if self.context.debug: print(f' >>> Found a {self.prefix} {name} folder.')
+                self.filter_folders.append(FilesFolderSyncer(self.context, self.astronomer, path, self.prefix))
+
+        for filter_folder in self.filter_folders:
+            filter_folder.walk()
 
     def upload_filters(self, telescope_key, resources_key, **kwargs):
         if self.context.verbose:
-           print(f'Uploading filters {resources_key} for telescope {telescope_key}')
+            print(f'Syncing filters {resources_key} for {telescope_key}')
 
         own_kwargs = copy.deepcopy(kwargs)
-        own_kwargs.update(name=self.name)
+        if resources_key == 'observations':
+            own_kwargs.update(target_name=self.name)
+        else:
+            own_kwargs.update(name=self.name)
         self.upload_files(telescope_key, resources_key, **own_kwargs)
 
         for filter_folder in self.filter_folders:
             filter_kwargs = copy.deepcopy(kwargs)
-            filter_kwargs.update(name=filter_folder.name)
+            if resources_key == 'observations':
+                filter_kwargs.update(target_name=self.name)
+            else:
+                filter_kwargs.update(name=self.name)
             filter_folder.upload_files(telescope_key, resources_key, **filter_kwargs)

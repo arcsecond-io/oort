@@ -4,12 +4,12 @@ from configparser import ConfigParser
 from arcsecond import ArcsecondConnectionError
 
 from .constants import OORT_FILENAME
-from .filewalker import FilesWalker
+from .filesfolder import FilesFolder
 from .telescopes import TelescopeFolder
 from .utils import find_first_in_list
 
 
-class RootFolder(FilesWalker):
+class RootFolder(FilesFolder):
     def __init__(self, context):
         super().__init__(context, None, context.folder)
         self.reset()
@@ -79,6 +79,8 @@ class RootFolder(FilesWalker):
             self.context.messages['warning'] = str(error)
             if self.context.debug or self.context.verbose: print(str(error))
         else:
+            if self.context.debug or self.context.verbose:
+                print(f'{len(self.context.telescopes)} telescopes synced.')
             if len(self.context.telescopes) == 0 and self.context.messages['warning'] == '':
                 msg = f'No telescopes detected. Make sure this folder or sub-ones contain a file named {OORT_FILENAME} '
                 msg += 'with a telescope UUID declared in a [telescope] section and relaunch command.'
@@ -87,12 +89,13 @@ class RootFolder(FilesWalker):
 
     def walk_telescope_folders(self):
         for telescope_folder in self.telescope_folders:
-            telescope_folder.walk()
+            telescope_folder.reset_obscal_folders()
+            telescope_folder.walk_telescope_folder()
 
-    def upload_telescopes_calibrations(self):
+    def upload_telescopes_calibrations_folders(self):
         for telescope_folder in self.telescope_folders:
             telescope_folder.uploads_calibrations_folders()
 
-    def upload_telescopes_observations(self):
+    def upload_telescopes_observations_folders(self):
         for telescope_folder in self.telescope_folders:
             telescope_folder.uploads_observations_folders()
