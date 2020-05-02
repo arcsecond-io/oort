@@ -5,6 +5,12 @@ from .filesfoldersyncer import FilesFolderSyncer
 
 
 class CalibrationsFolder(FilesFolderSyncer):
+    def __init__(self, context, astronomer, folderpath, prefix=''):
+        self.biases_folders = []
+        self.darks_folders = []
+        self.flats_folders = []
+        super().__init__(context, astronomer, folderpath, prefix=prefix)
+
     def reset(self):
         super().reset()
         self.biases_folders = []

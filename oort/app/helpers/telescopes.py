@@ -11,12 +11,14 @@ class TelescopeFolder(FilesFolder):
     # A folder of calibrations folders and target folders (no files)
 
     def __init__(self, uuid, context, astronomer, folderpath):
+        self.observations_folders = []
+        self.calibrations_folders = []
         self.uuid = uuid
         super().__init__(context, astronomer, folderpath, '')
 
-    def reset(self):
-        self.calibrations_folders = []
+    def reset_obscal_folders(self):
         self.observations_folders = []
+        self.calibrations_folders = []
 
     def walk(self):
         self.reset()

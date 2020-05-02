@@ -5,6 +5,10 @@ from .filesfoldersyncer import FilesFolderSyncer
 
 
 class FiltersFolder(FilesFolderSyncer):
+    def __init__(self, context, astronomer, folderpath, prefix=''):
+        self.filter_folders = []
+        super().__init__(context, astronomer, folderpath, prefix=prefix)
+
     def reset(self):
         super().reset()
         self.filter_folders = []
