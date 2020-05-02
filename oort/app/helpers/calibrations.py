@@ -40,7 +40,7 @@ class CalibrationsFolder(FilesFolderSyncer):
 
     def upload(self, telescope_key):
         if self.context.verbose:
-            print(f'Syncing calibrations for telescope {telescope_key}')
+            print(f'Syncing calibrations for {telescope_key}')
 
         own_kwargs = {}
         own_kwargs.update(name=self.name)

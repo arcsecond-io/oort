@@ -79,6 +79,8 @@ class RootFolder(FilesFolder):
             self.context.messages['warning'] = str(error)
             if self.context.debug or self.context.verbose: print(str(error))
         else:
+            if self.context.debug or self.context.verbose:
+                print(f'{len(self.context.telescopes)} telescopes synced.')
             if len(self.context.telescopes) == 0 and self.context.messages['warning'] == '':
                 msg = f'No telescopes detected. Make sure this folder or sub-ones contain a file named {OORT_FILENAME} '
                 msg += 'with a telescope UUID declared in a [telescope] section and relaunch command.'
