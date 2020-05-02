@@ -99,7 +99,7 @@ class FilesSyncer(FilesWalker):
     def _create_remote_resource(self, api: ArcsecondAPI, **kwargs):
         response_resource, error = api.create(kwargs)
         if error:
-            if self.context.debug: print(str(error))
+            if self.context.debug or self.context.verbose: print(str(error))
             msg = f'Failed to create resource in {api} endpoint. Retry is automatic.'
             self.context.messages['warning'] = msg
         else:
@@ -117,7 +117,7 @@ class FilesSyncer(FilesWalker):
             response_list = response_list['results']
 
         if error:
-            if self.context.debug: print(str(error))
+            if self.context.debug or self.context.verbose: print(str(error))
             self.context.messages['warning'] = str(error)
         elif len(response_list) == 0:
             # Reintroduce name into resource creation.
@@ -127,7 +127,7 @@ class FilesSyncer(FilesWalker):
             new_resource = response_list[0]
         else:
             msg = f'Multiple resources found for API {api}? Choosing first.'
-            if self.context.debug: print(msg)
+            if self.context.debug or self.context.verbose: print(msg)
             self.context.messages['warning'] = msg
 
         return new_resource
@@ -135,13 +135,13 @@ class FilesSyncer(FilesWalker):
     def _check_existing_remote_resource(self, api: ArcsecondAPI, uuid: str):
         response_detail, error = api.read(uuid)
         if error:
-            if self.context.debug: print(str(error))
+            if self.context.debug or self.context.verbose: print(str(error))
             self.context.messages['warning'] = str(error)
         elif response_detail:
             self.context.messages['warning'] = ''
         else:
             msg = f"Unknown resource in {api} endpoint with UUID {uuid}"
-            if self.context.debug: print(msg)
+            if self.context.debug or self.context.verbose: print(msg)
             self.context.messages['warning'] = msg
             return response_detail
 
@@ -156,16 +156,21 @@ class FilesSyncer(FilesWalker):
                               telescope,
                               self.astronomer,
                               self.context.organisation,
-                              self.context.debug)
+                              self.context.debug,
+                              self.context.verbose)
 
             self.context.uploads[upload_key] = fu
 
         started_count = len([u for u in self.context.uploads.values() if u.is_started()])
         if self.context._autostart and started_count < MAX_SIMULTANEOUS_UPLOADS:
             fu.start()
+            if self.context.verbose:
+                print(f'Uploading {filepath}...')
 
         if fu.will_finish():
             fu.finish()
+            if self.context.verbose:
+                print(f'Finished upload of {filepath}...')
 
         self.context.current_uploads = [fw.to_dict() for fw in self.context.uploads.values() if not fw.is_finished()]
         self.context.finished_uploads = [fw.to_dict() for fw in self.context.uploads.values() if fw.is_finished()]

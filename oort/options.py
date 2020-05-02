@@ -7,6 +7,20 @@ class State(object):
         self.debug = debug
 
 
+def verbose_option_constructor(f):
+    def callback(ctx, param, value):
+        state = ctx.ensure_object(State)
+        state.verbose = value
+        return value
+
+    return click.option('-v',
+                        '--verbose',
+                        is_flag=True,
+                        expose_value=False,
+                        help='Increases verbosity.',
+                        callback=callback)(f)
+
+
 def debug_option_constructor(f):
     def callback(ctx, param, value):
         state = ctx.ensure_object(State)
@@ -22,6 +36,6 @@ def debug_option_constructor(f):
 
 
 def basic_options(f):
-    # f = verbose_option_constructor(f)
+    f = verbose_option_constructor(f)
     f = debug_option_constructor(f)
     return f

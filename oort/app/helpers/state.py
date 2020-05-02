@@ -10,6 +10,7 @@ from .utils import SafeDict
 class Context:
     def __init__(self, config):
         self.debug = config['debug']
+        self.verbose = config['verbose']
         self.folder = config['folder']
         self.organisation = config['organisation']
 
