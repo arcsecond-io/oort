@@ -4,12 +4,12 @@ from configparser import ConfigParser
 from arcsecond import ArcsecondConnectionError
 
 from .constants import OORT_FILENAME
-from .filewalker import FilesWalker
+from .filesfolder import FilesFolder
 from .telescopes import TelescopeFolder
 from .utils import find_first_in_list
 
 
-class RootFolder(FilesWalker):
+class RootFolder(FilesFolder):
     def __init__(self, context):
         super().__init__(context, None, context.folder)
         self.reset()

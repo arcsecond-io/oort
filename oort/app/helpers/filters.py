@@ -1,10 +1,10 @@
 import copy
 import os
 
-from .filesyncer import FilesSyncer
+from .filesfoldersyncer import FilesFolderSyncer
 
 
-class FiltersFolder(FilesSyncer):
+class FiltersFolder(FilesFolderSyncer):
     def reset(self):
         super().reset()
         self.filter_folders = []

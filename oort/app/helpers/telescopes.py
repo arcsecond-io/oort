@@ -2,12 +2,12 @@ import os
 
 from arcsecond import Arcsecond
 
-from .filewalker import FilesWalker
+from .filesfolder import FilesFolder
 from .calibrations import CalibrationsFolder
 from .filters import FiltersFolder
 
 
-class TelescopeFolder(FilesWalker):
+class TelescopeFolder(FilesFolder):
     # A folder of calibrations folders and target folders (no files)
 
     def __init__(self, uuid, context, astronomer, folderpath):

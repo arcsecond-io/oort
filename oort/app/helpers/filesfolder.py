@@ -1,7 +1,7 @@
 import os
 
 
-class FilesWalker:
+class FilesFolder:
     # A folder files
 
     def __init__(self, context, astronomer, folderpath, prefix=''):

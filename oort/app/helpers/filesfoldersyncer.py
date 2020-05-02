@@ -6,14 +6,14 @@ from arcsecond import Arcsecond
 from arcsecond.api.main import ArcsecondAPI
 
 from .constants import OORT_FILENAME
-from .filewalker import FilesWalker
+from .filesfolder import FilesFolder
 from .fileuploader import FileUploader
 from .utils import find_first_in_list, find_fits_filedate, find_xisf_filedate
 
 MAX_SIMULTANEOUS_UPLOADS = 3
 
 
-class FilesSyncer(FilesWalker):
+class FilesFolderSyncer(FilesFolder):
     def __init__(self, context, astronomer, folderpath, prefix=''):
         super().__init__(context, astronomer, folderpath, prefix=prefix)
         self.api_nightlogs = Arcsecond.build_nightlogs_api(**self.api_kwargs)
@@ -21,7 +21,6 @@ class FilesSyncer(FilesWalker):
         self.night_logs = []
         self.resources = []
         self.resources_datasets = []
-        self.reset()
 
     def reset(self):
         self.files = []
@@ -153,6 +152,7 @@ class FilesSyncer(FilesWalker):
             return response_detail
 
     def _process_file_upload(self, filepath: str, filedate: datetime, dataset: dict, night_log: dict, telescope: dict):
+        print('_process_file_upload', filepath)
         upload_key = f"dataset_{dataset['uuid']}:{filepath}"
         fu = self.context.uploads.get(upload_key)
         if fu is None:

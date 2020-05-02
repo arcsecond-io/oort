@@ -1,10 +1,10 @@
 import os
 
 from .filters import FiltersFolder
-from .filesyncer import FilesSyncer
+from .filesfoldersyncer import FilesFolderSyncer
 
 
-class CalibrationsFolder(FilesSyncer):
+class CalibrationsFolder(FilesFolderSyncer):
     def reset(self):
         super().reset()
         self.biases_folders = []
