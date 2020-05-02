@@ -1,7 +1,6 @@
 import copy
 import os
 
-from .constants import OORT_FILENAME
 from .filesyncer import FilesSyncer
 
 
@@ -11,22 +10,15 @@ class FiltersFolder(FilesSyncer):
         self.filter_folders = []
 
     def walk(self):
-        self.reset()
+        super().walk()
         for name, path in self._walk_folder():
             if os.path.isdir(path):
                 if self.context.debug: print(f' >>> Found a [{self.prefix}] {name} folder.')
                 self.filter_folders.append(FilesSyncer(self.context, self.astronomer, path, self.prefix))
-            elif os.path.isfile(path) and name != OORT_FILENAME:
-                file_date = self._get_fits_filedate(path)
-                if file_date:
-                    self.files.append((path, file_date))
-                else:
-                    if self.context.debug or self.context.verbose:
-                        print(f'{path} ignored, date can\'t be found inside FITS.')
 
     def upload_filters(self, telescope_key, resources_key, **kwargs):
         if self.context.verbose:
-           print(f'Syncing filters {resources_key} for telescope {telescope_key}')
+            print(f'Syncing filters {resources_key} for telescope {telescope_key}')
 
         own_kwargs = copy.deepcopy(kwargs)
         if resources_key == 'observations':

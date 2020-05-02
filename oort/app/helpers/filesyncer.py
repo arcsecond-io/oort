@@ -5,9 +5,10 @@ from datetime import datetime, timedelta
 from arcsecond import Arcsecond
 from arcsecond.api.main import ArcsecondAPI
 
+from .constants import OORT_FILENAME
 from .filewalker import FilesWalker
 from .fileuploader import FileUploader
-from .utils import find_first_in_list
+from .utils import find_first_in_list, find_fits_filedate, find_xisf_filedate
 
 MAX_SIMULTANEOUS_UPLOADS = 3
 
@@ -24,12 +25,16 @@ class FilesSyncer(FilesWalker):
 
     def walk(self):
         """Default implementation: look for files only."""
+        self.reset()
         for filename, filepath in self._walk_folder():
             if not os.path.exists(filepath) or os.path.isdir(filepath):
                 continue
-            filedate = self._get_fits_filedate(filepath)
-            if filedate:
-                self.files.append((filepath, filedate))
+            if os.path.isfile(filepath) and filename != OORT_FILENAME:
+                filedate = find_fits_filedate(filepath, self.context.debug)
+                if filedate is None:
+                    filedate = find_xisf_filedate(filepath, self.context.debug)
+                if filedate:
+                    self.files.append((filepath, filedate))
 
     def upload_files(self, telescope_key, resources_key, **raw_resource_kwargs):
         if len(self.files) == 0:
