@@ -6,7 +6,7 @@ from .filesyncer import FilesSyncer
 
 class FiltersFolder(FilesSyncer):
     def reset(self):
-        self.files = []
+        super().reset()
         self.filter_folders = []
 
     def walk(self):

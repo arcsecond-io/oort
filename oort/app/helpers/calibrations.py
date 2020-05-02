@@ -6,7 +6,7 @@ from .filesyncer import FilesSyncer
 
 class CalibrationsFolder(FilesSyncer):
     def reset(self):
-        self.files = []
+        super().reset()
         self.biases_folders = []
         self.darks_folders = []
         self.flats_folders = []

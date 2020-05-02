@@ -10,7 +10,6 @@ class FilesWalker:
         self.folderpath = folderpath
         self.prefix = prefix
         self.files = []
-        self.reset()
 
     @property
     def name(self):
@@ -24,9 +23,6 @@ class FilesWalker:
         elif self.context.organisation:
             kwargs.update(organisation=self.context.organisation)
         return kwargs
-
-    def reset(self):
-        pass
 
     def _walk_folder(self):
         if not os.path.exists(self.folderpath) or not os.path.isdir(self.folderpath):

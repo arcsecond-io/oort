@@ -21,11 +21,13 @@ class FilesSyncer(FilesWalker):
         self.night_logs = []
         self.resources = []
         self.resources_datasets = []
-        self.walk()
+        self.reset()
+
+    def reset(self):
+        self.files = []
 
     def walk(self):
         """Default implementation: look for files only."""
-        self.reset()
         for filename, filepath in self._walk_folder():
             if not os.path.exists(filepath) or os.path.isdir(filepath):
                 continue
