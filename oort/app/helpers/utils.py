@@ -54,7 +54,10 @@ def find_xisf_filedate(path, debug):
         bytes = b''
         while b'</xisf>' not in bytes:
             bytes = f.read(100)
-            if header == b'' and b'<xisf' in bytes:
+            if header == b'' and b'<xisf' not in bytes:
+                # If '<xisf' is not in the first 100 bytes, it's not a xisf
+                break
+            elif header == b'' and b'<xisf' in bytes:
                 index = bytes.find(b'<xisf')
                 header += bytes[index:]
             elif b'</xisf>' in bytes:
