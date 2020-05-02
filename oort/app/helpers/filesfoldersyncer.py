@@ -152,7 +152,6 @@ class FilesFolderSyncer(FilesFolder):
             return response_detail
 
     def _process_file_upload(self, filepath: str, filedate: datetime, dataset: dict, night_log: dict, telescope: dict):
-        print('_process_file_upload', filepath)
         upload_key = f"dataset_{dataset['uuid']}:{filepath}"
         fu = self.context.uploads.get(upload_key)
         if fu is None:
