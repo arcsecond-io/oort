@@ -1,5 +1,6 @@
-# from configparser import ConfigParser, DuplicateOptionError
 import dateparser
+import xml.etree.ElementTree as ET
+
 from astropy.io import fits as pyfits
 
 
@@ -46,3 +47,30 @@ def find_fits_filedate(path, debug):
     return file_date
 
 
+def find_xisf_filedate(path, debug):
+    file_date = None
+    header = b''
+    with open(path, 'rb') as f:
+        bytes = b''
+        while b'</xisf>' not in bytes:
+            bytes = f.read(100)
+            if header == b'' and b'<xisf' in bytes:
+                index = bytes.find(b'<xisf')
+                header += bytes[index:]
+            elif b'</xisf>' in bytes:
+                index = bytes.find(b'</xisf>')
+                header += bytes[:index] + b'</xisf>'
+            elif len(header) > 0:
+                header += bytes
+    if len(header) > 0:
+        try:
+            tree = ET.fromstring(header.decode('utf-8'))
+            tag = tree.find('.//{http://www.pixinsight.com/xisf}FITSKeyword[@name="DATE-OBS"]')
+            if tag is None:
+                tag = tree.find('.//{http://www.pixinsight.com/xisf}FITSKeyword[@name="DATE"]')
+            if tag is not None:
+                file_date = dateparser.parse(tag.get('value'))
+        except Exception as error:
+            if debug: print(str(error))
+        else:
+            return file_date
