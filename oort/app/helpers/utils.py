@@ -1,4 +1,7 @@
 # from configparser import ConfigParser, DuplicateOptionError
+import dateparser
+from astropy.io import fits as pyfits
+
 
 def find_first_in_list(objects, **kwargs):
     return next((obj for obj in objects if
@@ -23,4 +26,23 @@ class SafeDict(dict):
         for item in items:
             if item not in self[key]:
                 self[key].append(item)
+
+
+def find_fits_filedate(path, debug):
+    file_date = None
+    try:
+        hdulist = pyfits.open(path)
+    except Exception as error:
+        if debug: print(str(error))
+    else:
+        for hdu in hdulist:
+            date_header = hdu.header.get('DATE') or hdu.header.get('DATE-OBS')
+            if not date_header:
+                continue
+            file_date = dateparser.parse(date_header)
+            if file_date:
+                break
+        hdulist.close()
+    return file_date
+
 
