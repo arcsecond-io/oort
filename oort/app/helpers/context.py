@@ -26,7 +26,6 @@ class Context:
             self.can_upload = self.role in ['member', 'admin', 'superadmin']
 
         self.config_filepath = os.path.expanduser('.oort.ini')
-        self.current_date = config.get('current_date', self._get_current_date())
 
         self.state = self.to_dict()
         self.messages = SafeDict()
@@ -55,7 +54,7 @@ class Context:
             'isAuthenticated': self.is_authenticated,
             'canUpload': self.can_upload,
             'debug': self.debug,
-            'current_date': self.current_date
+            'verbose': self.verbose
         }
 
     def get_yield_string(self):
