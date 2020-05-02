@@ -35,7 +35,7 @@ class FilesSyncer(FilesWalker):
         if len(self.files) == 0:
             return
 
-        print(f'Uploading {len(self.files)} files')
+        print(f'Syncing {len(self.files)} files')
         telescope_uuid = telescope_key.split('_')[1]
         telescope = find_first_in_list(self.context.telescopes, uuid=telescope_uuid)
 

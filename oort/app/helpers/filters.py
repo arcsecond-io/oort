@@ -26,7 +26,7 @@ class FiltersFolder(FilesSyncer):
 
     def upload_filters(self, telescope_key, resources_key, **kwargs):
         if self.context.verbose:
-           print(f'Uploading filters {resources_key} for telescope {telescope_key}')
+           print(f'Syncing filters {resources_key} for telescope {telescope_key}')
 
         own_kwargs = copy.deepcopy(kwargs)
         own_kwargs.update(name=self.name)
