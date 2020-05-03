@@ -54,7 +54,7 @@ def start(state, o=None, org=None, organisation=None, t=None, tel=None, telescop
 
     from .server import start
 
-    start(os.getcwd(), organisation, state.debug, False)
+    start(os.getcwd(), organisation, state.debug, state.verbose)
 
 
 @main.command(help=VERSION_HELP_STRING)
