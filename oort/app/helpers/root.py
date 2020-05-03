@@ -87,15 +87,4 @@ class RootFolder(FilesFolder):
                 self.context.messages['warning'] = msg
                 if self.context.debug or self.context.verbose: print(msg)
 
-    def walk_telescope_folders(self):
-        for telescope_folder in self.telescope_folders:
-            telescope_folder.reset_obscal_folders()
-            telescope_folder.walk_telescope_folder()
 
-    def upload_telescopes_calibrations_folders(self):
-        for telescope_folder in self.telescope_folders:
-            telescope_folder.uploads_calibrations_folders()
-
-    def upload_telescopes_observations_folders(self):
-        for telescope_folder in self.telescope_folders:
-            telescope_folder.uploads_observations_folders()

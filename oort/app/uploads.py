@@ -10,32 +10,42 @@ class UploadsLocalState:
         self.root_folder = RootFolder(self.context)
 
     def sync_telescopes(self):
+        if not self.context.can_upload:
+            yield self.context.get_yield_string()
+            return
+
         if self.context.verbose:
             print('Syncing telescopes...')
 
-        if self.context.can_upload:
-            self.root_folder.find_telescope_folders()
-            self.root_folder.read_remote_telescopes()
-            self.root_folder.walk_telescope_folders()
+        self.root_folder.find_telescope_folders()
+        self.root_folder.read_remote_telescopes()
+        yield self.context.get_yield_string()
 
-        return self.context.get_yield_string()
+        for telescope_folder in self.root_folder.telescope_folders:
+            telescope_folder.reset_obscal_folders()
+            telescope_folder.walk_telescope_folder()
+            yield self.context.get_yield_string()
 
     def sync_calibrations_uploads(self):
+        if not self.context.can_upload:
+            yield self.context.get_yield_string()
+            return
+
         if self.context.verbose:
             print('Syncing calibrations uploads...')
 
-        if self.context.can_upload:
-            self.context.state['showTables'] = True
-            self.root_folder.upload_telescopes_calibrations_folders()
-
-        return self.context.get_yield_string()
+        self.context.state['showTables'] = True
+        for telescope_folder in self.root_folder.telescope_folders:
+            yield from telescope_folder.uploads_calibrations_folders()
 
     def sync_observations_uploads(self):
+        if not self.context.can_upload:
+            yield self.context.get_yield_string()
+            return
+
         if self.context.verbose:
             print('Syncing observations uploads...')
 
-        if self.context.can_upload:
-            self.context.state['showTables'] = True
-            self.root_folder.upload_telescopes_observations_folders()
-
-        return self.context.get_yield_string()
+        self.context.state['showTables'] = True
+        for telescope_folder in self.root_folder.telescope_folders:
+            yield from telescope_folder.uploads_observations_folders()

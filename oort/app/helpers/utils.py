@@ -1,7 +1,9 @@
+import logging
 import dateparser
 import xml.etree.ElementTree as ET
 
 from astropy.io import fits as pyfits
+from .constants import *
 
 
 def find_first_in_list(objects, **kwargs):
@@ -9,6 +11,17 @@ def find_first_in_list(objects, **kwargs):
                  len(set(obj.keys()).intersection(kwargs.keys())) > 0 and
                  all([obj[k] == v for k, v in kwargs.items() if k in obj.keys()])),
                 None)
+
+
+def get_oort_logger():
+    logger = logging.getLogger(OORT_APPNAME)
+    logger.setLevel(logging.INFO)
+    fh = logging.FileHandler(OORT_UPLOADS_LOG_FILENAME)
+    fh.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    fh.setFormatter(formatter)
+    logger.addHandler(fh)
+    return logger
 
 
 class SafeDict(dict):
@@ -53,9 +66,9 @@ def find_xisf_filedate(path, debug):
     with open(path, 'rb') as f:
         bytes = b''
         while b'</xisf>' not in bytes:
-            bytes = f.read(100)
+            bytes = f.read(500)
             if header == b'' and b'<xisf' not in bytes:
-                # If '<xisf' is not in the first 100 bytes, it's not a xisf
+                # If '<xisf' is not in the first 500 bytes, it's not a xisf
                 break
             elif header == b'' and b'<xisf' in bytes:
                 index = bytes.find(b'<xisf')
@@ -75,5 +88,6 @@ def find_xisf_filedate(path, debug):
                 file_date = dateparser.parse(tag.get('value'))
         except Exception as error:
             if debug: print(str(error))
+            return None
         else:
             return file_date

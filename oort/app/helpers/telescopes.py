@@ -59,8 +59,8 @@ class TelescopeFolder(FilesFolder):
 
     def uploads_calibrations_folders(self):
         for calibrations_folder in self.calibrations_folders:
-            calibrations_folder.upload(self.telescope_key)
+            yield from calibrations_folder.upload(self.telescope_key)
 
     def uploads_observations_folders(self):
         for observations_folder in self.observations_folders:
-            observations_folder.upload_filters(self.telescope_key, 'observations')
+            yield from observations_folder.upload_filters(self.telescope_key, 'observations')

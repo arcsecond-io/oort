@@ -26,10 +26,10 @@ def uploads():
         while True:
             if state.context.verbose: print(f'Loop count {count}')
             if count % 300 == 0:
-                yield state.sync_telescopes()
+                yield from state.sync_telescopes()
 
-            yield state.sync_calibrations_uploads()
-            yield state.sync_observations_uploads()
+            yield from state.sync_calibrations_uploads()
+            yield from state.sync_observations_uploads()
             time.sleep(5)
             count += 1
 
