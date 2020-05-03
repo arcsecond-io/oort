@@ -44,16 +44,16 @@ class CalibrationsFolder(FilesFolderSyncer):
 
         own_kwargs = {}
         own_kwargs.update(name=self.name)
-        self.upload_files(telescope_key, 'calibrations', **own_kwargs)
+        yield from self.upload_files(telescope_key, 'calibrations', **own_kwargs)
 
         for bias_folder in self.biases_folders:
             if self.context.debug or self.context.verbose: print(f'Uploading {bias_folder.name}...')
-            bias_folder.upload_files(telescope_key, 'calibrations', type='Biases', name=bias_folder.name)
+            yield from bias_folder.upload_files(telescope_key, 'calibrations', type='Biases', name=bias_folder.name)
 
         for darks_folder in self.darks_folders:
             if self.context.debug or self.context.verbose: print(f'Uploading {darks_folder.name}...')
-            darks_folder.upload_files(telescope_key, 'calibrations', type='Darks', name=darks_folder.name)
+            yield from darks_folder.upload_files(telescope_key, 'calibrations', type='Darks', name=darks_folder.name)
 
         for flats_folder in self.flats_folders:
             if self.context.debug or self.context.verbose: print(f'Uploading Flats (filters)...')
-            flats_folder.upload_filters(telescope_key, 'calibrations', type='Flats')
+            yield from flats_folder.upload_filters(telescope_key, 'calibrations', type='Flats')

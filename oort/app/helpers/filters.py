@@ -33,7 +33,7 @@ class FiltersFolder(FilesFolderSyncer):
             own_kwargs.update(target_name=self.name)
         else:
             own_kwargs.update(name=self.name)
-        self.upload_files(telescope_key, resources_key, **own_kwargs)
+        yield from self.upload_files(telescope_key, resources_key, **own_kwargs)
 
         for filter_folder in self.filter_folders:
             filter_kwargs = copy.deepcopy(kwargs)
@@ -41,4 +41,4 @@ class FiltersFolder(FilesFolderSyncer):
                 filter_kwargs.update(target_name=self.name)
             else:
                 filter_kwargs.update(name=self.name)
-            filter_folder.upload_files(telescope_key, resources_key, **filter_kwargs)
+            yield from filter_folder.upload_files(telescope_key, resources_key, **filter_kwargs)

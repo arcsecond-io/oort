@@ -93,6 +93,7 @@ class FilesFolderSyncer(FilesFolder):
 
             # # --- resource upload ---
             self._process_file_upload(filepath, filedate, resource_dataset, night_log, telescope)
+            yield self.context.get_yield_string()
 
     def _sync_resource(self, api, local_list, **kwargs):
         local_resource = find_first_in_list(local_list, **kwargs)
