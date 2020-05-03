@@ -66,9 +66,9 @@ def find_xisf_filedate(path, debug):
     with open(path, 'rb') as f:
         bytes = b''
         while b'</xisf>' not in bytes:
-            bytes = f.read(100)
+            bytes = f.read(500)
             if header == b'' and b'<xisf' not in bytes:
-                # If '<xisf' is not in the first 100 bytes, it's not a xisf
+                # If '<xisf' is not in the first 500 bytes, it's not a xisf
                 break
             elif header == b'' and b'<xisf' in bytes:
                 index = bytes.find(b'<xisf')
@@ -88,5 +88,6 @@ def find_xisf_filedate(path, debug):
                 file_date = dateparser.parse(tag.get('value'))
         except Exception as error:
             if debug: print(str(error))
+            return None
         else:
             return file_date
