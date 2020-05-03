@@ -1,10 +1,12 @@
-import os
 import socket
 import sys
 
 # sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)))
 
+from .app.helpers.utils import get_oort_logger
 from .app import app
+
+logger = get_oort_logger()
 
 
 def is_port_in_use(port):
@@ -25,6 +27,7 @@ def start(folder, organisation, debug, verbose):
     while is_port_in_use(port):
         port += 1
 
+    logger.info('server start')
     app.run(debug=debug, host='0.0.0.0', port=port, threaded=True)
 
 

@@ -3,8 +3,11 @@ import os
 import uuid
 
 from datetime import datetime
-
 from arcsecond import Arcsecond
+
+from .utils import get_oort_logger
+
+logger = get_oort_logger()
 
 
 class FileUploader(object):
@@ -37,11 +40,13 @@ class FileUploader(object):
 
         self.filepath = filepath
         self.filedate = filedate
-        self.organisation = organisation
-        self.astronomer = astronomer
         self.dataset = dataset
         self.night_log = night_log
         self.telescope = telescope
+
+        self.astronomer = astronomer
+        self.organisation = organisation
+
         self.debug = debug
         self.verbose = verbose
 
@@ -75,6 +80,13 @@ class FileUploader(object):
     def remaining_bytes(self):
         return (100 - self.progress) * self.filesize / 1000
 
+    @property
+    def log_string(self):
+        log_string = f' {self.filepath} {self.filedate}'
+        log_string += f'ds_{self.dataset["uuid"]} nl_{self.night_log["uuid"]} tel_{self.telescope["uuid"]} '
+        log_string += f'as_{self.astronomer[0] if self.astronomer else ""} org_{self.organisation}'
+        return log_string
+
     def exists_remotely(self):
         if self._exists_remotely:
             return self._exists_remotely
@@ -99,10 +111,12 @@ class FileUploader(object):
     def start(self):
         if self.started is not None:
             return
+
         self.started = datetime.now()
         if self.exists_remotely():
             self.progress = 100
         else:
+            logger.info(str.ljust('start', 5) + self.log_string)
             self.uploader.start()
 
     def finish(self):
@@ -115,8 +129,10 @@ class FileUploader(object):
         if self.error:
             self.status = 'error'
             self._process_error(self.error)
+            logger.info('error' + self.log_string + f' {str(self.error)}')
         else:
             self.status = 'OK'
+            logger.info(str.ljust('ok', 5) + self.log_string)
 
         self.progress = 0
         self.ended = datetime.now()
