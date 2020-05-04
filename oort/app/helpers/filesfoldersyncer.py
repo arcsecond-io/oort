@@ -24,7 +24,11 @@ class FilesFolderSyncer(FilesFolder):
 
     def walk(self):
         """Default implementation: look for files only."""
+        known_filepaths = [f[0] for f in self.files]
+
         for filename, filepath in self._walk_folder():
+            if filepath in known_filepaths:
+                continue
             if not os.path.exists(filepath) or os.path.isdir(filepath):
                 continue
             if os.path.isfile(filepath) and filename != OORT_FILENAME:

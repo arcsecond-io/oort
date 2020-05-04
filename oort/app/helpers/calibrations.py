@@ -14,7 +14,13 @@ class CalibrationsFolder(FilesFolderSyncer):
     def walk(self):
         super().walk()
 
+        known_folderpaths = [f.folderpath for f in self.biases_folders] + \
+                            [f.folderpath for f in self.darks_folders] + \
+                            [f.folderpath for f in self.flats_folders]
+
         for name, path in self._walk_folder():
+            if path in known_folderpaths:
+                continue
             if os.path.isdir(path) and name.lower().startswith('bias'):
                 if self.context.debug or self.context.verbose: print(f' >> Found a {self.prefix} {name} folder.')
                 self.biases_folders.append(FilesFolderSyncer(self.context, self.astronomer, path))
