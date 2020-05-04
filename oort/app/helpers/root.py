@@ -11,12 +11,9 @@ from .utils import find_first_in_list
 
 class RootFolder(FilesFolder):
     def __init__(self, context):
-        super().__init__(context, None, context.folder)
-        self.reset()
-
-    def reset(self):
         self.other_folders = []
         self.telescope_folders = []
+        super().__init__(context, None, context.folder)
 
     def find_telescope_folders(self):
         if self.context.verbose: print('find_telescope_folders')
