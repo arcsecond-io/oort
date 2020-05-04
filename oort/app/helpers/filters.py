@@ -9,10 +9,6 @@ class FiltersFolder(FilesFolderSyncer):
         self.filter_folders = []
         super().__init__(context, astronomer, folderpath, prefix=prefix)
 
-    def reset(self):
-        super().reset()
-        self.filter_folders = []
-
     def walk(self):
         super().walk()
 

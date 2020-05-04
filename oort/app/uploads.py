@@ -22,7 +22,6 @@ class UploadsLocalState:
         yield self.context.get_yield_string()
 
         for telescope_folder in self.root_folder.telescope_folders:
-            telescope_folder.reset_obscal_folders()
             telescope_folder.walk_telescope_folder()
             yield self.context.get_yield_string()
 

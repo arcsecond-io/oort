@@ -16,10 +16,6 @@ class TelescopeFolder(FilesFolder):
         self.uuid = uuid
         super().__init__(context, astronomer, folderpath, '')
 
-    def reset_obscal_folders(self):
-        self.observations_folders = []
-        self.calibrations_folders = []
-
     def walk_telescope_folder(self):
         for name, path in self._walk_folder():
             if not os.path.isdir(path):

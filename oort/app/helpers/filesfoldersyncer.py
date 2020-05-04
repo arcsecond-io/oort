@@ -22,9 +22,6 @@ class FilesFolderSyncer(FilesFolder):
         self.resources = []
         self.resources_datasets = []
 
-    def reset(self):
-        self.files = []
-
     def walk(self):
         """Default implementation: look for files only."""
         for filename, filepath in self._walk_folder():
