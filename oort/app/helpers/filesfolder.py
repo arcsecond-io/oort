@@ -18,9 +18,9 @@ class FilesFolder:
     @property
     def api_kwargs(self):
         kwargs = {'debug': self.context.debug}
-        if self.astronomer is not None:
+        if isinstance(self.astronomer, tuple) and len(self.astronomer) == 2:
             kwargs.update(api_key=self.astronomer[1])
-        elif self.context.organisation is not None:
+        elif self.context.organisation is not None and len(self.context.organisation) > 0:
             kwargs.update(organisation=self.context.organisation)
         return kwargs
 

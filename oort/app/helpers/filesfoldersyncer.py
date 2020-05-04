@@ -35,8 +35,11 @@ class FilesFolderSyncer(FilesFolder):
                 filedate = find_fits_filedate(filepath, self.context.debug)
                 if filedate is None:
                     filedate = find_xisf_filedate(filepath, self.context.debug)
-                if filedate:
+                if filedate is not None:
                     self.files.append((filepath, filedate))
+                else:
+                    # TODO: Deal with missing date
+                    pass
 
     def upload_files(self, telescope_key, resources_key, **raw_resource_kwargs):
         if len(self.files) == 0:
@@ -62,7 +65,7 @@ class FilesFolderSyncer(FilesFolder):
                                             date=date_string,
                                             telescope=telescope_uuid)
 
-            if not night_log:
+            if night_log is None:
                 if self.context.debug:
                     print('>>> No night log', filedate, filepath, date_string, telescope_uuid)
                 continue
@@ -71,7 +74,7 @@ class FilesFolderSyncer(FilesFolder):
             resource_kwargs = copy.deepcopy(raw_resource_kwargs)
             resource_kwargs.update(night_log=night_log['uuid'])
             resource = self._sync_resource(api_resources, self.resources, **resource_kwargs)
-            if not resource:
+            if resource is None:
                 if self.context.debug:
                     print('*** No ' + resource_key, filedate, filepath, resource_kwargs)
                 continue
@@ -87,7 +90,7 @@ class FilesFolderSyncer(FilesFolder):
             ### end warning ###
 
             resource_dataset = self._sync_resource(self.api_datasets, self.resources_datasets, **dataset_kwargs)
-            if not resource_dataset:
+            if resource_dataset is None:
                 if self.context.debug:
                     print(f'*** No {resource_key} dataset', filedate, filepath, dataset_kwargs)
                 continue
@@ -98,15 +101,15 @@ class FilesFolderSyncer(FilesFolder):
 
     def _sync_resource(self, api, local_list, **kwargs):
         local_resource = find_first_in_list(local_list, **kwargs)
-        if not local_resource:
+        if local_resource is None:
             local_resource = self._find_or_create_remote_resource(api, **kwargs)
-            if local_resource:
+            if local_resource is not None:
                 local_list.append(local_resource)
         return local_resource
 
     def _create_remote_resource(self, api: ArcsecondAPI, **kwargs):
         response_resource, error = api.create(kwargs)
-        if error:
+        if error is not None:
             if self.context.debug or self.context.verbose: print(str(error))
             msg = f'Failed to create resource in {api} endpoint. Retry is automatic.'
             self.context.messages['warning'] = msg
@@ -124,7 +127,7 @@ class FilesFolderSyncer(FilesFolder):
         if isinstance(response_list, dict) and 'count' in response_list.keys() and 'results' in response_list.keys():
             response_list = response_list['results']
 
-        if error:
+        if error is not None:
             if self.context.debug or self.context.verbose: print(str(error))
             self.context.messages['warning'] = str(error)
         elif len(response_list) == 0:
@@ -142,10 +145,10 @@ class FilesFolderSyncer(FilesFolder):
 
     def _check_existing_remote_resource(self, api: ArcsecondAPI, uuid: str):
         response_detail, error = api.read(uuid)
-        if error:
+        if error is not None:
             if self.context.debug or self.context.verbose: print(str(error))
             self.context.messages['warning'] = str(error)
-        elif response_detail:
+        elif response_detail is not None:
             self.context.messages['warning'] = ''
         else:
             msg = f"Unknown resource in {api} endpoint with UUID {uuid}"
