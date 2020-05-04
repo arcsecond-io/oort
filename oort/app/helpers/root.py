@@ -18,11 +18,12 @@ class RootFolder(FilesFolder):
     def find_telescope_folders(self):
         if self.context.verbose: print('find_telescope_folders')
         # Do not reset every time.
+        known_uuids = [tel.uuid for tel in self.telescope_folders]
         for name, path in self._walk_folder():
             # If it's a folder, check if it is a telescope one.
             if os.path.isdir(path):
                 tel_uuid = self._look_for_telescope_uuid(path)
-                if tel_uuid:
+                if tel_uuid and tel_uuid not in known_uuids:
                     if self.context.debug or self.context.verbose:
                         print(f'Found a Telescope folder: {name}')
                     astronomer = self._look_for_astronomer(path)
@@ -34,7 +35,7 @@ class RootFolder(FilesFolder):
                 if name == OORT_FILENAME:
                     parent_path = os.path.dirname(path)
                     tel_uuid = self._look_for_telescope_uuid(parent_path)
-                    if tel_uuid:
+                    if tel_uuid and tel_uuid not in known_uuids:
                         if self.context.debug or self.context.verbose:
                             print(f'Found a Telescope folder: {name}')
                         astronomer = self._look_for_astronomer(parent_path)
@@ -83,5 +84,3 @@ class RootFolder(FilesFolder):
                 msg += 'with a telescope UUID declared in a [telescope] section and relaunch command.'
                 self.context.messages['warning'] = msg
                 if self.context.debug or self.context.verbose: print(msg)
-
-
