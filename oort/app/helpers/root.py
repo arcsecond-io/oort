@@ -18,40 +18,27 @@ class RootFolder(FilesFolder):
     def find_telescope_folders(self):
         if self.context.verbose: print('find_telescope_folders')
         # Do not reset every time.
-        known_uuids = [tel.uuid for tel in self.telescope_folders]
         for name, path in self._walk_folder():
             # If it's a folder, check if it is a telescope one.
             if os.path.isdir(path):
-                tel_uuid = self._look_for_telescope_uuid(path)
-                if tel_uuid and tel_uuid not in known_uuids:
-                    if self.context.debug or self.context.verbose:
-                        print(f'Found a Telescope folder: {name}')
-                    astronomer = self._look_for_astronomer(path)
-                    if astronomer and (self.context.debug or self.context.verbose):
-                        print(f'For astronomer: {astronomer[0]}')
-                    self.telescope_folders.append(TelescopeFolder(tel_uuid, self.context, astronomer, path))
+                self._look_for_telescope(path, name)
             else:
                 # These are files. Check if we are inside a Telescope folder already.
                 if name == OORT_FILENAME:
                     parent_path = os.path.dirname(path)
-                    tel_uuid = self._look_for_telescope_uuid(parent_path)
-                    if tel_uuid and tel_uuid not in known_uuids:
-                        if self.context.debug or self.context.verbose:
-                            print(f'Found a Telescope folder: {name}')
-                        astronomer = self._look_for_astronomer(parent_path)
-                        if astronomer and (self.context.debug or self.context.verbose):
-                            print(f'For astronomer: {astronomer[0]}')
-                        self.telescope_folders.append(TelescopeFolder(tel_uuid, self.context, astronomer, parent_path))
+                    parent_name = os.path.dirname(parent_path)
+                    self._look_for_telescope(parent_path, parent_name)
 
-    def _get_oort_config(self, path):
-        _config = None
-        oort_filepath = os.path.join(path, OORT_FILENAME)
-        if os.path.exists(oort_filepath) and os.path.isfile(oort_filepath):
-            # Below will fail if the info is missing / wrong.
-            _config = ConfigParser()
-            with open(oort_filepath, 'r') as f:
-                _config.read(oort_filepath)
-        return _config
+    def _look_for_telescope(self, path, name):
+        known_uuids = [tel.uuid for tel in self.telescope_folders]
+        tel_uuid = self._look_for_telescope_uuid(path)
+        if tel_uuid and tel_uuid not in known_uuids:
+            if self.context.debug or self.context.verbose:
+                print(f'Found a Telescope folder: {name}')
+            astronomer = self._look_for_astronomer(path)
+            if astronomer and (self.context.debug or self.context.verbose):
+                print(f'For astronomer: {astronomer[0]}')
+            self.telescope_folders.append(TelescopeFolder(tel_uuid, self.context, astronomer, path))
 
     def _look_for_telescope_uuid(self, path):
         _config = self._get_oort_config(path)
@@ -65,9 +52,18 @@ class RootFolder(FilesFolder):
             return (_config['astronomer']['username'], _config['astronomer']['api_key'])
         return None
 
+    def _get_oort_config(self, path):
+        _config = None
+        oort_filepath = os.path.join(path, OORT_FILENAME)
+        if os.path.exists(oort_filepath) and os.path.isfile(oort_filepath):
+            # Below will fail if the info is missing / wrong.
+            _config = ConfigParser()
+            with open(oort_filepath, 'r') as f:
+                _config.read(oort_filepath)
+        return _config
+
     def read_remote_telescopes(self):
         self.context.messages['warning'] = ''
-        self.context.telescopes = []
 
         try:
             for telescope_folder in self.telescope_folders:
