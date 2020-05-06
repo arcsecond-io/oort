@@ -116,10 +116,7 @@ class FileUploader(object):
             self.status = 'OK'
             self.substatus = 'already synced' if result is True else 'not synced'
         else:
-            print(f'Multiple files for dataset {self.dataset["uuid"]} and filename {filename}???')
-            self.status = 'checked'
-            self.substatus = 'multiple files?'
-            return True
+            raise Exception(f'Multiple files for dataset {self.dataset["uuid"]} and filename {filename}???')
 
     def start(self):
         if self.dataset is None:
@@ -129,8 +126,14 @@ class FileUploader(object):
             return
 
         self.started = datetime.now()
-        if self._check_remote_file():
-            self.progress = 100
+
+        try:
+            self._check_remote_file()
+        except Exception as error:
+            self.status = '?'
+            self.substatus = 'multiple files?'
+            self.ended = datetime.now()
+            logger.info('error' + self.log_string + f' {str(self.error)}')
         else:
             logger.info(str.ljust('start', 5) + self.log_string)
             self.status = 'OK'
@@ -141,11 +144,13 @@ class FileUploader(object):
         if self.ended is not None:
             return
 
+        # May hold the thread for a few seconds...
+        _, self.error = self.uploader.finish()
+
         self.ended = datetime.now()
         self.progress = 0
         self.duration = (self.ended - self.started).total_seconds()
 
-        _, self.error = self.uploader.finish()
         if self.error:
             self.status = 'error'
             self.substatus = str(self.error)[:20] + '...'
@@ -178,7 +183,7 @@ class FileUploader(object):
         return self.started is not None and self.ended is not None
 
     def can_finish(self):
-        return self.is_started() and not self.uploader.is_alive()
+        return self.is_started() and self.progress >= 99
 
     def to_dict(self):
         return {
