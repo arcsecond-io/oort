@@ -242,7 +242,9 @@
                     <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/@${upload.astronomer}` target="_blank">@{{ upload.astronomer }}</a>
                     <a v-else :href=`https://${upload.organisation}.arcsecond.io` target="_blank">{{ upload.organisation }}</a>
                   </td>
-                  <td>{{ getFormatedSize(upload.filesize) }}</td>
+                  <td :title="`upload.filesize bytes`">
+                    {{ getFormatedSize(upload.filesize) }}
+                  </td>
                   <td>
                     {{ upload.status }}
                     <div class="subtitle">{{ upload.substatus }}</div>
@@ -290,7 +292,9 @@
                     <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/@${upload.astronomer}` target="_blank">@{{ upload.astronomer }}</a>
                     <a v-else :href=`https://${upload.organisation}.arcsecond.io` target="_blank">{{ upload.organisation }}</a>
                   </td>
-                  <td>{{ getFormatedSize(upload.filesize) }}</td>
+                  <td :title="`upload.filesize bytes`">
+                    {{ getFormatedSize(upload.filesize) }}
+                  </td>
                 </tr>
                 </tbody>
               </table>
@@ -355,7 +359,9 @@
                     <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/@${upload.astronomer}` target="_blank">@{{ upload.astronomer }}</a>
                     <a v-else :href=`https://${upload.organisation}.arcsecond.io` target="_blank">{{ upload.organisation }}</a>
                   </td>
-                  <td>{{ getFormatedSize(upload.filesize) }}</td>
+                  <td :title="`upload.filesize bytes`">
+                    {{ getFormatedSize(upload.filesize) }}
+                  </td>
                   <td>
                     {{ upload.status }}
                     <div class="subtitle">{{ upload.substatus }}</div>
