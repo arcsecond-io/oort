@@ -71,6 +71,7 @@ class FileUploader(object):
         response_list, error = self.api.list(name=filename)
         if error:
             print(error)
+            return
 
         if isinstance(response_list, dict) and 'count' in response_list.keys() and 'results' in response_list.keys():
             response_list = response_list['results']
@@ -80,9 +81,9 @@ class FileUploader(object):
         elif len(response_list) == 1:
             self._exists_remotely = 'amazonaws.com' in response_list[0].get('file', '')
             return self._exists_remotely
-        else:
+        elif len(response_list) > 1:
             print(f'Multiple files for dataset {self.dataset["uuid"]} and filename {filename}???')
-            return False
+            return True
 
     def prepare(self, dataset, night_log, telescope):
         if not dataset or not dataset['uuid']:
