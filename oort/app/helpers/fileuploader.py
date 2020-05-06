@@ -53,10 +53,6 @@ class FileUploader(object):
         self.api = None
 
     @property
-    def remaining_bytes(self):
-        return (100 - self.progress) * self.filesize / 1000
-
-    @property
     def log_string(self):
         log_string = f' {self.filepath} {self.filedate}'
         log_string += f'ds_{self.dataset["uuid"]} nl_{self.night_log["uuid"]} tel_{self.telescope["uuid"]} '
