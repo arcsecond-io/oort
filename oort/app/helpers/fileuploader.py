@@ -130,12 +130,6 @@ class FileUploader(object):
         if self.ended is not None:
             return
 
-        if self.exists_remotely():
-            self.ended = datetime.now()
-            self.progress = 0
-            self.duration = (self.ended - self.started).total_seconds()
-            return
-
         _, self.error = self.uploader.finish()
         if self.error:
             self.status = 'error'
