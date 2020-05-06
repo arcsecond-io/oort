@@ -156,11 +156,8 @@ class FileUploader(object):
     def is_started(self):
         return self.started is not None and self.ended is None
 
-    def will_finish(self):
-        return self.is_started() and self.progress >= 95
-
-    def is_finished(self):
-        return self.started is not None and self.ended is not None
+    def can_finish(self):
+        return self.is_started() and not self.uploader.is_alive()
 
     def to_dict(self):
         return {
