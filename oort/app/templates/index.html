@@ -182,7 +182,7 @@
               </div>
             </div>
 
-            <div class="table-block" v-if="isAlive && state.showTables">
+            <div class="table-block" v-if="isAlive">
               <div class="table-title">
                 Active Uploads ({{ filtered_current_uploads.length }})
                 <i class="fa fa-spin fa-spinner"></i>
@@ -267,9 +267,9 @@
               </div>
             </div>
 
-            <div class="table-block" v-if="state.showTables">
               <div class="table-title">Finished Uploads ({{ filtered_finished_uploads.length }})</div>
               <table class="table table-striped text-small" v-if="filtered_finished_uploads.length > 0">
+            <div class="table-block">
                 <thead>
                 <tr>
                   <th>Filename</th>
