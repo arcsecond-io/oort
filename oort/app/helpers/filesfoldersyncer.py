@@ -39,13 +39,13 @@ class FilesFolderSyncer(FilesFolder):
                     self.files.append((filepath, filedate))
                 else:
                     # TODO: Deal with missing date
-                    pass
+                    if self.context.debug or self.context.verbose:
+                        print(f'No date found for {filepath}. Skipping.')
 
     def upload_files(self, telescope_key, resources_key, **raw_resource_kwargs):
         if len(self.files) == 0:
             return
 
-        print(f'Syncing {len(self.files)} files')
         telescope_uuid = telescope_key.split('_')[1]
         telescope = find_first_in_list(self.context.telescopes, uuid=telescope_uuid)
 
