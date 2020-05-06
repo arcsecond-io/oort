@@ -42,6 +42,9 @@ class FilesFolderSyncer(FilesFolder):
                     if self.context.debug or self.context.verbose:
                         print(f'No date found for {filepath}. Skipping.')
 
+        if self.context.debug or self.context.verbose:
+            print(f'Found {len(self.files)} files to upload in {self.folderpath}.')
+
     def upload_files(self, telescope_key, resources_key, **raw_resource_kwargs):
         if len(self.files) == 0:
             return
