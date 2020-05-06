@@ -14,9 +14,6 @@ class FileUploader(object):
     def __init__(self,
                  filepath: str,
                  filedate: datetime,
-                 dataset: dict,
-                 night_log: dict,
-                 telescope: dict,
                  astronomer: tuple,
                  organisation: str,
                  debug: bool,
@@ -31,24 +28,17 @@ class FileUploader(object):
         if not filedate:
             raise ValueError(f'Missing / wrong filedate: {filedate}')
 
-        if not dataset or not dataset['uuid']:
-            raise ValueError(f'Missing / wrong dataset UUID: {dataset["uuid"]}')
-        try:
-            uuid.UUID(dataset['uuid'])
-        except ValueError:
-            raise ValueError(f'Missing / wrong dataset UUID: {dataset["uuid"]}')
-
         self.filepath = filepath
         self.filedate = filedate
-        self.dataset = dataset
-        self.night_log = night_log
-        self.telescope = telescope
-
         self.astronomer = astronomer
         self.organisation = organisation
 
         self.debug = debug
         self.verbose = verbose
+
+        self.dataset = None
+        self.night_log = None
+        self.telescope = None
 
         self.filesize = os.path.getsize(filepath)
         self.status = 'new'
@@ -60,21 +50,7 @@ class FileUploader(object):
         self.error = None
 
         self._exists_remotely = False
-
-        if self.astronomer:
-            self.api = Arcsecond.build_datafiles_api(dataset=self.dataset['uuid'],
-                                                     debug=self.debug,
-                                                     api_key=self.astronomer[1])
-        else:
-            self.api = Arcsecond.build_datafiles_api(dataset=self.dataset['uuid'],
-                                                     debug=self.debug,
-                                                     organisation=self.organisation)
-
-        def update_progress(event, progress_percent):
-            self.progress = progress_percent
-            self.duration = (datetime.now() - self.started).total_seconds()
-
-        self.uploader, _ = self.api.create({'file': filepath}, callback=update_progress)
+        self.api = None
 
     @property
     def remaining_bytes(self):
@@ -108,7 +84,37 @@ class FileUploader(object):
             print(f'Multiple files for dataset {self.dataset["uuid"]} and filename {filename}???')
             return False
 
+    def prepare(self, dataset, night_log, telescope):
+        if not dataset or not dataset['uuid']:
+            raise ValueError(f'Missing / wrong dataset UUID: {dataset["uuid"]}')
+        try:
+            uuid.UUID(dataset['uuid'])
+        except ValueError:
+            raise ValueError(f'Missing / wrong dataset UUID: {dataset["uuid"]}')
+
+        self.dataset = dataset
+        self.night_log = night_log
+        self.telescope = telescope
+
+        if self.astronomer:
+            self.api = Arcsecond.build_datafiles_api(dataset=self.dataset['uuid'],
+                                                     debug=self.debug,
+                                                     api_key=self.astronomer[1])
+        else:
+            self.api = Arcsecond.build_datafiles_api(dataset=self.dataset['uuid'],
+                                                     debug=self.debug,
+                                                     organisation=self.organisation)
+
+        def update_progress(event, progress_percent):
+            self.progress = progress_percent
+            self.duration = (datetime.now() - self.started).total_seconds()
+
+        self.uploader, _ = self.api.create({'file': self.filepath}, callback=update_progress)
+
     def start(self):
+        if self.dataset is None:
+            raise Exception("Missing dataset. Can't start upload.")
+
         if self.started is not None:
             return
 
@@ -123,9 +129,13 @@ class FileUploader(object):
         if self.ended is not None:
             return
 
-        if not self.exists_remotely():
-            _, self.error = self.uploader.finish()
+        if self.exists_remotely():
+            self.ended = datetime.now()
+            self.progress = 0
+            self.duration = (self.ended - self.started).total_seconds()
+            return
 
+        _, self.error = self.uploader.finish()
         if self.error:
             self.status = 'error'
             self._process_error(self.error)
@@ -134,8 +144,8 @@ class FileUploader(object):
             self.status = 'OK'
             logger.info(str.ljust('ok', 5) + self.log_string)
 
-        self.progress = 0
         self.ended = datetime.now()
+        self.progress = 0
         self.duration = (self.ended - self.started).total_seconds()
 
     def _process_error(self, error):
@@ -156,10 +166,10 @@ class FileUploader(object):
         return self.started is not None and self.ended is None
 
     def will_finish(self):
-        return self.is_started() and self.progress / 1000 < 100
+        return self.is_started() and self.progress >= 95
 
     def is_finished(self):
-        return self.ended is not None and (datetime.now() - self.ended).total_seconds() > 2
+        return self.started is not None and self.ended is not None
 
     def to_dict(self):
         return {

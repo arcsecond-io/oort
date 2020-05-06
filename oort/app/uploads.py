@@ -6,7 +6,6 @@ MAX_SIMULTANEOUS_UPLOADS = 3
 class UploadsLocalState:
     def __init__(self, config):
         self.context = Context(config)
-        self.context.state['showTables'] = False
         self.root_folder = RootFolder(self.context)
 
     def sync_telescopes(self):
@@ -22,6 +21,8 @@ class UploadsLocalState:
         yield self.context.get_yield_string()
 
         for telescope_folder in self.root_folder.telescope_folders:
+            if self.context.verbose:
+                print(f'Walking down filesystem tree of {telescope_folder.folderpath}...')
             telescope_folder.walk_telescope_folder()
             yield self.context.get_yield_string()
 
@@ -33,7 +34,6 @@ class UploadsLocalState:
         if self.context.verbose:
             print('Syncing calibrations uploads...')
 
-        self.context.state['showTables'] = True
         for telescope_folder in self.root_folder.telescope_folders:
             yield from telescope_folder.uploads_calibrations_folders()
 
@@ -45,6 +45,5 @@ class UploadsLocalState:
         if self.context.verbose:
             print('Syncing observations uploads...')
 
-        self.context.state['showTables'] = True
         for telescope_folder in self.root_folder.telescope_folders:
             yield from telescope_folder.uploads_observations_folders()

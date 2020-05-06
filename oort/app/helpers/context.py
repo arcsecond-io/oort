@@ -32,6 +32,8 @@ class Context:
 
         self.telescopes = []
         self.night_logs = SafeDict()
+
+        self.pending_uploads = []
         self.current_uploads = []
         self.finished_uploads = []
         self.uploads = {}
@@ -63,8 +65,10 @@ class Context:
             'messages': self.messages,
             'telescopes': list(self.telescopes),
             'night_logs': list(self.night_logs),
+            'pending_uploads': self.pending_uploads,
             'current_uploads': self.current_uploads,
             'finished_uploads': self.finished_uploads
         }
+        print(f'yield {len(self.pending_uploads)} {len(self.current_uploads)} {len(self.finished_uploads)}')
         json_data = json.dumps(data)
         return f"data:{json_data}\n\n"

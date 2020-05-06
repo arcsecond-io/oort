@@ -16,7 +16,6 @@ class RootFolder(FilesFolder):
         super().__init__(context, None, context.folder)
 
     def find_telescope_folders(self):
-        if self.context.verbose: print('find_telescope_folders')
         # Do not reset every time.
         for name, path in self._walk_folder():
             # If it's a folder, check if it is a telescope one.

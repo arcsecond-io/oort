@@ -12,13 +12,14 @@ main = Blueprint('main', __name__)
 @main.route('/')
 @main.route('/index')
 def index():
+    app.config['upload_state'] = UploadsLocalState(app.config)
     return render_template('index.html', context=Context(app.config).to_dict())
 
 
 @main.route('/uploads')
 def uploads():
-    state = UploadsLocalState(app.config)
-
+    # print(app.config)
+    state = app.config['upload_state']
     def generate():
         count = 0
         yield state.context.get_yield_string()

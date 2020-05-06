@@ -182,7 +182,7 @@
               </div>
             </div>
 
-            <div class="table-block" v-if="isAlive && state.showTables">
+            <div class="table-block" v-if="isAlive">
               <div class="table-title">
                 Active Uploads ({{ filtered_current_uploads.length }})
                 <i class="fa fa-spin fa-spinner"></i>
@@ -267,7 +267,36 @@
               </div>
             </div>
 
-            <div class="table-block" v-if="state.showTables">
+            <div class="table-block">
+              <div class="table-title">Pending Uploads ({{ filtered_pending_uploads.length }})</div>
+              <table class="table table-striped text-small" v-if="filtered_pending_uploads.length > 0">
+                <thead>
+                <tr>
+                  <th>Filename</th>
+                  <th>Owner</th>
+                  <th>Size (kB)</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr v-for="upload in filtered_pending_uploads">
+                  <td>
+                    {{ upload.filename }}
+                    <div class="subtitle">{{ upload.filedate }}</div>
+                  </td>
+                  <td>
+                    <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/@${upload.astronomer}` target="_blank">@{{ upload.astronomer }}</a>
+                    <a v-else :href=`https://${upload.organisation}.arcsecond.io` target="_blank">{{ upload.organisation }}</a>
+                  </td>
+                  <td>{{ upload.filesize / 1000 }} kB</td>
+                </tr>
+                </tbody>
+              </table>
+              <div v-else>
+                <span class="label-centered">There are no pending uploads.</span>
+              </div>
+            </div>
+
+            <div class="table-block">
               <div class="table-title">Finished Uploads ({{ filtered_finished_uploads.length }})</div>
               <table class="table table-striped text-small" v-if="filtered_finished_uploads.length > 0">
                 <thead>
@@ -308,7 +337,7 @@
                       {{ upload.night_log.date }}
                     </a>
                     <a v-else
-                       :href=`https://${upload.organisation}.arcsecond.io/nights/${upload.night_log.uuid}`
+                       :href=`https://${upload.organisation}.arcsecond.io/nights/${upload.night_log.date}`
                        target="_blank"
                     >
                       {{ upload.night_log.date }}
@@ -341,10 +370,11 @@
         </div>
       </div>
     </div>
+    </div>
 
   {% endif %}
 
-  <script src="{$ url_for('static', filename='js/uploads.js') $}"></script>
+<script src="{$ url_for('static', filename='js/uploads.js') $}"></script>
 
 </div>
 </body>
