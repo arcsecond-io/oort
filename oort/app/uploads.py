@@ -21,6 +21,8 @@ class UploadsLocalState:
         yield self.context.get_yield_string()
 
         for telescope_folder in self.root_folder.telescope_folders:
+            if self.context.verbose:
+                print(f'Walking down filesystem tree of {telescope_folder.folderpath}...')
             telescope_folder.walk_telescope_folder()
             yield self.context.get_yield_string()
 
