@@ -17,9 +17,14 @@ class TelescopeFolder(FilesFolder):
         super().__init__(context, astronomer, folderpath, '')
 
     def walk_telescope_folder(self):
+        known_folderpaths = [o.folderpath for o in self.observations_folders] + \
+                            [o.folderpath for o in self.calibrations_folders]
+
         for name, path in self._walk_folder():
             if not os.path.isdir(path):
                 # If not a directory, skip it. Will skip __oort__.ini files too.
+                continue
+            if path in known_folderpaths:
                 continue
             if name.lower().startswith('calib'):
                 if self.context.debug: print(f' > Found a {self.prefix} {name} folder.')

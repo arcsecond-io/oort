@@ -12,8 +12,9 @@ class FiltersFolder(FilesFolderSyncer):
     def walk(self):
         super().walk()
 
+        known_folderpaths = [f.folderpath for f in self.filter_folders]
         for name, path in self._walk_folder():
-            if os.path.isdir(path):
+            if os.path.isdir(path) and path not in known_folderpaths:
                 if self.context.debug: print(f' >>> Found a {self.prefix} {name} folder.')
                 self.filter_folders.append(FilesFolderSyncer(self.context, self.astronomer, path, self.prefix))
 
