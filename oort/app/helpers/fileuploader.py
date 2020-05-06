@@ -41,7 +41,8 @@ class FileUploader(object):
         self.telescope = None
 
         self.filesize = os.path.getsize(filepath)
-        self.status = 'new'
+        self.status = 'ready'
+        self.substatus = 'pending'
         self.progress = 0
         self.started = None
         self.ended = None
@@ -58,28 +59,6 @@ class FileUploader(object):
         log_string += f'ds_{self.dataset["uuid"]} nl_{self.night_log["uuid"]} tel_{self.telescope["uuid"]} '
         log_string += f'as_{self.astronomer[0] if self.astronomer else ""} org_{self.organisation}'
         return log_string
-
-    def exists_remotely(self):
-        if self._exists_remotely:
-            return self._exists_remotely
-
-        filename = os.path.basename(self.filepath)
-        response_list, error = self.api.list(name=filename)
-        if error:
-            print(error)
-            return
-
-        if isinstance(response_list, dict) and 'count' in response_list.keys() and 'results' in response_list.keys():
-            response_list = response_list['results']
-
-        if len(response_list) == 0:
-            return False
-        elif len(response_list) == 1:
-            self._exists_remotely = 'amazonaws.com' in response_list[0].get('file', '')
-            return self._exists_remotely
-        elif len(response_list) > 1:
-            print(f'Multiple files for dataset {self.dataset["uuid"]} and filename {filename}???')
-            return True
 
     def prepare(self, dataset, night_log, telescope):
         if not dataset or not dataset['uuid']:
@@ -103,10 +82,44 @@ class FileUploader(object):
                                                      organisation=self.organisation)
 
         def update_progress(event, progress_percent):
+            self.status = 'OK'
+            self.substatus = 'uploading...'
             self.progress = progress_percent
             self.duration = (datetime.now() - self.started).total_seconds()
 
         self.uploader, _ = self.api.create({'file': self.filepath}, callback=update_progress)
+
+    def _check_remote_file(self):
+        if self._exists_remotely is True:
+            return self._exists_remotely
+
+        self.status = 'checking'
+        self.substatus = 'asking arcsecond.io...'
+
+        filename = os.path.basename(self.filepath)
+        response_list, error = self.api.list(name=filename)
+        if error:
+            print(error)
+            self.status = 'error'
+            self.substatus = str(error)[:20] + '...'
+            return True
+
+        if isinstance(response_list, dict) and 'count' in response_list.keys() and 'results' in response_list.keys():
+            response_list = response_list['results']
+
+        if len(response_list) == 0:
+            self.status = 'checked'
+            self.substatus = 'not synced'
+            return False
+        elif len(response_list) == 1:
+            result = self._exists_remotely
+            self.status = 'OK'
+            self.substatus = 'already synced' if result is True else 'not synced'
+        else:
+            print(f'Multiple files for dataset {self.dataset["uuid"]} and filename {filename}???')
+            self.status = 'checked'
+            self.substatus = 'multiple files?'
+            return True
 
     def start(self):
         if self.dataset is None:
@@ -116,10 +129,12 @@ class FileUploader(object):
             return
 
         self.started = datetime.now()
-        if self.exists_remotely():
+        if self._check_remote_file():
             self.progress = 100
         else:
             logger.info(str.ljust('start', 5) + self.log_string)
+            self.status = 'OK'
+            self.substatus = 'starting'
             self.uploader.start()
 
     def finish(self):
@@ -129,11 +144,13 @@ class FileUploader(object):
         _, self.error = self.uploader.finish()
         if self.error:
             self.status = 'error'
+            self.substatus = str(self.error)[:20] + '...'
             self._process_error(self.error)
             logger.info('error' + self.log_string + f' {str(self.error)}')
         else:
             self.status = 'OK'
             logger.info(str.ljust('ok', 5) + self.log_string)
+            self.substatus = 'Done'
 
         self.ended = datetime.now()
         self.progress = 0
@@ -152,6 +169,7 @@ class FileUploader(object):
                 if 'already exists in dataset' in error_content:
                     self.error = ''
                     self.status = 'OK'
+                    self.substatus = 'already synced'
 
     def is_started(self):
         return self.started is not None and self.ended is None
@@ -166,6 +184,7 @@ class FileUploader(object):
             'filesize': self.filesize,
             'filedate': self.filedate.isoformat(),
             'status': self.status,
+            'substatus': self.substatus,
             'progress': self.progress,
             'started': self.started.strftime('%Y-%m-%dT%H:%M:%S') if self.started else '',
             'ended': self.ended.strftime('%Y-%m-%dT%H:%M:%S') if self.ended else '',
