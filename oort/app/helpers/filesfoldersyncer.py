@@ -37,12 +37,24 @@ class FilesFolderSyncer(FilesFolder):
                     filedate = find_xisf_filedate(filepath, self.context.debug)
                 if filedate is not None:
                     self.files.append((filepath, filedate))
+
+                    fu = self.context.uploads.get(filepath)
+                    if fu is None:
+                        fu = FileUploader(filepath,
+                                          filedate,
+                                          self.astronomer,
+                                          self.context.organisation,
+                                          self.context.debug,
+                                          self.context.verbose)
+                        self.context.uploads[filepath] = fu
+
                 else:
                     # TODO: Deal with missing date
                     if self.context.debug or self.context.verbose:
                         print(f'No date found for {filepath}. Skipping.')
 
         if self.context.debug or self.context.verbose:
+            self._update_upload_lists()
             print(f'Found {len(self.files)} files to upload in {self.folderpath}.')
 
     def upload_files(self, telescope_key, resources_key, **raw_resource_kwargs):
@@ -160,31 +172,38 @@ class FilesFolderSyncer(FilesFolder):
             return response_detail
 
     def _process_file_upload(self, filepath: str, filedate: datetime, dataset: dict, night_log: dict, telescope: dict):
-        upload_key = f"dataset_{dataset['uuid']}:{filepath}"
-        fu = self.context.uploads.get(upload_key)
+        fu = self.context.uploads.get(filepath)
         if fu is None:
             fu = FileUploader(filepath,
                               filedate,
-                              dataset,
-                              night_log,
-                              telescope,
                               self.astronomer,
                               self.context.organisation,
                               self.context.debug,
                               self.context.verbose)
 
-            self.context.uploads[upload_key] = fu
+            self.context.uploads[filepath] = fu
+
+        else:
+            fu.prepare(dataset, night_log, telescope)
 
         started_count = len([u for u in self.context.uploads.values() if u.is_started()])
         if self.context._autostart and started_count < MAX_SIMULTANEOUS_UPLOADS:
-            fu.start()
-            if self.context.verbose:
+            if not fu.is_started() and not fu.is_finished() and self.context.verbose:
                 print(f'Uploading {filepath}...')
+            fu.start()
 
         if fu.will_finish():
             fu.finish()
             if self.context.verbose:
                 print(f'Finished upload of {filepath}...')
 
-        self.context.current_uploads = [fw.to_dict() for fw in self.context.uploads.values() if not fw.is_finished()]
+        self._update_upload_lists()
+
+    def _update_upload_lists(self):
+        self.context.pending_uploads = [fw.to_dict() for fw in self.context.uploads.values()
+                                        if not fw.is_started() and not fw.is_finished()]
+
+        self.context.current_uploads = [fw.to_dict() for fw in self.context.uploads.values()
+                                        if fw.is_started() and not fw.is_finished()]
+
         self.context.finished_uploads = [fw.to_dict() for fw in self.context.uploads.values() if fw.is_finished()]
