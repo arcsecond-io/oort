@@ -166,10 +166,10 @@ class FileUploader(object):
         return self.started is not None and self.ended is None
 
     def will_finish(self):
-        return self.is_started() and self.progress / 1000 < 100
+        return self.is_started() and self.progress >= 95
 
     def is_finished(self):
-        return self.ended is not None and (datetime.now() - self.ended).total_seconds() > 2
+        return self.started is not None and self.ended is not None
 
     def to_dict(self):
         return {
