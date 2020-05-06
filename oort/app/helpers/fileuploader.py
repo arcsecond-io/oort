@@ -141,6 +141,10 @@ class FileUploader(object):
         if self.ended is not None:
             return
 
+        self.ended = datetime.now()
+        self.progress = 0
+        self.duration = (self.ended - self.started).total_seconds()
+
         _, self.error = self.uploader.finish()
         if self.error:
             self.status = 'error'
@@ -151,10 +155,6 @@ class FileUploader(object):
             self.status = 'OK'
             logger.info(str.ljust('ok', 5) + self.log_string)
             self.substatus = 'Done'
-
-        self.ended = datetime.now()
-        self.progress = 0
-        self.duration = (self.ended - self.started).total_seconds()
 
     def _process_error(self, error):
         try:
@@ -173,6 +173,9 @@ class FileUploader(object):
 
     def is_started(self):
         return self.started is not None and self.ended is None
+
+    def is_finished(self):
+        return self.started is not None and self.ended is not None
 
     def can_finish(self):
         return self.is_started() and not self.uploader.is_alive()
