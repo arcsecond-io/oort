@@ -2,7 +2,7 @@ import socket
 import sys
 
 # sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)))
-
+from oort.app.uploads import UploadsLocalState
 from .app.helpers.utils import get_oort_logger
 from .app import app
 
@@ -22,6 +22,7 @@ def start(folder, organisation, debug, verbose):
     app.config['organisation'] = organisation
     app.config['debug'] = bool(debug)
     app.config['verbose'] = bool(verbose)
+    app.config['upload_state'] = UploadsLocalState(app.config)
 
     port = 5000
     while is_port_in_use(port):
