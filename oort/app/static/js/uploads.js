@@ -1,7 +1,7 @@
 var app = new Vue({
   el: '#vuejs',
   data: {
-    state: { showTables: false },
+    state: {},
     messages: {},
     telescopes: [],
     night_logs: [],
