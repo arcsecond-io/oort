@@ -192,7 +192,7 @@ class FilesFolderSyncer(FilesFolder):
                 print(f'Uploading {filepath}...')
             fu.start()
 
-        if fu.will_finish():
+        if fu.can_finish():
             fu.finish()
             if self.context.verbose:
                 print(f'Finished upload of {filepath}...')
