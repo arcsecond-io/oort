@@ -280,6 +280,7 @@
                   <th>Filename</th>
                   <th>Owner</th>
                   <th>Size</th>
+                  <th>Status</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -294,6 +295,10 @@
                   </td>
                   <td :title="`upload.filesize bytes`">
                     {{ getFormatedSize(upload.filesize) }}
+                  </td>
+                  <td>
+                    {{ upload.status }}
+                    <div class="subtitle">{{ upload.substatus }}</div>
                   </td>
                 </tr>
                 </tbody>

@@ -90,7 +90,7 @@ class FilesFolderSyncer(FilesFolder):
             resource_kwargs.update(night_log=night_log['uuid'])
             resource = self._sync_resource(api_resources, self.resources, **resource_kwargs)
             if resource is None:
-                if self.context.debug:
+                if self.context.debug or self.context.verbose:
                     print('*** No ' + resource_key, filedate, filepath, resource_kwargs)
                 continue
 
@@ -100,13 +100,13 @@ class FilesFolderSyncer(FilesFolder):
             ### "Target Calibration is already linked to a dataset." ###
             dataset_name = resource.get('name') or resource_kwargs.get('name')
             if 'type' in resource_kwargs:
-                dataset_name = f"{resource_kwargs.get('type')} {dataset_name}"
+                dataset_name = f"[{resource_kwargs.get('type')}] {dataset_name}"
             dataset_kwargs = {resource_key: resource['uuid'], 'name': dataset_name}
             ### end warning ###
 
             resource_dataset = self._sync_resource(self.api_datasets, self.resources_datasets, **dataset_kwargs)
             if resource_dataset is None:
-                if self.context.debug:
+                if self.context.debug or self.context.verbose:
                     print(f'*** No {resource_key} dataset', filedate, filepath, dataset_kwargs)
                 continue
 
@@ -139,7 +139,7 @@ class FilesFolderSyncer(FilesFolder):
         response_list, error = api.list(**kwargs)
 
         # Dealing with paginated results
-        if isinstance(response_list, dict) and 'count' in response_list.keys() and 'results' in response_list.keys():
+        if isinstance(response_list, dict) and 'results' in response_list.keys():
             response_list = response_list['results']
 
         if error is not None:
@@ -150,7 +150,7 @@ class FilesFolderSyncer(FilesFolder):
             if kwargs_name: kwargs.update(name=kwargs_name)
             new_resource = self._create_remote_resource(api, **kwargs)
         elif len(response_list) == 1:
-            new_resource = response_list[0]
+            new_resource = self._check_resource_name(api, response_list[0], kwargs_name)
         else:
             msg = f'Multiple resources found for API {api}? Choosing first.'
             if self.context.debug or self.context.verbose: print(msg)
@@ -170,6 +170,19 @@ class FilesFolderSyncer(FilesFolder):
             if self.context.debug or self.context.verbose: print(msg)
             self.context.messages['warning'] = msg
             return response_detail
+
+    def _check_resource_name(self, api: ArcsecondAPI, new_resource: dict, kwargs_name: str):
+        if kwargs_name is None or len(kwargs_name) == 0:
+            return new_resource
+
+        if 'name' in new_resource.keys():
+            current_name = new_resource.get('name', '').strip()
+            if len(current_name) == 0:
+                updated_new_resource, error = api.update(new_resource['uuid'], {'name': kwargs_name})
+                if updated_new_resource is not None:
+                    return updated_new_resource
+
+        return new_resource
 
     def _process_file_upload(self, filepath: str, filedate: datetime, dataset: dict, night_log: dict, telescope: dict):
         fu = self.context.uploads.get(filepath)
