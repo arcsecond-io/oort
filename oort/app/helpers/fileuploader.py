@@ -136,7 +136,7 @@ class FileUploader(object):
                 self.status, self.substatus = 'OK', 'starting'
                 self.uploader.start()
 
-    def finish(self, update_status=True):
+    def finish(self):
         if self.ended is not None:
             return
 
