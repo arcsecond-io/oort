@@ -1,13 +1,15 @@
 import os
 from unittest.mock import patch
+from arcsecond.api.main import ArcsecondAPI
 
 from oort.app.helpers.filesfoldersyncer import FilesFolderSyncer
 from oort.app.helpers.context import Context
 
-from arcsecond.api.main import ArcsecondAPI
+from tests.utils import register_successful_personal_login
 
 
 def get_syncer():
+    register_successful_personal_login()
     folder = os.path.abspath(__file__)
     config = {'debug': True, 'verbose': True, 'folder': folder, 'organisation': None}
     return FilesFolderSyncer(Context(config), None, folder)
