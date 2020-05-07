@@ -93,30 +93,22 @@ class FileUploader(object):
         if self._exists_remotely is True:
             return self._exists_remotely
 
-        self.status = 'checking'
-        self.substatus = 'asking arcsecond.io...'
-
         filename = os.path.basename(self.filepath)
         response_list, error = self.api.list(name=filename)
         if error:
-            print(error)
-            self.status = 'error'
-            self.substatus = str(error)[:20] + '...'
-            return True
+            raise Exception(str(error)[:20] + '...')
 
-        if isinstance(response_list, dict) and 'count' in response_list.keys() and 'results' in response_list.keys():
+        # Dealing with pagination
+        if isinstance(response_list, dict) and 'results' in response_list.keys():
             response_list = response_list['results']
 
-        if len(response_list) == 0:
-            self.status = 'checked'
-            self.substatus = 'not synced'
-            return False
-        elif len(response_list) == 1:
-            result = self._exists_remotely
-            self.status = 'OK'
-            self.substatus = 'already synced' if result is True else 'not synced'
-        else:
-            raise Exception(f'Multiple files for dataset {self.dataset["uuid"]} and filename {filename}???')
+        if len(response_list) > 1:
+            raise Exception(f'multiple files?')
+
+        if len(response_list) == 1:
+            self._exists_remotely = 'amazonaws.com' in response_list[0].get('file', '')
+
+        return self._exists_remotely
 
     def start(self):
         if self.dataset is None:
@@ -128,23 +120,26 @@ class FileUploader(object):
         self.started = datetime.now()
 
         try:
-            self._check_remote_file()
+            self.status, self.substatus = 'checking', 'asking arcsecond.io...'
+            exists_remotely = self._check_remote_file()
         except Exception as error:
-            self.status = '?'
-            self.substatus = 'multiple files?'
-            self.ended = datetime.now()
             logger.info('error' + self.log_string + f' {str(self.error)}')
+            self.finish()
+            self.status = '?'
+            self.substatus = str(error)
         else:
-            logger.info(str.ljust('start', 5) + self.log_string)
-            self.status = 'OK'
-            self.substatus = 'starting'
-            self.uploader.start()
+            if exists_remotely:
+                self.finish()
+                self.status, self.substatus = 'OK', 'already synced'
+            else:
+                logger.info(str.ljust('start', 5) + self.log_string)
+                self.status, self.substatus = 'OK', 'starting'
+                self.uploader.start()
 
-    def finish(self):
+    def finish(self, update_status=True):
         if self.ended is not None:
             return
 
-        # May hold the thread for a few seconds...
         _, self.error = self.uploader.finish()
 
         self.ended = datetime.now()
@@ -152,13 +147,13 @@ class FileUploader(object):
         self.duration = (self.ended - self.started).total_seconds()
 
         if self.error:
+            logger.info('error' + self.log_string + f' {str(self.error)}')
             self.status = 'error'
             self.substatus = str(self.error)[:20] + '...'
             self._process_error(self.error)
-            logger.info('error' + self.log_string + f' {str(self.error)}')
         else:
-            self.status = 'OK'
             logger.info(str.ljust('ok', 5) + self.log_string)
+            self.status = 'OK'
             self.substatus = 'Done'
 
     def _process_error(self, error):
