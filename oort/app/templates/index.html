@@ -227,7 +227,7 @@
                       {{ upload.night_log.date }}
                     </a>
                     <a v-else
-                       :href=`https://${upload.organisation}.arcsecond.io/nights/${upload.night_log.uuid}`
+                       :href=`https://${upload.organisation}.arcsecond.io/nights/${upload.night_log.date}`
                        target="_blank"
                     >
                       {{ upload.night_log.date }}
@@ -242,8 +242,13 @@
                     <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/@${upload.astronomer}` target="_blank">@{{ upload.astronomer }}</a>
                     <a v-else :href=`https://${upload.organisation}.arcsecond.io` target="_blank">{{ upload.organisation }}</a>
                   </td>
-                  <td>{{ upload.filesize / 1000 }} kB</td>
-                  <td>{{ upload.status }}</td>
+                  <td :title="`upload.filesize bytes`">
+                    {{ getFormatedSize(upload.filesize) }}
+                  </td>
+                  <td>
+                    {{ upload.status }}
+                    <div class="subtitle">{{ upload.substatus }}</div>
+                  </td>
                   <td>
                     <div class="progress" style="width: 90%;">
                       <div class="progress-bar progress-bar-striped active"
@@ -274,7 +279,7 @@
                 <tr>
                   <th>Filename</th>
                   <th>Owner</th>
-                  <th>Size (kB)</th>
+                  <th>Size</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -287,7 +292,9 @@
                     <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/@${upload.astronomer}` target="_blank">@{{ upload.astronomer }}</a>
                     <a v-else :href=`https://${upload.organisation}.arcsecond.io` target="_blank">{{ upload.organisation }}</a>
                   </td>
-                  <td>{{ upload.filesize / 1000 }} kB</td>
+                  <td :title="`upload.filesize bytes`">
+                    {{ getFormatedSize(upload.filesize) }}
+                  </td>
                 </tr>
                 </tbody>
               </table>
@@ -306,7 +313,7 @@
                   <th>Night Log</th>
                   <th>Telescope</th>
                   <th>Owner</th>
-                  <th>Size (kB)</th>
+                  <th>Size</th>
                   <th>Status</th>
                   <th>Started</th>
                   <th>Ended</th>
@@ -352,8 +359,13 @@
                     <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/@${upload.astronomer}` target="_blank">@{{ upload.astronomer }}</a>
                     <a v-else :href=`https://${upload.organisation}.arcsecond.io` target="_blank">{{ upload.organisation }}</a>
                   </td>
-                  <td>{{ upload.filesize / 1000 }} kB</td>
-                  <td>{{ upload.status }}</td>
+                  <td :title="`upload.filesize bytes`">
+                    {{ getFormatedSize(upload.filesize) }}
+                  </td>
+                  <td>
+                    {{ upload.status }}
+                    <div class="subtitle">{{ upload.substatus }}</div>
+                  </td>
                   <td>{{ upload.started }}</td>
                   <td>{{ upload.ended }}</td>
                   <td>{{ upload.duration }} s</td>
