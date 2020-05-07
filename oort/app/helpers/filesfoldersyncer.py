@@ -90,7 +90,7 @@ class FilesFolderSyncer(FilesFolder):
             resource_kwargs.update(night_log=night_log['uuid'])
             resource = self._sync_resource(api_resources, self.resources, **resource_kwargs)
             if resource is None:
-                if self.context.debug:
+                if self.context.debug or self.context.verbose:
                     print('*** No ' + resource_key, filedate, filepath, resource_kwargs)
                 continue
 
@@ -106,7 +106,7 @@ class FilesFolderSyncer(FilesFolder):
 
             resource_dataset = self._sync_resource(self.api_datasets, self.resources_datasets, **dataset_kwargs)
             if resource_dataset is None:
-                if self.context.debug:
+                if self.context.debug or self.context.verbose:
                     print(f'*** No {resource_key} dataset', filedate, filepath, dataset_kwargs)
                 continue
 
