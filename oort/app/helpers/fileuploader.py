@@ -50,6 +50,7 @@ class FileUploader(object):
         self.result = None
         self.error = None
 
+        self._stalled_progress = 0
         self._exists_remotely = False
         self.api = None
 
@@ -180,6 +181,14 @@ class FileUploader(object):
     def can_finish(self):
         return self.is_started() and self.progress >= 99
 
+    def _check_stalled(self):
+        pass
+        # if (datetime.now() - self.started).total_seconds() > 60 and self._stalled_progress == 0:
+        #     self._stalled_progress = self.progress
+        # elif (datetime.now() - self.started).total_seconds() >= 120 and self.progress == self._stalled_progress:
+        #     self.status = 'Error'
+        #     self.substatus = 'killed (stalled for too long)'
+
     @property
     def state(self):
         if not self.is_started() and not self.is_finished():
@@ -190,6 +199,7 @@ class FileUploader(object):
             return 'finished'
 
     def to_dict(self):
+        self._check_stalled()
         return {
             'filename': os.path.basename(self.filepath),
             'filepath': self.filepath,
