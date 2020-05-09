@@ -99,7 +99,7 @@ class FilesFolderSyncer(FilesFolder):
             ### warning : changing the way we build datasets kwargs values may end up with an error: ###
             ### "Target Calibration is already linked to a dataset." ###
             dataset_name = resource.get('name') or resource_kwargs.get('name')
-            if 'type' in resource_kwargs:
+            if 'type' in resource_kwargs and resource_kwargs.get('type').lower() != dataset_name.lower():
                 dataset_name = f"[{resource_kwargs.get('type')}] {dataset_name}"
             dataset_kwargs = {resource_key: resource['uuid'], 'name': dataset_name}
             ### end warning ###
