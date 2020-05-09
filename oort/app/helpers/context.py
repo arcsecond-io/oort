@@ -33,11 +33,8 @@ class Context:
         self.telescopes = []
         self.night_logs = SafeDict()
 
-        self.pending_uploads = []
-        self.current_uploads = []
-        self.finished_uploads = []
-        self.uploads = {}
-
+        self.uploads = []
+        self._fileuploaders = {}
         self._autostart = True
 
     def _get_current_date(self):
@@ -46,6 +43,9 @@ class Context:
             return (datetime.datetime.now() - datetime.timedelta(days=1)).date().isoformat()
         else:
             return datetime.datetime.now().date().isoformat()
+
+    def refresh_uploads(self):
+        self.uploads = [fw.to_dict() for fw in self._fileuploaders.values()]
 
     def to_dict(self):
         return {
@@ -65,10 +65,7 @@ class Context:
             'messages': self.messages,
             'telescopes': list(self.telescopes),
             'night_logs': list(self.night_logs),
-            'pending_uploads': self.pending_uploads,
-            'current_uploads': self.current_uploads,
-            'finished_uploads': self.finished_uploads
+            'uploads': self.uploads
         }
-        print(f'yield {len(self.pending_uploads)} {len(self.current_uploads)} {len(self.finished_uploads)}')
         json_data = json.dumps(data)
         return f"data:{json_data}\n\n"

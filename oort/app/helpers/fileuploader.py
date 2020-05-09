@@ -180,6 +180,15 @@ class FileUploader(object):
     def can_finish(self):
         return self.is_started() and self.progress >= 99
 
+    @property
+    def state(self):
+        if not self.is_started() and not self.is_finished():
+            return 'pending'
+        elif self.is_started() and not self.is_finished():
+            return 'current'
+        elif self.is_finished():
+            return 'finished'
+
     def to_dict(self):
         return {
             'filename': os.path.basename(self.filepath),
@@ -197,5 +206,6 @@ class FileUploader(object):
             'telescope': self.telescope,
             'organisation': self.organisation or '',
             'astronomer': self.astronomer[0] if self.astronomer else '',
-            'error': self.error or ''
+            'error': self.error or '',
+            'state': self.state
         }

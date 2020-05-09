@@ -8,9 +8,7 @@ var app = new Vue({
     selected_telescope: null,
     selected_night_log: null,
     selected_night_log_url: '',
-    pending_uploads: [],
-    current_uploads: [],
-    finished_uploads: [],
+    uploads: [],
     filtered_pending_uploads: [],
     filtered_current_uploads: [],
     filtered_finished_uploads: [],
@@ -38,32 +36,28 @@ var app = new Vue({
         self.selected_night_log_url = 'data/' + self.night_logs[0]['date'].replace(/-/gi, '/')
       }
 
-      self.pending_uploads = json.pending_uploads
-      self.current_uploads = json.current_uploads
-      self.finished_uploads = json.finished_uploads
+      self.uploads = json.uploads
+      self.filtered_pending_uploads = self.uploads.filter(u => u.state === 'pending')
+      self.filtered_current_uploads = self.uploads.filter(u => u.state === 'current')
+      self.filtered_finished_uploads = self.uploads.filter(u => u.state === 'finished')
 
-      console.log('onmessage', self.pending_uploads.length, self.current_uploads.length, self.finished_uploads.length)
+      if (self.selected_telescope) {
+        self.filtered_pending_uploads = self.filtered_pending_uploads.filter(u => u.telescope['uuid'] === self.selected_telescope['uuid'])
+        self.filtered_current_uploads = self.filtered_current_uploads.filter(u => u.telescope['uuid'] === self.selected_telescope['uuid'])
+        self.filtered_finished_uploads = self.filtered_finished_uploads.filter(u => u.telescope['uuid'] === self.selected_telescope['uuid'])
+      }
 
-      self.current_uploads.sort((u1, u2) => new Date(u1.started).getDate() < new Date(u2.started).getDate())
-      self.finished_uploads.sort((u1, u2) => new Date(u1.ended).getDate() < new Date(u2.ended).getDate())
+      self.filtered_pending_uploads((u1, u2) => new Date(u1.started).getDate() < new Date(u2.started).getDate())
+      self.filtered_current_uploads.sort((u1, u2) => new Date(u1.started).getDate() < new Date(u2.started).getDate())
+      self.filtered_finished_uploads.sort((u1, u2) => new Date(u1.ended).getDate() < new Date(u2.ended).getDate())
 
       const bars = document.getElementsByClassName('progress-bar')
-      self.current_uploads.forEach((upload, index) => {
+      self.filtered_current_uploads.forEach((upload, index) => {
         let bar = bars[index]
         if (bar) {
           bar.style.width = upload.progress.toFixed(1).toString() + '%'
         }
       })
-
-      if (self.selected_telescope) {
-        self.filtered_pending_uploads = self.pending_uploads.filter(u => u.telescope['uuid'] === self.selected_telescope['uuid'])
-        self.filtered_current_uploads = self.current_uploads.filter(u => u.telescope['uuid'] === self.selected_telescope['uuid'])
-        self.filtered_finished_uploads = self.finished_uploads.filter(u => u.telescope['uuid'] === self.selected_telescope['uuid'])
-      } else {
-        self.filtered_pending_uploads = self.pending_uploads
-        self.filtered_current_uploads = self.current_uploads
-        self.filtered_finished_uploads = self.finished_uploads
-      }
     }
 
     this.loopID = setInterval(function ping () {
@@ -76,16 +70,20 @@ var app = new Vue({
   methods: {
     selectTelescope (uuid) {
       this.selected_telescope = (uuid === '__all__') ? null : this.telescopes.find(t => t.uuid === uuid)
+      let pending_uploads = this.uploads.filter(u => u.state === 'pending')
+      let current_uploads = this.uploads.filter(u => u.state === 'current')
+      let finished_uploads = this.uploads.filter(u => u.state === 'finished')
+
       if (this.selected_telescope) {
         this.selected_night_log = this.night_logs.find(nl => nl.telescope === uuid)
-        this.filtered_pending_uploads = this.pending_uploads.filter(u => u.telescope['uuid'] === this.selected_telescope['uuid'])
-        this.filtered_current_uploads = this.current_uploads.filter(u => u.telescope['uuid'] === this.selected_telescope['uuid'])
-        this.filtered_finished_uploads = this.finished_uploads.filter(u => u.telescope['uuid'] === this.selected_telescope['uuid'])
+        this.filtered_pending_uploads = pending_uploads.filter(u => u.telescope['uuid'] === this.selected_telescope['uuid'])
+        this.filtered_current_uploads = current_uploads.filter(u => u.telescope['uuid'] === this.selected_telescope['uuid'])
+        this.filtered_finished_uploads = finished_uploads.filter(u => u.telescope['uuid'] === this.selected_telescope['uuid'])
       } else {
         this.selected_night_log = null
-        this.filtered_pending_uploads = this.pending_uploads
-        this.filtered_current_uploads = this.current_uploads
-        this.filtered_finished_uploads = this.finished_uploads
+        this.filtered_pending_uploads = pending_uploads
+        this.filtered_current_uploads = current_uploads
+        this.filtered_finished_uploads = finished_uploads
       }
       if (this.selected_night_log) {
         this.selected_night_log_url = 'data/' + this.selected_night_log['date'].replace(/-/gi, '/')

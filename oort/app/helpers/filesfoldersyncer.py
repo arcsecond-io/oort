@@ -54,7 +54,7 @@ class FilesFolderSyncer(FilesFolder):
                         print(f'No date found for {filepath}. Skipping.')
 
         if self.context.debug or self.context.verbose:
-            self._update_upload_lists()
+            self.context.refresh_uploads()
             print(f'Found {len(self.files)} files to upload in {self.folderpath}.')
 
     def upload_files(self, telescope_key, resources_key, **raw_resource_kwargs):
@@ -210,13 +210,4 @@ class FilesFolderSyncer(FilesFolder):
             if self.context.verbose:
                 print(f'Finished upload of {filepath}...')
 
-        self._update_upload_lists()
-
-    def _update_upload_lists(self):
-        self.context.pending_uploads = [fw.to_dict() for fw in self.context.uploads.values()
-                                        if not fw.is_started() and not fw.is_finished()]
-
-        self.context.current_uploads = [fw.to_dict() for fw in self.context.uploads.values()
-                                        if fw.is_started() and not fw.is_finished()]
-
-        self.context.finished_uploads = [fw.to_dict() for fw in self.context.uploads.values() if fw.is_finished()]
+        self.context.refresh_uploads()
