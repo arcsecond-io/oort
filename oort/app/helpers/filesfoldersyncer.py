@@ -38,7 +38,7 @@ class FilesFolderSyncer(FilesFolder):
                 if filedate is not None:
                     self.files.append((filepath, filedate))
 
-                    fu = self.context.uploads.get(filepath)
+                    fu = self.context.fileuploaders.get(filepath)
                     if fu is None:
                         fu = FileUploader(filepath,
                                           filedate,
@@ -46,7 +46,7 @@ class FilesFolderSyncer(FilesFolder):
                                           self.context.organisation,
                                           self.context.debug,
                                           self.context.verbose)
-                        self.context.uploads[filepath] = fu
+                        self.context.fileuploaders[filepath] = fu
 
                 else:
                     # TODO: Deal with missing date
@@ -185,7 +185,7 @@ class FilesFolderSyncer(FilesFolder):
         return new_resource
 
     def _process_file_upload(self, filepath: str, filedate: datetime, dataset: dict, night_log: dict, telescope: dict):
-        fu = self.context.uploads.get(filepath)
+        fu = self.context.fileuploaders.get(filepath)
         if fu is None:
             fu = FileUploader(filepath,
                               filedate,
@@ -194,12 +194,12 @@ class FilesFolderSyncer(FilesFolder):
                               self.context.debug,
                               self.context.verbose)
 
-            self.context.uploads[filepath] = fu
+            self.context.fileuploaders[filepath] = fu
 
         else:
             fu.prepare(dataset, night_log, telescope)
 
-        started_count = len([u for u in self.context.uploads.values() if u.is_started()])
+        started_count = self.context.get_count('current')
         if self.context._autostart and started_count < MAX_SIMULTANEOUS_UPLOADS:
             if not fu.is_started() and not fu.is_finished() and self.context.verbose:
                 print(f'Uploading {filepath}...')

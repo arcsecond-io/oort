@@ -34,7 +34,7 @@ class Context:
         self.night_logs = SafeDict()
 
         self.uploads = []
-        self._fileuploaders = {}
+        self.fileuploaders = {}
         self._autostart = True
 
     def _get_current_date(self):
@@ -45,7 +45,7 @@ class Context:
             return datetime.datetime.now().date().isoformat()
 
     def refresh_uploads(self):
-        self.uploads = [fw.to_dict() for fw in self._fileuploaders.values()]
+        self.uploads = [fw.to_dict() for fw in self.fileuploaders.values()]
 
     def to_dict(self):
         return {
