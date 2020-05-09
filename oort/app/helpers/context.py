@@ -59,6 +59,9 @@ class Context:
             'verbose': self.verbose
         }
 
+    def get_count(self, state_name):
+        return len([u['state'] == state_name for u in self.uploads])
+
     def get_yield_string(self):
         data = {
             'state': self.state,
@@ -67,5 +70,6 @@ class Context:
             'night_logs': list(self.night_logs),
             'uploads': self.uploads
         }
+        print(f"yield {self.get_count('pending')} {self.get_count('current')} {self.get_count('finished')}")
         json_data = json.dumps(data)
         return f"data:{json_data}\n\n"
