@@ -141,6 +141,7 @@ class FileUploader(object):
         if self.ended is not None:
             return
 
+        self.substatus = 'finishing...'
         _, self.error = self.uploader.finish()
 
         self.ended = datetime.now()
