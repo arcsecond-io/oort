@@ -60,7 +60,7 @@ class Context:
         }
 
     def get_count(self, state_name):
-        return len([u['state'] == state_name for u in self.uploads])
+        return len([u for u in self.uploads if u['state'] == state_name])
 
     def get_yield_string(self):
         data = {

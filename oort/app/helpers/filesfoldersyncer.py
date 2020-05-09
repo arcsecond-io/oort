@@ -199,6 +199,8 @@ class FilesFolderSyncer(FilesFolder):
         else:
             fu.prepare(dataset, night_log, telescope)
 
+        self.context.refresh_uploads()
+
         started_count = self.context.get_count('current')
         if self.context._autostart and started_count < MAX_SIMULTANEOUS_UPLOADS:
             if not fu.is_started() and not fu.is_finished() and self.context.verbose:
