@@ -23,7 +23,7 @@ setup(
     license='MIT',
     author='Cedric Foellmi',
     author_email='cedric@arcsecond.io',
-    description='Oort utility to upload all your files in arcsecond.io cloud.',
+    description="Oort utility to upload all your files in Arcsecond.io's cloud storage.",
     long_description=long_description,
     packages=find_packages(),
     include_package_data=True,
