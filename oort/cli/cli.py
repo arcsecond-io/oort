@@ -2,6 +2,7 @@ import click
 
 from oort import __version__
 from oort.cli.options import State, MethodChoiceParamType
+from oort.cli.supervisor import setup_supervisor
 
 pass_state = click.make_pass_decorator(State, ensure=True)
 
@@ -30,14 +31,14 @@ def version():
 @click.argument('method', required=False, nargs=1, type=MethodChoiceParamType(), default='status')
 @pass_state
 def server(state, method, **kwargs):
-    pass
+    setup_supervisor()
 
 
 @main.command(help='Manage the uploader.')
 @click.argument('method', required=False, nargs=1, type=MethodChoiceParamType(), default='status')
 @pass_state
 def uploader(state, method, **kwargs):
-    pass
+    setup_supervisor()
 
 # @main.command(short_help='Start oort server and uploads.')
 # @click.option('-o', '--org', '--organisation', help="The subdomain of your organisation")
