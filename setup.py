@@ -43,7 +43,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'oort = oort.cli:main',
+            'oort = oort.cli.cli:main',
         ],
     },
     classifiers=[
