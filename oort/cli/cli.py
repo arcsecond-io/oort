@@ -1,13 +1,11 @@
 import os
 import click
-import subprocess
 
 from arcsecond import Arcsecond
 
-from . import __version__
-from .options import State, basic_options
-from .errors import *
-from shlex import quote as shlex_quote
+from oort import __version__
+from oort.server.options import State, basic_options
+from oort.server.errors import *
 
 pass_state = click.make_pass_decorator(State, ensure=True)
 

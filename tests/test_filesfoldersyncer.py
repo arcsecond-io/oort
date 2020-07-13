@@ -2,8 +2,8 @@ import os
 from unittest.mock import patch
 from arcsecond.api.main import ArcsecondAPI
 
-from oort.app.helpers.filesfoldersyncer import FilesFolderSyncer
-from oort.app.helpers.context import Context
+from oort.server.app.helpers.filesfoldersyncer import FilesFolderSyncer
+from oort.server.app import Context
 
 from tests.utils import register_successful_personal_login
 

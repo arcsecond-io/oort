@@ -2,9 +2,9 @@ import socket
 import sys
 
 # sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)))
-from oort.app.uploads import UploadsLocalState
-from .app.helpers.utils import get_oort_logger
-from .app import app
+from oort.server.app.uploads import UploadsLocalState
+from oort.server.app.helpers.utils import get_oort_logger
+from oort.server.app import app
 
 logger = get_oort_logger()
 
