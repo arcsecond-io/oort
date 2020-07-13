@@ -28,7 +28,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     package_data={
-        '': ['oort/app/static/*', 'oort/app/templates/*'],
+        '': ['oort/server/app/static/*', 'oort/server/app/templates/*'],
     },
     zip_safe=False,
     platforms='any',
