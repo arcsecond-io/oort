@@ -52,3 +52,6 @@ def setup_supervisor():
             print('Supervisor is already running. Fine.')
         else:
             print('Supervisor usual port (9001) is already taken by another process.')
+
+    elif len(output.stderr) > 0:
+        print(output.stderr)
