@@ -1,4 +1,3 @@
-import logging
 import os
 import sys
 
@@ -6,22 +5,27 @@ from watchdog.events import FileCreatedEvent
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
+from .utils import get_logger
+
 dir_path = '.'
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 
 
 class DataFileHandler(FileSystemEventHandler):
+    def __init__(self):
+        super().__init__()
+        self._logger = get_logger()
+
     def on_moved(self, event):
-        print(f'event type: {event.event_type}  path : {event.src_path}')
+        self._logger.info(f'event type: {event.event_type}  path : {event.src_path}')
 
     def on_created(self, event):
-        print(f'event type: {event.event_type}  path : {event.src_path}')
+        self._logger.info(f'event type: {event.event_type}  path : {event.src_path}')
 
     def on_deleted(self, event):
-        print(f'event type: {event.event_type}  path : {event.src_path}')
+        self._logger.info(f'event type: {event.event_type}  path : {event.src_path}')
 
     def on_modified(self, event):
-        print(f'event type: {event.event_type}  path : {event.src_path}')
+        self._logger.info(f'event type: {event.event_type}  path : {event.src_path}')
 
 
 if __name__ == "__main__":
