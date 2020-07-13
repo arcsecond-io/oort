@@ -1,27 +1,7 @@
-import logging
-import dateparser
 import xml.etree.ElementTree as ET
 
+import dateparser
 from astropy.io import fits as pyfits
-from .constants import *
-
-
-def find_first_in_list(objects, **kwargs):
-    return next((obj for obj in objects if
-                 len(set(obj.keys()).intersection(kwargs.keys())) > 0 and
-                 all([obj[k] == v for k, v in kwargs.items() if k in obj.keys()])),
-                None)
-
-
-def get_oort_logger():
-    logger = logging.getLogger(OORT_APPNAME)
-    logger.setLevel(logging.INFO)
-    fh = logging.FileHandler(OORT_UPLOADS_LOG_FILENAME)
-    fh.setLevel(logging.INFO)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    fh.setFormatter(formatter)
-    logger.addHandler(fh)
-    return logger
 
 
 class SafeDict(dict):

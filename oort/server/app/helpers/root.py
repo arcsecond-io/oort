@@ -3,10 +3,10 @@ from configparser import ConfigParser
 
 from arcsecond import ArcsecondConnectionError
 
+from oort.uploader.utils import find_first_in_list
 from .constants import OORT_FILENAME
 from .filesfolder import FilesFolder
 from .telescopes import TelescopeFolder
-from .utils import find_first_in_list
 
 
 class RootFolder(FilesFolder):

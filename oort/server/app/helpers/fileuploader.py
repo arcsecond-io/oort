@@ -1,13 +1,13 @@
 import json
 import os
 import uuid
-
 from datetime import datetime
+
 from arcsecond import Arcsecond
 
-from .utils import get_oort_logger
+from oort.config import get_logger
 
-logger = get_oort_logger()
+logger = get_logger()
 
 
 class FileUploader(object):

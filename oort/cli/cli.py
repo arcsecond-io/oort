@@ -61,7 +61,7 @@ def uploader(state, method, **kwargs):
 #         if error:
 #             raise OortCloudError(str(error))
 #
-#     # server_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'server.py')
+#     # server_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'main.py')
 #     # args = ['python3', server_path, os.getcwd(), organisation, str(state.debug), str(state.verbose)]
 #     # subprocess.run([shlex_quote(arg) for arg in args], capture_output=True)
 #
