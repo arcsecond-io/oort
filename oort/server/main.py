@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 import socket
+import os
 
-# sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)))
 from oort.config import get_logger
 from oort.server.app import app
 from oort.server.app.uploads import UploadsLocalState
@@ -14,12 +14,11 @@ def is_port_in_use(port):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         return s.connect_ex(('localhost', port)) == 0
 
-
-def start(folder, organisation, debug, verbose):
+def start(organisation, debug, verbose):
     if verbose:
         print('Starting server...')
 
-    app.config['folder'] = folder
+    app.config['folder'] = os.getcwd()
     app.config['organisation'] = organisation
     app.config['debug'] = bool(debug)
     app.config['verbose'] = bool(verbose)
@@ -30,9 +29,8 @@ def start(folder, organisation, debug, verbose):
         port += 1
 
     logger.info('server start')
-    app.run(debug=debug, host='0.0.0.0', port=port, threaded=True)
+    app.run(debug=debug, host='0.0.0.0', port=port)
 
 
 if __name__ == '__main__':
-    print('Starting Server?')
-    # start(*sys.argv[1:])
+    start(None, True, True)
