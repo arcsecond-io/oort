@@ -35,3 +35,20 @@ def setup_supervisor():
 
     with open(conf_file_path, "w") as f:
         f.write(conf_content)
+
+    output = subprocess.run(["supervisord", "-c", conf_file_path], capture_output=True, text=True)
+    if "Error: Another program is already listening" in output.stderr:
+        p1 = subprocess.Popen(['lsof', '-i', ':9001'], stdout=subprocess.PIPE)
+        p2 = subprocess.Popen(["grep", "LISTEN"], stdin=p1.stdout, stdout=subprocess.PIPE)
+        p3 = subprocess.Popen(["awk", "{print $2}"], stdin=p2.stdout, stdout=subprocess.PIPE, text=True)
+        output = p3.communicate()
+        port_9001_process_pid = output[0].strip()
+
+        p1 = subprocess.Popen(['lsof', '-a', f'-p{port_9001_process_pid}'], stdout=subprocess.PIPE)
+        p2 = subprocess.Popen(["grep", "supervisor.sock"], stdin=p1.stdout, stdout=subprocess.PIPE, text=True)
+        port_9001_processes = p2.communicate()
+
+        if len(port_9001_processes[0]) > 0:
+            print('Supervisor is already running. Fine.')
+        else:
+            print('Supervisor usual port (9001) is already taken by another process.')
