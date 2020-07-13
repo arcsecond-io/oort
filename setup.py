@@ -11,8 +11,8 @@ _version_re = re.compile(r'__version__\s+=\s+(.*)')
 with open('oort/__init__.py', 'rb') as f:
     __version__ = str(ast.literal_eval(_version_re.search(f.read().decode('utf-8')).group(1)))
 
-with open("README.md", "r") as fh:
-    long_description = fh.read()
+with open("README.md", "r") as f:
+    long_description = f.read()
 
 ### SETUP ##############################################################################################################
 
@@ -38,6 +38,7 @@ setup(
         'flask',
         'peewee',
         'watchdog',
+        'supervisor',
         'dateparser',
         'python-dotenv'
     ],
