@@ -4,6 +4,24 @@
     height: calc(100vh - 90px);
 }
 
+.row.row-title {
+    background-color: #25292E;
+    color: white;
+}
+
+.row.row-title h3,
+.row.row-title .h3 {
+    margin: 10px 0;
+}
+
+.row.row-title span.small {
+    color: #efefef;
+}
+
+.row.row-title a {
+    color: #4dbce9;
+}
+
 .row.row-header {
     height: 100px;
     border-bottom: 1px solid #4dbce9;
