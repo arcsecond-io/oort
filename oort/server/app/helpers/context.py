@@ -14,6 +14,7 @@ class Context:
         self.folder = config['folder']
         self.organisation = config['organisation']
 
+        self.login_error = config.get('login_error')
         self.username = Arcsecond.username(debug=self.debug)
         self.is_authenticated = Arcsecond.is_logged_in(debug=self.debug)
         self.memberships = Arcsecond.memberships(debug=self.debug)
@@ -54,6 +55,7 @@ class Context:
             'organisation': self.organisation,
             'role': self.role,
             'isAuthenticated': self.is_authenticated,
+            'loginError': self.login_error,
             'canUpload': self.can_upload,
             'debug': self.debug,
             'verbose': self.verbose

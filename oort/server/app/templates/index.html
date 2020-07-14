@@ -35,40 +35,53 @@
 
 <div class="container-fluid">
 
-  <div class="row">
+  <div class="row row-title">
     <div class="col-xs-12">
       <h3>
         <img src="{$ url_for('static', filename='img/logo-circle.png') $}" width="20">
-        Your <span class="text-value">Oort</span> server
+        Your <span class="text-primary">Oort</span> server
         <span class="small">
           uploads local data to <a href="https://www.arcsecond.io" target="_blank">Arcsecond</a>'s cloud.
-          It is open-source and available on <a href="https://github.com/arcsecond-io/oort" target="_blank">GitHub</a>.
-          <a class="btn btn-info btn-xs" href="https://github.com/arcsecond-io/oort/issues/new">Report a problem</a>
+          Oort is open-source and available on <a href="https://github.com/arcsecond-io/oort" target="_blank">GitHub</a>.
+          <a class="btn btn-primary btn-xs" href="https://github.com/arcsecond-io/oort/issues/new">Report a problem</a>
         </span>
       </h3>
 
-      <div class="context">
-        <strong>Launch command used:</strong>
-        <code>
-          oort start
-          {% if context.organisation %}-o {$ context.organisation $}{% endif %}
-          {% if context.verbose %}-v{% endif %}
-          {% if context.debug %}-d{% endif %}
-        </code>
-        &nbsp;
-        <strong>Observed root folder:</strong>
-        <code>{$ context.folder $}</code>
-      </div>
+      {% if context.isAuthenticated %}
+        <div class="pull-right">
+          @{{ context.username }}
+        </div>
+      {% endif %}
+
     </div>
   </div>
 
   {% if not context.isAuthenticated %}
 
     <div class="row">
-      <div class="col-xs-12">
-        <div class="context">
-          Login first with the Arcsecond CLI (installed with Oort Cloud): (<code>$ arcsecond login</code>), then
-          <a href="/" target="_self">refresh this page</a>.
+      <div class="col-xs-3 col-xs-offset-4">
+        <div class="context login">
+          <div class="h3">You need to log in Arcsecond first.</div>
+          {% if context.loginError %}
+            <div class="alert alert-danger">
+              {% if context.loginError['non_field_errors'] %}
+                {$ context.loginError['non_field_errors'] $}
+              {% else %}
+                {$ context.loginError $}
+              {% endif %}
+            </div>
+          {% endif %}
+          <form action="/login" method="post">
+            <label for="username">Username or email:</label>
+            <input type="text" id="username" name="username" class="form-control" placeholder="Username or email">
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" class="form-control" placeholder="Password">
+            <label for="subdomain">Organisation subdomain (optional):</label>
+            <input type="text" id="subdomain" name="subdomain" class="form-control"
+                   placeholder="Organisation subdomain">
+            <br/>
+            <button class="btn btn-primary-black" type="submit">Login</button>
+          </form>
         </div>
       </div>
     </div>

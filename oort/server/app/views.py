@@ -1,10 +1,15 @@
+import json
 import time
 
-from flask import render_template, Response, Blueprint
-from flask import current_app as app
+from arcsecond import Arcsecond
+from flask import current_app as app, redirect, url_for
+from flask import render_template, Response, Blueprint, request
 
-from .uploads import UploadsLocalState
+from oort.config import get_logger
 from .helpers import Context
+from .uploads import UploadsLocalState
+
+logger = get_logger()
 
 main = Blueprint('main', __name__)
 
@@ -16,10 +21,21 @@ def index():
     return render_template('index.html', context=Context(app.config).to_dict())
 
 
+@main.route('/login', methods=['POST'])
+def login():
+    result, error = Arcsecond.login(request.form.get('username'),
+                                    request.form.get('password'),
+                                    request.form.get('subdomain'),
+                                    debug=app.config['upload_state'].context.debug)
+    app.config['login_error'] = json.loads(error) if error else None
+    return redirect(url_for('main.index'))
+
+
 @main.route('/uploads')
 def uploads():
     # print(app.config)
     state = app.config['upload_state']
+
     def generate():
         count = 0
         yield state.context.get_yield_string()
