@@ -1,6 +1,5 @@
 import datetime
 import json
-import os
 
 from arcsecond import Arcsecond
 
@@ -25,8 +24,6 @@ class Context:
         else:
             self.role = self.memberships.get(self.organisation, None)
             self.can_upload = self.role in ['member', 'admin', 'superadmin']
-
-        self.config_filepath = os.path.expanduser('.oort.ini')
 
         self.state = self.to_dict()
         self.messages = SafeDict()
