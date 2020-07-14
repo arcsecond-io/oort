@@ -25,24 +25,22 @@
 <div class="container-fluid">
 
   <div class="row row-title">
-    <div class="col-xs-12">
-      <h3>
-        <img src="{$ url_for('static', filename='img/logo-circle.png') $}" width="20">
-        Your <span class="text-primary">Oort</span> server
-        <span class="small">
+    <h3>
+      <img src="{$ url_for('static', filename='img/logo-circle.png') $}" width="20">
+      Your <span class="text-primary">Oort</span> server
+      <span class="small">
           uploads local data to <a href="https://www.arcsecond.io" target="_blank">Arcsecond</a>'s cloud.
           Oort is open-source and available on <a href="https://github.com/arcsecond-io/oort" target="_blank">GitHub</a>.
           <a class="btn btn-primary btn-xs" href="https://github.com/arcsecond-io/oort/issues/new">Report a problem</a>
         </span>
-      </h3>
+    </h3>
 
-      {% if context.isAuthenticated %}
-        <div class="pull-right">
-          @{{ context.username }}
-        </div>
-      {% endif %}
+    {% if context.isAuthenticated %}
+      <span class="right">
+          @{$ context.username $}
+        </span>
+    {% endif %}
 
-    </div>
   </div>
 
   {% if not context.isAuthenticated %}
@@ -93,7 +91,8 @@
                 </span>
                 <span v-if="state.organisation">
                   <strong>Organisation:</strong>
-                  <a :href="`https://${state.organisation}.arcsecond.io`" target="_blank">{{ state.organisation ? state.organisation : '-' }}</a>
+                  <a :href="`https://${state.organisation}.arcsecond.io`"
+                     target="_blank">{{ state.organisation ? state.organisation : '-' }}</a>
                 </span>
                 <span v-if="state.role">
                   <strong>Role:</strong> {{ state.role ? state.role : '-' }}
@@ -111,7 +110,8 @@
                 </span>
                 <span v-else-if="state.organisation">
                   &nbsp;<i class="fa fa-exclamation-triangle" style="color: orange;"></i>&nbsp;
-                  &nbsp;<i class="fa fa-arrow-right"></i>&nbsp;No membership found for organisation <code>{{ state.organisation }}</code>!
+                  &nbsp;<i
+                  class="fa fa-arrow-right"></i>&nbsp;No membership found for organisation <code>{{ state.organisation }}</code>!
                   Uploads are suspended. Either login again for organisation: <code>$ arcsecond login -o {{ state.organisation }}</code>
                   or relaunch Oort command without <code>--organisation</code> parameter.
                 </span>
@@ -213,7 +213,8 @@
                     <div class="subtitle">{{ upload.filedate }}</div>
                   </td>
                   <td :title="upload.dataset.uuid">
-                    <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/datasets/${upload.dataset.uuid}` target="_blank">
+                    <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/datasets/${upload.dataset.uuid}`
+                       target="_blank">
                       {{ upload.dataset.name }}
                     </a>
                     <a v-else
@@ -225,7 +226,8 @@
                     <div class="subtitle">{{ upload.dataset.uuid }}</div>
                   </td>
                   <td>
-                    <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/nightlogs/${upload.night_log.uuid}` target="_blank">
+                    <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/nightlogs/${upload.night_log.uuid}`
+                       target="_blank">
                       {{ upload.night_log.date }}
                     </a>
                     <a v-else
@@ -241,8 +243,10 @@
                     <div class="subtitle">{{ upload.telescope.uuid }}</div>
                   </td>
                   <td>
-                    <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/@${upload.astronomer}` target="_blank">@{{ upload.astronomer }}</a>
-                    <a v-else :href=`https://${upload.organisation}.arcsecond.io` target="_blank">{{ upload.organisation }}</a>
+                    <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/@${upload.astronomer}`
+                       target="_blank">@{{ upload.astronomer }}</a>
+                    <a v-else :href=`https://${upload.organisation}.arcsecond.io`
+                       target="_blank">{{ upload.organisation }}</a>
                   </td>
                   <td :title="`upload.filesize bytes`">
                     {{ getFormatedSize(upload.filesize) }}
@@ -292,8 +296,10 @@
                     <div class="subtitle">{{ upload.filedate }}</div>
                   </td>
                   <td>
-                    <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/@${upload.astronomer}` target="_blank">@{{ upload.astronomer }}</a>
-                    <a v-else :href=`https://${upload.organisation}.arcsecond.io` target="_blank">{{ upload.organisation }}</a>
+                    <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/@${upload.astronomer}`
+                       target="_blank">@{{ upload.astronomer }}</a>
+                    <a v-else :href=`https://${upload.organisation}.arcsecond.io`
+                       target="_blank">{{ upload.organisation }}</a>
                   </td>
                   <td :title="`upload.filesize bytes`">
                     {{ getFormatedSize(upload.filesize) }}
@@ -335,7 +341,8 @@
                     <div class="subtitle">{{ upload.filedate }}</div>
                   </td>
                   <td :title="upload.dataset.uuid">
-                    <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/datasets/${upload.dataset.uuid}` target="_blank">
+                    <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/datasets/${upload.dataset.uuid}`
+                       target="_blank">
                       {{ upload.dataset.name }}
                     </a>
                     <a v-else
@@ -347,7 +354,8 @@
                     <div class="subtitle">{{ upload.dataset.uuid }}</div>
                   </td>
                   <td>
-                    <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/nightlogs/${upload.night_log.uuid}` target="_blank">
+                    <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/nightlogs/${upload.night_log.uuid}`
+                       target="_blank">
                       {{ upload.night_log.date }}
                     </a>
                     <a v-else
@@ -363,8 +371,10 @@
                     <div class="subtitle">{{ upload.telescope.uuid }}</div>
                   </td>
                   <td>
-                    <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/@${upload.astronomer}` target="_blank">@{{ upload.astronomer }}</a>
-                    <a v-else :href=`https://${upload.organisation}.arcsecond.io` target="_blank">{{ upload.organisation }}</a>
+                    <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/@${upload.astronomer}`
+                       target="_blank">@{{ upload.astronomer }}</a>
+                    <a v-else :href=`https://${upload.organisation}.arcsecond.io`
+                       target="_blank">{{ upload.organisation }}</a>
                   </td>
                   <td :title="`upload.filesize bytes`">
                     {{ getFormatedSize(upload.filesize) }}

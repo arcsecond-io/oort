@@ -7,11 +7,17 @@
 .row.row-title {
     background-color: #25292E;
     color: white;
+    display: flex;
 }
 
 .row.row-title h3,
 .row.row-title .h3 {
     margin: 10px 0;
+    flex-grow: 1;
+}
+
+.row.row-title .right {
+    margin: auto;
 }
 
 .row.row-title span.small {
