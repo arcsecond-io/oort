@@ -31,12 +31,12 @@ def debug_option_constructor(f):
                         '--debug',
                         is_flag=True,
                         expose_value=False,
-                        help='Enables or disables debug mode (for Arcsecond developers).',
+                        help='Enables or disables debug mode (for Oort developers).',
                         callback=callback)(f)
 
 
 def basic_options(f):
-    f = verbose_option_constructor(f)
+    # f = verbose_option_constructor(f)
     f = debug_option_constructor(f)
     return f
 
