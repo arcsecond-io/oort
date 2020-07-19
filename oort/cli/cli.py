@@ -1,4 +1,5 @@
 import click
+import webbrowser
 
 from oort import __version__
 from oort.cli.options import State, basic_options
@@ -10,6 +11,7 @@ from oort.cli.supervisor import (
     restart_supervisor_processes,
     get_supervisor_processes_status
 )
+from oort.config import get_config_value
 
 pass_state = click.make_pass_decorator(State, ensure=True)
 
@@ -67,6 +69,15 @@ def status(state):
 def reload(state):
     configure_supervisor(debug=state.debug)
     start_supervisor_daemon(debug=state.debug)
+
+
+@main.command(help='Open web server in default browser')
+@basic_options
+@pass_state
+def open(state):
+    host = get_config_value('server', 'host')
+    port = get_config_value('server', 'port')
+    webbrowser.open(f"http://{host}:{port}")
 
 # @main.command(short_help='Start oort server and uploads.')
 # @click.option('-o', '--org', '--organisation', help="The subdomain of your organisation")
