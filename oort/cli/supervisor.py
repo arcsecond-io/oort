@@ -1,42 +1,61 @@
 import importlib
 import os
 import subprocess
+from configparser import ConfigParser
 
-from oort.config import get_supervisor_conf_file_path
+from oort.config import get_supervisor_conf_file_path, get_logger
+
+SERVER_PROCESS = 'oort-server'
+UPLOADER_PROCESS = 'oort-uploader'
+DEFAULT_PROCESSES = [SERVER_PROCESS, UPLOADER_PROCESS]
 
 
-def setup_supervisor():
+# noinspection OsChmod
+def configure_supervisor(debug=False):
+    logger = get_logger(debug=debug)
+    logger.debug('Configuring supervisord...')
+
     conf_file_path = get_supervisor_conf_file_path()
-
     if not os.path.exists(conf_file_path):
         output = subprocess.run(["echo_supervisord_conf"], capture_output=True, text=True)
-        conf_content = output.stdout
-    else:
-        with open(conf_file_path, "r") as f:
-            conf_content = f.read()
+        with open(conf_file_path, "w") as f:
+            f.write(output.stdout)
+
+    conf = ConfigParser()
+    conf.read(conf_file_path)
+
+    if 'inet_http_server' not in conf.sections():
+        conf.add_section('inet_http_server')
+    conf.set('inet_http_server', 'port', '127.0.0.1:9001')
 
     spec = importlib.util.find_spec('oort')
-    server_command = os.path.join(os.path.dirname(spec.origin), 'server', 'main.py')
-    uploader_command = os.path.join(os.path.dirname(spec.origin), 'uploader', 'main.py')
+    for command in ['server', 'uploader']:
+        command_path = os.path.join(os.path.dirname(spec.origin), command, 'main.py')
+        # Making sure they are executable
+        os.chmod(command_path, 0o744)
 
-    # Making sure they are executable
-    os.chmod(server_command, 0o744)
-    os.chmod(uploader_command, 0o744)
+        section_name = f'program:oort-{command}'
+        if section_name not in conf.sections():
+            conf.add_section(section_name)
 
-    if server_command not in conf_content:
-        conf_content += "\n\n"
-        conf_content += "[program:oort-server]\n"
-        conf_content += f"command={server_command}"
+        if debug is True:
+            command_path += ' --debug'
 
-    if uploader_command not in conf_content:
-        conf_content += "\n\n"
-        conf_content += "[program:oort-uploader]\n"
-        conf_content += f"command={uploader_command}"
+        conf.set(section_name, 'command', command_path)
 
-    with open(conf_file_path, "w") as f:
-        f.write(conf_content)
+    with open(conf_file_path, 'w') as f:
+        conf.write(f)
 
+    logger.debug('Configuration done.')
+
+
+def start_supervisor_daemon(debug=False):
+    logger = get_logger(debug=debug)
+    logger.debug('Starting supervisord...')
+
+    conf_file_path = get_supervisor_conf_file_path()
     output = subprocess.run(["supervisord", "-c", conf_file_path], capture_output=True, text=True)
+
     if "Error: Another program is already listening" in output.stderr:
         p1 = subprocess.Popen(['lsof', '-i', ':9001'], stdout=subprocess.PIPE)
         p2 = subprocess.Popen(["grep", "LISTEN"], stdin=p1.stdout, stdout=subprocess.PIPE)
@@ -55,3 +74,40 @@ def setup_supervisor():
 
     elif len(output.stderr) > 0:
         print(output.stderr)
+
+    elif len(output.stdout) > 0:
+        logger.debug(output.stdout)
+
+    subprocess.run(["supervisorctl", "reload"])
+    logger.debug('Daemon start done.')
+
+
+def start_supervisor_processes(*args, debug=True):
+    logger = get_logger(debug=debug)
+    logger.debug('Starting Oort processes...')
+    if len(args) == 0: args = DEFAULT_PROCESSES
+    subprocess.run(["supervisorctl", "start"] + list(args))
+    logger.debug('Start done.')
+
+
+def stop_supervisor_processes(*args, debug=True):
+    logger = get_logger(debug=debug)
+    if len(args) == 0: args = DEFAULT_PROCESSES
+    logger.debug('Getting status of Oort processes...')
+    subprocess.run(["supervisorctl", "stop"] + list(args))
+    logger.debug('Stop done.')
+
+
+def restart_supervisor_processes(*args, debug=True):
+    logger = get_logger(debug=debug)
+    if len(args) == 0: args = DEFAULT_PROCESSES
+    logger.debug('Restarting Oort processes...')
+    subprocess.run(["supervisorctl", "restart"] + list(args))
+    logger.debug('Restart done.')
+
+
+def get_supervisor_processes_status(*args, debug=True):
+    logger = get_logger(debug=debug)
+    logger.debug('Getting status of Oort processes...')
+    subprocess.run(["supervisorctl", "status"] + list(args))
+    logger.debug('Getting status done.')
