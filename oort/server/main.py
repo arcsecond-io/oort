@@ -6,7 +6,7 @@ import sys
 
 from oort.config import get_logger, write_config_value
 from oort.server.app import app
-from oort.server.app.uploads import UploadsLocalState
+from oort.server.app.helpers import Context
 
 
 def is_port_in_use(port):
@@ -21,15 +21,17 @@ def start(debug=False):
     app.config['debug'] = bool(debug)
     app.config['verbose'] = False
     app.config['organisation'] = None
-    app.config['upload_state'] = UploadsLocalState(app.config)
+    app.config['context'] = Context(app.config)
 
     host = '0.0.0.0'
     port = 5000
     while is_port_in_use(port):
         port += 1
 
-    # write_config_value('server', 'host', host)
-    # write_config_value('server', 'port', str(port))
+    if debug is False:
+        # In debug, Werkzeug start 2 servers, provoking the saving of a wrong port value.
+        write_config_value('server', 'host', host)
+        write_config_value('server', 'port', str(port))
 
     logger.info(f'Starting Oort web server (http://{host}:{port}) ...')
     app.run(debug=debug, host=host, port=port)

@@ -1,7 +1,11 @@
 var app = new Vue({
   el: '#vuejs',
   data: {
+    source: null,
+    isAlive: true,
+    loopID: null,
     state: {},
+    selectedFolder: null,
     messages: {},
     telescopes: [],
     night_logs: [],
@@ -11,17 +15,15 @@ var app = new Vue({
     uploads: [],
     filtered_pending_uploads: [],
     filtered_current_uploads: [],
-    filtered_finished_uploads: [],
-    source: null,
-    isAlive: true,
-    loopID: null
+    filtered_finished_uploads: []
   },
   beforeDestroy () {
     clearInterval(this.loopID)
   },
   mounted: function () {
-    // const self = this
-    //
+    this.requestState()
+    const self = this
+
     // this.source = new EventSource('/uploads')
     // this.source.onmessage = function (event) {
     //   self.isAlive = true
@@ -68,6 +70,21 @@ var app = new Vue({
     // }, 3000)
   },
   methods: {
+    requestState () {
+      const self = this
+      var xmlHttp = new XMLHttpRequest()
+      xmlHttp.onreadystatechange = function () {
+        if (xmlHttp.readyState === 4 && xmlHttp.status === 200) {
+          self.state = JSON.parse(xmlHttp.responseText)
+          self.$forceUpdate()
+        }
+      }
+      xmlHttp.open('GET', '/state', true) // true for asynchronous
+      xmlHttp.send(null)
+    },
+    handleFiles (files) {
+      console.log(files)
+    },
     selectTelescope (uuid) {
       this.selected_telescope = (uuid === '__all__') ? null : this.telescopes.find(t => t.uuid === uuid)
       let pending_uploads = this.uploads.filter(u => u.state === 'pending')
