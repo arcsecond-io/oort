@@ -1,3 +1,4 @@
+import datetime
 import xml.etree.ElementTree as ET
 
 import dateparser
@@ -71,3 +72,11 @@ def find_xisf_filedate(path, debug):
             return None
         else:
             return file_date
+
+
+def get_current_date(self):
+    before_noon = datetime.datetime.now().hour < 12
+    if before_noon:
+        return (datetime.datetime.now() - datetime.timedelta(days=1)).date().isoformat()
+    else:
+        return datetime.datetime.now().date().isoformat()
