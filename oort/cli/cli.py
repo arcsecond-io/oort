@@ -1,6 +1,8 @@
 import click
 import webbrowser
 
+from arcsecond import Arcsecond
+
 from oort import __version__
 from oort.cli.options import State, basic_options
 from oort.cli.supervisor import (
@@ -12,6 +14,7 @@ from oort.cli.supervisor import (
     get_supervisor_processes_status
 )
 from oort.config import get_config_value
+from oort.server.errors import NotLoggedInOortCloudError
 
 pass_state = click.make_pass_decorator(State, ensure=True)
 
@@ -79,31 +82,31 @@ def open(state):
     port = get_config_value('server', 'port')
     webbrowser.open(f"http://{host}:{port}")
 
-# @main.command(short_help='Start oort server and uploads.')
-# @click.option('-o', '--org', '--organisation', help="The subdomain of your organisation")
-# @click.option('-t', '--tel', '--telescope', help="The UUID of the telescope acquiring data")
-# @basic_options
-# @pass_state
-# def start(state, o=None, org=None, organisation=None, t=None, tel=None, telescope=None):
-#     if not Arcsecond.is_logged_in():
-#         raise NotLoggedInOortCloudError()
-#
-#     organisation = o or org or organisation
-#     if organisation:
-#         if state.verbose:
-#             click.echo(f'Checking organisation {organisation} membership...')
-#         if Arcsecond.memberships().get(organisation) is None:
-#             raise InvalidOrgMembershipInOortCloudError(organisation)
-#         if state.verbose:
-#             click.echo('Checking telescopes API access...')
-#         _, error = Arcsecond.build_telescopes_api(debug=state.debug, organisation=organisation).list()
-#         if error:
-#             raise OortCloudError(str(error))
-#
-#     # server_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'main.py')
-#     # args = ['python3', server_path, os.getcwd(), organisation, str(state.debug), str(state.verbose)]
-#     # subprocess.run([shlex_quote(arg) for arg in args], capture_output=True)
-#
-#     from .server import start
-#
-#     start(os.getcwd(), organisation, state.debug, state.verbose)
+
+@main.command(help='Select a root folder to upload.')
+@click.argument('folder', required=True, nargs=-1)
+@click.option('-t', '--tel', '--telescope',
+              help="The UUID of the telescope acquiring data (in the case of organisation uploads).")
+@pass_state
+def upload(state, folder, t=None, tel=None, telescope=None):
+    """
+    Oort will walk through the folder tree and uploads file according to the
+    name of the subfolders.
+
+    If no folder is provided, the current one is selected. Multiple
+    folder can also be provided, separated by a white space.
+    """
+    if not Arcsecond.is_logged_in():
+        raise NotLoggedInOortCloudError()
+
+    # organisation = o or org or organisation
+    # if organisation:
+    #     if state.verbose:
+    #         click.echo(f'Checking organisation {organisation} membership...')
+    #     if Arcsecond.memberships().get(organisation) is None:
+    #         raise InvalidOrgMembershipInOortCloudError(organisation)
+    #     if state.verbose:
+    #         click.echo('Checking telescopes API access...')
+    #     _, error = Arcsecond.build_telescopes_api(debug=state.debug, organisation=organisation).list()
+    #     if error:
+    #         raise OortCloudError(str(error))
