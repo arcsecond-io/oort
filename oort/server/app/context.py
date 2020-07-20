@@ -23,6 +23,9 @@ class Context:
             'folders': self.folders
         }
 
+    def read_folders(self):
+        config = get
+
     def get_yield_string(self):
         data = {
             'state': self.to_dict()
