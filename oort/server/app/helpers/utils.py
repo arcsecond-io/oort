@@ -1,8 +1,12 @@
 import datetime
+import os
 import xml.etree.ElementTree as ET
+from configparser import ConfigParser
 
 import dateparser
 from astropy.io import fits as pyfits
+
+from .constants import OORT_FILENAME
 
 
 class SafeDict(dict):
@@ -80,3 +84,21 @@ def get_current_date(self):
         return (datetime.datetime.now() - datetime.timedelta(days=1)).date().isoformat()
     else:
         return datetime.datetime.now().date().isoformat()
+
+
+def get_oort_config(path):
+    _config = None
+    oort_filepath = os.path.join(path, OORT_FILENAME)
+    if os.path.exists(oort_filepath) and os.path.isfile(oort_filepath):
+        # Below will fail if the info is missing / wrong.
+        _config = ConfigParser()
+        with open(oort_filepath, 'r') as f:
+            _config.read(oort_filepath)
+    return _config
+
+
+def look_for_telescope_uuid(path):
+    config = get_oort_config(path)
+    if config and 'telescope' in config:
+        return config['telescope']['uuid']
+    return None
