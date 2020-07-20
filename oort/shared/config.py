@@ -69,3 +69,12 @@ def get_config_value(section: str, key: str):
     if section not in config.sections():
         return None
     return config.get(section, key)
+
+
+def get_config_upload_folder_sections():
+    conf_file_path = get_config_file_path()
+    if not os.path.exists(conf_file_path):
+        return []
+    config = ConfigParser()
+    config.read(conf_file_path)
+    return [dict(config[section]) for section in config.sections() if section.startswith('upload-folder-')]

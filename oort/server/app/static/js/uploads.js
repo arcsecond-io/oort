@@ -1,3 +1,5 @@
+Vue.component('v-select', VueSelect.VueSelect)
+
 var app = new Vue({
   el: '#vuejs',
   data: {
@@ -5,7 +7,7 @@ var app = new Vue({
     isAlive: true,
     loopID: null,
     state: {},
-    selectedFolder: null,
+    selected_folder: null,
     messages: {},
     telescopes: [],
     night_logs: [],
@@ -19,6 +21,11 @@ var app = new Vue({
   },
   beforeDestroy () {
     clearInterval(this.loopID)
+  },
+  computed: {
+    selectButtonTitle () {
+      return this.selected_folder ? this.selected_folder.path : '-'
+    }
   },
   mounted: function () {
     this.requestState()
@@ -76,6 +83,9 @@ var app = new Vue({
       xmlHttp.onreadystatechange = function () {
         if (xmlHttp.readyState === 4 && xmlHttp.status === 200) {
           self.state = JSON.parse(xmlHttp.responseText)
+          if (self.state.folders.length === 1) {
+            self.selected_folder = self.state.folders[0]
+          }
           self.$forceUpdate()
         }
       }

@@ -2,6 +2,7 @@ import datetime
 import json
 
 from arcsecond import Arcsecond
+from oort.shared.config import get_config_upload_folder_sections
 
 
 class Context:
@@ -11,7 +12,6 @@ class Context:
         self.login_error = config.get('login_error')
         self.username = Arcsecond.username(debug=self.debug)
         self.is_authenticated = Arcsecond.is_logged_in(debug=self.debug)
-        self.folders = []
 
     def to_dict(self):
         return {
@@ -20,11 +20,8 @@ class Context:
             'loginError': self.login_error,
             'debug': self.debug,
             'startTime': self.start_time.isoformat(),
-            'folders': self.folders
+            'folders': get_config_upload_folder_sections()
         }
-
-    def read_folders(self):
-        config = get
 
     def get_yield_string(self):
         data = {

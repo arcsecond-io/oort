@@ -41,6 +41,7 @@ def uploads():
 
     def generate():
         while True:
+            context.read_folders()
             yield context.get_yield_string()
             time.sleep(1)
 
