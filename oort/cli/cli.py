@@ -33,11 +33,6 @@ def main(ctx, version=False, **kwargs):
         click.echo(ctx.get_help())
 
 
-@main.command(help=VERSION_HELP_STRING)
-def version():
-    click.echo(__version__)
-
-
 @main.command(help='Login to Arcsecond.io (Oort Mothership).')
 @click.option('-u', '--username', required=True, nargs=1, prompt=True)
 @click.option('-p', '--password', required=True, nargs=1, prompt=True, hide_input=True)
