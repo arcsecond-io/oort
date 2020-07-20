@@ -1,3 +1,8 @@
+import os
+import random
+import string
+import hashlib
+
 import click
 import webbrowser
 
@@ -13,8 +18,9 @@ from oort.cli.supervisor import (
     restart_supervisor_processes,
     get_supervisor_processes_status
 )
-from oort.config import get_config_value
-from oort.server.errors import NotLoggedInOortCloudError
+from oort.config import get_config_value, write_config_section_values
+from oort.server.app.helpers.utils import look_for_telescope_uuid
+from oort.server.errors import InvalidOrganisationTelescopeOortCloudError, NotLoggedInOortCloudError
 
 pass_state = click.make_pass_decorator(State, ensure=True)
 
@@ -92,6 +98,7 @@ def open(state):
 @main.command(help='Select a root folder to upload.')
 @click.argument('folder', required=True, nargs=-1)
 @click.option('-t', '--tel', '--telescope',
+              required=False, nargs=1,
               help="The UUID of the telescope acquiring data (in the case of organisation uploads).")
 @pass_state
 def upload(state, folder, t=None, tel=None, telescope=None):
@@ -105,14 +112,37 @@ def upload(state, folder, t=None, tel=None, telescope=None):
     if not Arcsecond.is_logged_in():
         raise NotLoggedInOortCloudError()
 
-    # organisation = o or org or organisation
-    # if organisation:
-    #     if state.verbose:
-    #         click.echo(f'Checking organisation {organisation} membership...')
-    #     if Arcsecond.memberships().get(organisation) is None:
-    #         raise InvalidOrgMembershipInOortCloudError(organisation)
-    #     if state.verbose:
-    #         click.echo('Checking telescopes API access...')
-    #     _, error = Arcsecond.build_telescopes_api(debug=state.debug, organisation=organisation).list()
-    #     if error:
-    #         raise OortCloudError(str(error))
+    telescope_uuid = t or tel or telescope
+    role, organisation, telescope_name = None, None, None
+
+    if telescope_uuid is not None:
+        memberships = Arcsecond.memberships()
+        for org_subdomain, membership_role in memberships.items():
+            api = Arcsecond.build_telescopes_api(debug=state.debug, organisation=org_subdomain)
+            telescope_data, error = api.read(telescope_uuid)
+            if error is None:
+                telescope_name = telescope_data.get('name')
+                organisation = org_subdomain
+                role = membership_role
+                break
+        if organisation is None:
+            raise InvalidOrganisationTelescopeOortCloudError('')
+
+    for raw_folder in folder:
+        upload_folder = os.path.expanduser(os.path.realpath(raw_folder))
+        legacy_telescope_uuid = look_for_telescope_uuid(upload_folder)
+
+        if telescope_uuid and legacy_telescope_uuid and telescope_uuid != legacy_telescope_uuid:
+            raise InvalidOrganisationTelescopeOortCloudError(legacy_telescope_uuid)
+
+        final_telescope_uuid = telescope_uuid or legacy_telescope_uuid
+        folder_hash = hashlib.shake_128(upload_folder.encode('utf8')).hexdigest(3)
+
+        write_config_section_values(f'upload-folder-{folder_hash}',
+                                    username=Arcsecond.username(),
+                                    organisation=organisation or '',
+                                    role=role or '',
+                                    path=upload_folder,
+                                    telescope_uuid=final_telescope_uuid or '',
+                                    telescope_name=telescope_name or '',
+                                    status='pending')
