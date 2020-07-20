@@ -38,6 +38,17 @@ def version():
     click.echo(__version__)
 
 
+@main.command(help='Login to Arcsecond.io (Oort Mothership).')
+@click.option('-u', '--username', required=True, nargs=1, prompt=True)
+@click.option('-p', '--password', required=True, nargs=1, prompt=True, hide_input=True)
+@click.option('-o', '--organisation', required=False, help='organisation subdomain')
+@basic_options
+@pass_state
+def login(state, u, username, p, password, o=None, organisation=None):
+    """Login to your personal Arcsecond.io account, and retrieve the associated API key."""
+    Arcsecond.login(u or username, p or password, o or organisation, state)
+
+
 @main.command(help='Start Oort processes.')
 @basic_options
 @pass_state
