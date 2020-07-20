@@ -1,4 +1,5 @@
-from .helpers import Context, RootFolder
+from .helpers import RootFolder
+from .context import Context
 
 MAX_SIMULTANEOUS_UPLOADS = 3
 
