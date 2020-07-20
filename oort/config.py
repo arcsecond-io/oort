@@ -42,7 +42,7 @@ def get_logger(debug=False):
     return logger
 
 
-def write_config_value(section, key, value):
+def write_config_value(section: str, key: str, value):
     conf_file_path = get_config_file_path()
     config = ConfigParser()
     if os.path.exists(conf_file_path):
@@ -54,7 +54,12 @@ def write_config_value(section, key, value):
         config.write(f)
 
 
-def get_config_value(section, key):
+def write_config_section_values(section: str, **kwargs: dict):
+    for k, v in kwargs.items():
+        write_config_value(section, k, v)
+
+
+def get_config_value(section: str, key: str):
     conf_file_path = get_config_file_path()
     config = ConfigParser()
     if os.path.exists(conf_file_path):
