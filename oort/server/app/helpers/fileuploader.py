@@ -5,7 +5,7 @@ from datetime import datetime
 
 from arcsecond import Arcsecond
 
-from oort.config import get_logger
+from oort.shared.config import get_logger
 
 logger = get_logger()
 

@@ -5,7 +5,7 @@ from watchdog.events import FileCreatedEvent
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
-from oort.config import get_logger
+from oort.shared.config import get_logger
 
 dir_path = '.'
 

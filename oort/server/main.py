@@ -4,9 +4,9 @@ import socket
 import os
 import sys
 
-from oort.config import get_logger, write_config_value
+from oort.shared.config import get_logger, write_config_value
 from oort.server.app import app
-from oort.server.app.helpers import Context
+from oort.server.app.context import Context
 
 
 def is_port_in_use(port):

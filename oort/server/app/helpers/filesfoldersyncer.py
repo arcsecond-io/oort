@@ -6,7 +6,7 @@ from arcsecond import Arcsecond
 from arcsecond.api.main import ArcsecondAPI
 
 from oort.uploader.utils import find_first_in_list, find_fits_filedate, find_xisf_filedate
-from .constants import OORT_FILENAME
+from oort.shared.constants import OORT_FILENAME
 from .filesfolder import FilesFolder
 from .fileuploader import FileUploader
 

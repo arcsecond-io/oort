@@ -1,6 +1,6 @@
 from peewee import *
 
-from oort.config import get_db_file_path
+from oort.shared.config import get_db_file_path
 
 db = SqliteDatabase(get_db_file_path())
 

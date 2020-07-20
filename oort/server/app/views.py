@@ -5,7 +5,7 @@ from arcsecond import Arcsecond
 from flask import current_app as app, redirect, url_for
 from flask import render_template, Response, Blueprint, request
 
-from oort.config import get_logger
+from oort.shared.config import get_logger
 
 logger = get_logger()
 
