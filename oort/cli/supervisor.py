@@ -3,7 +3,7 @@ import os
 import subprocess
 from configparser import ConfigParser
 
-from oort.config import get_supervisor_conf_file_path, get_logger
+from oort.shared.config import get_supervisor_conf_file_path, get_logger
 
 SERVER_PROCESS = 'oort-server'
 UPLOADER_PROCESS = 'oort-uploader'
