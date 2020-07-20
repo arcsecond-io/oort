@@ -1,6 +1,4 @@
 import os
-import random
-import string
 import hashlib
 
 import click
@@ -18,7 +16,7 @@ from oort.cli.supervisor import (
     restart_supervisor_processes,
     get_supervisor_processes_status
 )
-from oort.config import get_config_value, write_config_section_values
+from oort.shared.config import get_config_value, write_config_section_values
 from oort.server.app.helpers.utils import look_for_telescope_uuid
 from oort.server.errors import InvalidOrganisationTelescopeOortCloudError, NotLoggedInOortCloudError
 
