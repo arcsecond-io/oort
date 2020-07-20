@@ -29,19 +29,13 @@ class SafeDict(dict):
                 self[key].append(item)
 
 
-def get_oort_config(path):
-    _config = None
+def look_for_telescope_uuid(path):
     oort_filepath = os.path.join(path, OORT_FILENAME)
     if os.path.exists(oort_filepath) and os.path.isfile(oort_filepath):
         # Below will fail if the info is missing / wrong.
-        _config = ConfigParser()
+        config = ConfigParser()
         with open(oort_filepath, 'r') as f:
-            _config.read(oort_filepath)
-    return _config
-
-
-def look_for_telescope_uuid(path):
-    config = get_oort_config(path)
-    if config and 'telescope' in config:
-        return config['telescope']['uuid']
+            config.read(oort_filepath)
+            if 'telescope' in config:
+                return config['telescope']['uuid']
     return None

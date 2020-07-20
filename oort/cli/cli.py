@@ -17,7 +17,7 @@ from oort.cli.supervisor import (
     get_supervisor_processes_status
 )
 from oort.shared.config import get_config_value, write_config_section_values
-from oort.server.app.helpers.utils import look_for_telescope_uuid
+from oort.shared.utils import look_for_telescope_uuid
 from oort.server.errors import InvalidOrganisationTelescopeOortCloudError, NotLoggedInOortCloudError
 
 pass_state = click.make_pass_decorator(State, ensure=True)
