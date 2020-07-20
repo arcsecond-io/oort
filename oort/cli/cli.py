@@ -33,7 +33,7 @@ def main(ctx, version=False, **kwargs):
         click.echo(ctx.get_help())
 
 
-@click.command(help=VERSION_HELP_STRING)
+@main.command(help=VERSION_HELP_STRING)
 def version():
     click.echo(__version__)
 
