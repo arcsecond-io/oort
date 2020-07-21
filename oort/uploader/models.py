@@ -10,30 +10,45 @@ class BaseModel(Model):
         database = db
 
 
-class RootFolder(BaseModel):
+class UploadPack(BaseModel):
     path = CharField(unique=True)
-    username = CharField()
-    subdomain = CharField()
+    default_telescope_uuid = CharField()
+    default_telescope_name = CharField()
 
+    @classmethod
+    def exists(cls, path):
+        try:
+            UploadPack.get(UploadPack.path == path)
+        except DoesNotExist:
+            return False
+        else:
+            return True
 
-class Organisation(BaseModel):
-    subdomain = CharField(unique=True)
-    name = CharField()
+    #
+    # class RootFolder(BaseModel):
+    #     path = CharField(unique=True)
+    #     username = CharField()
+    #     subdomain = CharField()
 
-
-class Telescope(BaseModel):
-    uuid = UUIDField(unique=True)
-    name = CharField()
-    organisation = ForeignKeyField(Organisation, backref='telescopes', null=True)
-
-
-class NightLog(BaseModel):
-    uuid = UUIDField(unique=True)
-    date = DateField()
-    organisation = ForeignKeyField(Organisation, backref='nightlogs', null=True)
-
-
-class Uploader(BaseModel):
-    username = CharField()
-    role = CharField()
-    organisation = ForeignKeyField(Organisation, backref='astronomers', null=True)
+    #
+    # class Organisation(BaseModel):
+    #     subdomain = CharField(unique=True)
+    #     name = CharField()
+    #
+    #
+    # class Telescope(BaseModel):
+    #     uuid = UUIDField(unique=True)
+    #     name = CharField()
+    #     organisation = ForeignKeyField(Organisation, backref='telescopes', null=True)
+    #
+    #
+    # class NightLog(BaseModel):
+    #     uuid = UUIDField(unique=True)
+    #     date = DateField()
+    #     organisation = ForeignKeyField(Organisation, backref='nightlogs', null=True)
+    #
+    #
+    # class Uploader(BaseModel):
+    #     username = CharField()
+    #     role = CharField()
+    #     organisation = ForeignKeyField(Organisation, backref='astronomers', null=True)
