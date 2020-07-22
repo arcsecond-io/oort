@@ -1,9 +1,8 @@
-import os
 import hashlib
-
-import click
+import os
 import webbrowser
 
+import click
 from arcsecond import Arcsecond
 
 from oort import __version__
@@ -16,9 +15,9 @@ from oort.cli.supervisor import (
     restart_supervisor_processes,
     get_supervisor_processes_status
 )
+from oort.server.errors import *
 from oort.shared.config import get_config_value, write_config_section_values
 from oort.shared.utils import look_for_telescope_uuid
-from oort.server.errors import InvalidOrganisationTelescopeOortCloudError, NotLoggedInOortCloudError
 
 pass_state = click.make_pass_decorator(State, ensure=True)
 
@@ -111,18 +110,28 @@ def upload(state, folder, t=None, tel=None, telescope=None):
         raise NotLoggedInOortCloudError()
 
     telescope_uuid = t or tel or telescope
-    role, organisation, telescope_name = None, None, None
+    role, organisation, telescope_data = None, None, None
 
     if telescope_uuid is not None:
-        memberships = Arcsecond.memberships()
+        # Checking whether telescope exists.
+        api = Arcsecond.build_telescopes_api(debug=state.debug)
+        telescope_data, error = api.read(telescope_uuid)
+        if error:
+            raise UnknownTelescopeOortCloudError(telescope_uuid)
+
+    # Check whether telescope is part of current organisation
+    # NOTE: Logged in with organisation necessarily imply uploading for that organisation.
+    memberships = Arcsecond.memberships(debug=state.debug)
+    if telescope_data and len(memberships) > 0:
         for org_subdomain, membership_role in memberships.items():
-            api = Arcsecond.build_telescopes_api(debug=state.debug, organisation=org_subdomain)
-            telescope_data, error = api.read(telescope_uuid)
+            org_api = Arcsecond.build_telescopes_api(debug=state.debug, organisation=org_subdomain)
+            org_telescope_data, error = org_api.read(telescope_uuid)
+
             if error is None:
-                telescope_name = telescope_data.get('name')
                 organisation = org_subdomain
                 role = membership_role
                 break
+
         if organisation is None:
             raise InvalidOrganisationTelescopeOortCloudError('')
 
@@ -142,5 +151,5 @@ def upload(state, folder, t=None, tel=None, telescope=None):
                                     role=role or '',
                                     path=upload_folder,
                                     telescope_uuid=final_telescope_uuid or '',
-                                    telescope_name=telescope_name or '',
+                                    telescope_name=telescope_data.get('name', ''),
                                     status='pending')
