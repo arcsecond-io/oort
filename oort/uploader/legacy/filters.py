@@ -1,7 +1,7 @@
 import copy
 import os
 
-from .filesfoldersyncer import FilesFolderSyncer
+from oort.uploader.legacy.filesfoldersyncer import FilesFolderSyncer
 
 
 class FiltersFolder(FilesFolderSyncer):

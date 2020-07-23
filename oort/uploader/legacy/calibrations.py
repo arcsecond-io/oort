@@ -1,6 +1,6 @@
 import os
 
-from .filters import FiltersFolder
+from oort.uploader.legacy.filters import FiltersFolder
 from .filesfoldersyncer import FilesFolderSyncer
 
 

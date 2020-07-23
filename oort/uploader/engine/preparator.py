@@ -45,14 +45,37 @@ class UploadPreparator(object):
             # check remote apis
             pass
 
+        # Associate telescope to organisation
+
     def _check_user_in_organisation(self):
         pass
 
     def _check_night_log_existence(self):
-        pass
+        if not self._pack.night_log_date_string:
+            pass
+
+        if NightLog.exists(self._pack.night_log_date_string):
+            # Make sure a telescope is associated with it?
+            return
+
+        api = Arcsecond.build_nightlogs_api(debug=self._identity.debug)
+        nightlog_data, error = api.create(date=self._pack.night_log_date_string,
+                                          telescope=self._identity.telescope)
+
+        if error:
+            raise UploadPreparationError(str(error))
+
+        if nightlog_data:
+            NightLog.create(uuid=nightlog_data.get('uuid'),
+                            date=nightlog_data.get('date'),
+                            telescope_uuid=nightlog_data.get('telescope'))
 
     def _check_dataset_existence(self):
         pass
+
+    @property
+    def prepration_is_done(self) -> bool:
+        return False
 
     def prepare(self):
         self._check_telescope_existence()

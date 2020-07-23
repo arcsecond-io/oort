@@ -2,9 +2,9 @@ import os
 
 from arcsecond import Arcsecond
 
-from .filesfolder import FilesFolder
-from .calibrations import CalibrationsFolder
-from .filters import FiltersFolder
+from oort.uploader.legacy.filesfolder import FilesFolder
+from oort.uploader.legacy.calibrations import CalibrationsFolder
+from oort.uploader.legacy.filters import FiltersFolder
 
 
 class TelescopeFolder(FilesFolder):

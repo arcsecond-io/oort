@@ -3,7 +3,7 @@ from datetime import datetime
 from unittest.mock import patch
 
 from oort.uploader.engine.packer import UploadPack
-from oort.uploader.engine.utils import get_random_string
+from oort.shared.utils import get_random_string
 
 root_path = '/Users/onekiloparsec/data/'
 

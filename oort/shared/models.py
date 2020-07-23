@@ -47,12 +47,22 @@ class Telescope(BaseModel):
         else:
             return True
 
+
+class NightLog(BaseModel):
+    uuid = UUIDField(unique=True)
+    date = CharField(default='')
+    telescope_uuid = UUIDField(unique=True)
+
+    @classmethod
+    def exists(cls, date_string):
+        try:
+            NightLog.get(NightLog.date == date_string)
+        except DoesNotExist:
+            return False
+        else:
+            return True
+
 # class Dataset(BaseModel):
-#     uuid = UUIDField(unique=True)
-#     name = CharField(default='')
-#
-#
-# class NightLog(BaseModel):
 #     uuid = UUIDField(unique=True)
 #     name = CharField(default='')
 #

@@ -1,4 +1,7 @@
+import datetime
 import os
+import random
+import string
 from configparser import ConfigParser
 
 from .constants import OORT_FILENAME
@@ -39,3 +42,15 @@ def look_for_telescope_uuid(path):
             if 'telescope' in config:
                 return config['telescope']['uuid']
     return None
+
+
+def get_current_date(self):
+    before_noon = datetime.datetime.now().hour < 12
+    if before_noon:
+        return (datetime.datetime.now() - datetime.timedelta(days=1)).date().isoformat()
+    else:
+        return datetime.datetime.now().date().isoformat()
+
+
+def get_random_string(n):
+    return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(n))
