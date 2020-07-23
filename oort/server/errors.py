@@ -1,9 +1,4 @@
-class OortCloudError(Exception):
-    def __init__(self, message):
-        self.message = message
-
-    def __str__(self):
-        return self.message
+from oort.shared.errors import OortCloudError
 
 
 class NotLoggedInOortCloudError(OortCloudError):
