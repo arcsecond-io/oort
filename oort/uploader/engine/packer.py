@@ -46,7 +46,7 @@ class UploadPack(object):
         self._type = FamilyType.OBSERVATIONS
         self._dataset_name = None
 
-        for i in range(1, 3):
+        for i in range(1, min(len(self._segments), 2) + 1):
             if any([c for c in CALIB_PREFIXES if c in self._segments[-i].lower()]):
                 self._type = FamilyType.CALIBRATIONS
                 if i == 1:
@@ -56,7 +56,7 @@ class UploadPack(object):
                 break
 
         if self._type == FamilyType.OBSERVATIONS:
-            print(self._segments)
+            self._dataset_name = ' '.join(self._segments)
 
     @property
     def is_fits_or_xisf(self) -> bool:
