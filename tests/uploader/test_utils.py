@@ -1,4 +1,4 @@
-from oort.uploader.engine.utils import find_first_in_list
+from oort.shared.utils import find_first_in_list
 
 
 def test_find_item_in_valid_list():
