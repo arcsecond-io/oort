@@ -11,6 +11,11 @@ _version_re = re.compile(r'__version__\s+=\s+(.*)')
 with open('oort/__init__.py', 'rb') as f:
     __version__ = str(ast.literal_eval(_version_re.search(f.read().decode('utf-8')).group(1)))
 
+with open("README.md", "r") as f:
+    long_description = f.read()
+
+### SETUP ##############################################################################################################
+
 setup(
     name='oort-cloud',
     version=__version__,
@@ -18,32 +23,35 @@ setup(
     license='MIT',
     author='Cedric Foellmi',
     author_email='cedric@arcsecond.io',
-    description='Oort server to manage all your files in arcsecond.io cloud.',
-    long_description=__doc__,
+    description="Oort utility to upload all your files in Arcsecond.io's cloud storage.",
+    long_description=long_description,
     packages=find_packages(),
     include_package_data=True,
     package_data={
-        '': ['oort/app/static/*', 'oort/app/templates/*'],
+        '': ['oort/server/app/static/*', 'oort/server/app/templates/*'],
     },
     zip_safe=False,
     platforms='any',
     install_requires=[
-        'flask',
-        'arcsecond>=0.9.6',
+        'arcsecond>=0.9.7',
         'astropy',
+        'flask',
+        'peewee',
+        'watchdog',
+        'supervisor',
         'dateparser',
         'python-dotenv'
     ],
     entry_points={
         'console_scripts': [
-            'oort = oort.cli:main',
+            'oort = oort.cli.cli:main',
         ],
     },
     classifiers=[
         # As from http://pypi.python.org/pypi?%3Aaction=list_classifiers
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Environment :: Console',
-        'Intended Audience :: Developers',
+        'Intended Audience :: Developers, Astronomers',
         'License :: OSI Approved :: MIT License',
         'Operating System :: POSIX',
         'Operating System :: MacOS',
