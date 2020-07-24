@@ -1,8 +1,8 @@
 from arcsecond import Arcsecond
 
+from oort.shared.identity import Identity
 from oort.shared.models import *
 from .errors import *
-from .identity import Identity
 from .packer import UploadPack
 
 
