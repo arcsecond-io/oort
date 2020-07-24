@@ -1,4 +1,3 @@
-import hashlib
 import os
 import webbrowser
 
@@ -16,7 +15,8 @@ from oort.cli.supervisor import (
     get_supervisor_processes_status
 )
 from oort.server.errors import *
-from oort.shared.config import get_config_value, write_config_section_values
+from oort.shared.config import get_config_value
+from oort.shared.identity import Identity
 from oort.shared.utils import look_for_telescope_uuid
 
 pass_state = click.make_pass_decorator(State, ensure=True)
@@ -135,21 +135,24 @@ def upload(state, folder, t=None, tel=None, telescope=None):
         if organisation is None:
             raise InvalidOrganisationTelescopeOortCloudError('')
 
+    from oort.uploader.main import paths_observer
+
     for raw_folder in folder:
         upload_folder = os.path.expanduser(os.path.realpath(raw_folder))
+        if os.path.isfile(upload_folder):
+            upload_folder = os.path.dirname(upload_folder)
+
         legacy_telescope_uuid = look_for_telescope_uuid(upload_folder)
 
         if telescope_uuid and legacy_telescope_uuid and telescope_uuid != legacy_telescope_uuid:
             raise InvalidOrganisationTelescopeOortCloudError(legacy_telescope_uuid)
 
         final_telescope_uuid = telescope_uuid or legacy_telescope_uuid
-        folder_hash = hashlib.shake_128(upload_folder.encode('utf8')).hexdigest(3)
 
-        write_config_section_values(f'upload-folder-{folder_hash}',
-                                    username=Arcsecond.username(),
-                                    organisation=organisation or '',
-                                    role=role or '',
-                                    path=upload_folder,
-                                    telescope_uuid=final_telescope_uuid or '',
-                                    telescope_name=telescope_data.get('name', ''),
-                                    status='pending')
+        identity = Identity(username=Arcsecond.username(),
+                            organisation=organisation or '',
+                            role=role or '',
+                            telescope=final_telescope_uuid or '',
+                            debug=state.debug)
+
+        paths_observer.start_observe_folder(upload_folder, identity)
