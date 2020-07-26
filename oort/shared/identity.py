@@ -1,5 +1,12 @@
+from typing import Optional
+
+
 class Identity(object):
-    def __init__(self, username, organisation, role, telescope, debug=False):
+    def __init__(self, username: str,
+                 organisation: Optional[str] = None,
+                 role: Optional[str] = None,
+                 telescope: Optional[str] = None,
+                 debug: bool = False):
         self._username = username
         self._organisation = organisation
         self._role = role
@@ -7,21 +14,21 @@ class Identity(object):
         self._debug = debug
 
     @property
-    def username(self):
+    def username(self) -> str:
         return self._username
 
     @property
-    def organisation(self):
+    def organisation(self) -> Optional[str]:
         return self._organisation
 
     @property
-    def role(self):
+    def role(self) -> Optional[str]:
         return self._role
 
     @property
-    def telescope(self):
+    def telescope(self) -> Optional[str]:
         return self._telescope
 
     @property
-    def debug(self):
+    def debug(self) -> bool:
         return self._debug
