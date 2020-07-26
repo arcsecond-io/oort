@@ -4,8 +4,8 @@ from arcsecond import Arcsecond
 
 from oort.server.errors import (
     InvalidOrganisationTelescopeOortCloudError,
-    UnknownTelescopeOortCloudError,
-    NotLoggedInOortCloudError
+    NotLoggedInOortCloudError,
+    UnknownTelescopeOortCloudError
 )
 from oort.shared.identity import Identity
 from oort.shared.utils import look_for_telescope_uuid
@@ -54,7 +54,8 @@ def save_upload_folder(folder, telescope_uuid, debug):
 
         final_telescope_uuid = telescope_uuid or legacy_telescope_uuid
 
-        identity = Identity(username=Arcsecond.username(),
+        identity = Identity(username=Arcsecond.username(debug=debug),
+                            api_key=Arcsecond.api_key(debug=debug),
                             organisation=organisation or '',
                             role=role or '',
                             telescope=final_telescope_uuid or '',
