@@ -9,6 +9,7 @@ queue = asyncio.Queue()
 async def worker(name, queue):
     while True:
         # Get a "work item" out of the queue.
+        # If queue is empty, wait until an item is available
         sleep_for = await queue.get()
 
         # Sleep for the "sleep_for" seconds.
