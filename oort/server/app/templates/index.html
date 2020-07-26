@@ -81,11 +81,11 @@
 
       <div class="row row-select" v-if="state">
         <div class="h3">
-          {{ state.folders && state.folders.length }}
-          Upload Folder<span v-if="state.folders && state.folders.length > 1">s</span>
+          {{ state.folders.length }}
+          Upload Folder<span v-if="state.folders.length > 1">s</span>
         </div>
         <v-select
-          v-if="state.folders && state.folders.length"
+          v-if="state.folders.length"
           :options="state.folders"
           v-model="selected_folder"
           label="path"

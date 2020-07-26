@@ -6,7 +6,7 @@ var app = new Vue({
     source: null,
     isAlive: true,
     loopID: null,
-    state: {},
+    state: { folders: [] },
     selected_folder: null,
     messages: {},
     telescopes: [],
