@@ -7,6 +7,7 @@ from oort.shared.config import get_logger
 from oort.shared.identity import Identity
 from .packer import UploadPack
 from .preparator import UploadPreparator
+from .scheduler import scheduler
 
 
 class DataFileHandler(FileSystemEventHandler):
@@ -26,6 +27,7 @@ class DataFileHandler(FileSystemEventHandler):
         self._logger.info(f'event type: {event.event_type}  path : {event.src_path}')
         pack = UploadPack(self._path, event.src_path)
         preparator = UploadPreparator(pack=pack, identity=self._identity)
+        scheduler.prepare_and_upload(preparator)
 
     def on_moved(self, event):
         self._logger.info(f'event type: {event.event_type}  path : {event.src_path}')
