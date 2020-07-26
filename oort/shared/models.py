@@ -10,27 +10,17 @@ class BaseModel(Model):
         database = db
 
     @classmethod
-    def exists(cls, uuid):
-        raise NotImplementedError()
-
-
-class Organisation(BaseModel):
-    subdomain = CharField(unique=True)
-
-    @classmethod
-    def exists(cls, subdomain):
+    def exists(cls, **kwargs):
         try:
-            Organisation.get(Organisation.subdomain == subdomain)
+            cls.get(**kwargs)
         except DoesNotExist:
             return False
         else:
             return True
 
 
-# class Role(BaseModel):
-#     username = CharField(unique=True)
-#     organisation = ForeignKeyField(Organisation, backref='roles')
-#     role = CharField()
+class Organisation(BaseModel):
+    subdomain = CharField(unique=True)
 
 
 class Telescope(BaseModel):
@@ -38,29 +28,24 @@ class Telescope(BaseModel):
     name = CharField(default='')
     organisation = ForeignKeyField(Organisation, backref='telescopes')
 
-    @classmethod
-    def exists(cls, uuid):
-        try:
-            Telescope.get(Telescope.uuid == uuid)
-        except DoesNotExist:
-            return False
-        else:
-            return True
-
 
 class NightLog(BaseModel):
     uuid = UUIDField(unique=True)
     date = CharField(default='')
     telescope_uuid = UUIDField(unique=True)
+    organisation = ForeignKeyField(Organisation, backref='night_logs')
 
-    @classmethod
-    def exists(cls, date_string):
-        try:
-            NightLog.get(NightLog.date == date_string)
-        except DoesNotExist:
-            return False
-        else:
-            return True
+
+class Observation(BaseModel):
+    uuid = UUIDField(unique=True)
+    name = CharField(default='')
+    night_log = ForeignKeyField(Organisation, backref='observations')
+
+
+class Calibration(BaseModel):
+    uuid = UUIDField(unique=True)
+    name = CharField(default='')
+    night_log = ForeignKeyField(Organisation, backref='calibrations')
 
 # class Dataset(BaseModel):
 #     uuid = UUIDField(unique=True)
