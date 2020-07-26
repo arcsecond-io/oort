@@ -1,4 +1,7 @@
+from typing import Optional, Type
+
 from arcsecond import Arcsecond
+from arcsecond.api.main import ArcsecondAPI
 
 from oort.shared.identity import Identity
 from oort.shared.models import *
@@ -7,79 +10,159 @@ from .packer import UploadPack
 
 
 class UploadPreparator(object):
-    """Logic to determine dataset, night_log and observations/calibrations from filepath."""
+    """Sync remote Telescope, Night Log, Observation or Calibration and Dataset."""
 
     def __init__(self, pack: UploadPack, identity: Identity):
         self._pack = pack
         self._identity = identity
+        self._debug = self._identity.debug
 
-    def _check_telescope_existence(self):
+    @property
+    def pack(self):
+        return self._pack
+
+    @property
+    def identity(self):
+        return self._identity
+
+    @property
+    def prepration_succeeded(self) -> bool:
+        return False
+
+    @property
+    def dataset(self) -> Optional[dict]:
+        return {} if self.prepration_succeeded else None
+
+    @property
+    def api_kwargs(self):
+        kwargs = {'debug': self._debug}
+        if self._identity.organisation is not None and len(self._identity.organisation) > 0:
+            kwargs.update(organisation=self._identity.organisation)
+        else:
+            kwargs.update(api_key=self._identity.api_key)
+        return kwargs
+
+    # ------ SYNC ------------------------------------------------------------------------------------------------------
+
+    def _sync_local_resource(self, db_class: Type[BaseModel], api: ArcsecondAPI, **kwargs):
+        remote_resource, error = api.read(kwargs)
+        if error:
+            raise UploadPreparationError(str(error))
+
+        try:
+            resource = db_class.get(**kwargs)
+        except DoesNotExist:
+            resource = self._create_local_resource(db_class, **kwargs)
+        return resource
+
+    def _sync_remote_resource(self, db_class: Type[BaseModel], api: ArcsecondAPI, **kwargs):
+        try:
+            resource = db_class.get(**kwargs)
+        except DoesNotExist:
+            resource = self._find_or_create_remote_resource(api, **kwargs)
+            if resource is None:
+                raise UploadPreparationError('cant create resource')
+            self._create_local_resource(db_class, **kwargs)
+        return resource
+
+    def _find_or_create_remote_resource(self, api: ArcsecondAPI, **kwargs) -> Optional[dict]:
+        new_resource = None
+
+        # # Do not use name as filter argument for list API request.
+        # kwargs_name = kwargs.pop('name', None)
+        # response_list, error = api.list(**kwargs)
+        #
+        # # Dealing with paginated results
+        # if isinstance(response_list, dict) and 'results' in response_list.keys():
+        #     response_list = response_list['results']
+        #
+        # if error is not None:
+        #     if self._debug: print(str(error))
+        # elif len(response_list) == 0:
+        #     # Reintroduce name into resource creation.
+        #     if kwargs_name: kwargs.update(name=kwargs_name)
+        #     new_resource = self._create_remote_resource(api, **kwargs)
+        # elif len(response_list) == 1:
+        #     new_resource = self._check_resource_name(api, response_list[0], kwargs_name)
+        # else:
+        #     msg = f'Multiple resources found for API {api}? Choosing first.'
+        #     raise UploadPreparationError(msg)
+
+        return new_resource
+
+    def _create_remote_resource(self, api: ArcsecondAPI, **kwargs) -> Optional[dict]:
+        remote_resource, error = api.create(kwargs)
+        if error is not None:
+            msg = f'Failed to create resource in {api} endpoint. Retry is automatic.'
+            raise UploadPreparationError(msg)
+        else:
+            return remote_resource
+
+    def _create_local_resource(self, db_class: Type[BaseModel], **kwargs):
+        fields = {k: v for k, v in kwargs.items() if k in db_class._meta.get_field_names()}
+
+        # Deal with organisation!
+        # if self._identity.organisation:
+        #     org = Organisation.get(subdomain=self._identity.organisation, debug=self._debug)
+
+        db_class.create(**fields)
+
+    def _check_resource_name(self, db_class: BaseModel, api: ArcsecondAPI, new_resource: dict, kwargs_name: str):
+        if kwargs_name is None or len(kwargs_name) == 0:
+            return new_resource
+
+        # if 'name' in new_resource.keys():
+        #     current_name = new_resource.get('name', '').strip()
+        #     if len(current_name) == 0:
+        #         updated_new_resource, error = api.update(new_resource['uuid'], {'name': kwargs_name})
+
+    # ------ CHECKS ----------------------------------------------------------------------------------------------------
+
+    def _sync_telescope(self):
         if not self._identity.telescope:
             pass
 
-        if Telescope.exists(self._identity.telescope):
-            return
-
-        api = Arcsecond.build_telescopes_api(debug=self._identity.debug)
-        telescope_data, error = api.read(self._identity.telescope)
-
-        if error:
-            raise UploadPreparationError(f'Unknown telescope with UUID {self._identity.telescope}.')
-
-        if telescope_data:
-            Telescope.create(uuid=telescope_data.get('uuid'), name=telescope_data.get('name'))
-
-    def _check_telescope_in_organisation(self):
-        if self._identity.organisation and not self._identity.telescope:
-            msg = f'Missing telescope UUID to use for organisation {self._identity.organisation}.'
-            raise UploadPreparationError(msg)
-
-        try:
-            org = Organisation.get(subdomain=self._identity.organisation)
-        except DoesNotExist:
-            org = Organisation.create(subdomain=self._identity.organisation)
-
-        try:
-            telescope = org.telescopes.get(uuid=self._identity.telescope)
-        except DoesNotExist:
-            # check remote apis
-            pass
-
-        # Associate telescope to organisation
+        api = Arcsecond.build_telescopes_api(**self.api_kwargs)
+        self._sync_local_resource(Telescope,
+                                  api,
+                                  uuid=self._identity.telescope)
 
     def _check_user_in_organisation(self):
         pass
 
-    def _check_night_log_existence(self):
+    def _sync_night_log(self):
         if not self._pack.night_log_date_string:
             pass
 
-        if NightLog.exists(self._pack.night_log_date_string):
-            # Make sure a telescope is associated with it?
+        api = Arcsecond.build_nightlogs_api(**self.api_kwargs)
+        self._sync_remote_resource(NightLog,
+                                   api,
+                                   date=self._pack.night_log_date_string,
+                                   telescope=self._identity.telescope)
+
+    # observations or calibrations
+    def _sync_observation_or_calibration(self):
+        if self._pack.resource_db_class.exists('uuid'):
             return
 
-        api = Arcsecond.build_nightlogs_api(debug=self._identity.debug)
-        nightlog_data, error = api.create(date=self._pack.night_log_date_string,
-                                          telescope=self._identity.telescope)
+        resource_kwargs = {}
+        resources_api = getattr(Arcsecond, 'build_' + self._pack.remote_resources_name + '_api')(**self.api_kwargs)
+        self._sync_remote_resource(self._pack.resource_db_class,
+                                   resources_api,
+                                   **resource_kwargs)
 
-        if error:
-            raise UploadPreparationError(str(error))
+    def _sync_dataset(self):
+        dataset_kwargs = {}
+        datasets_api = getattr(Arcsecond, 'build_datasets_api')(**self.api_kwargs)
+        self._sync_remote_resource(self._pack.resource_db_class,
+                                   datasets_api,
+                                   **dataset_kwargs)
 
-        if nightlog_data:
-            NightLog.create(uuid=nightlog_data.get('uuid'),
-                            date=nightlog_data.get('date'),
-                            telescope_uuid=nightlog_data.get('telescope'))
+    # ------------------------------------------------------------------------------------------------------------------
 
-    def _check_dataset_existence(self):
-        pass
-
-    @property
-    def prepration_is_done(self) -> bool:
-        return False
-
-    def prepare(self):
-        self._check_telescope_existence()
-        self._check_telescope_in_organisation()
+    async def prepare(self):
+        self._sync_telescope()
         self._check_user_in_organisation()
-        self._check_night_log_existence()
-        self._check_dataset_existence()
+        self._sync_night_log()
+        self._sync_observation_or_calibration()  # observation or calibration
+        self._sync_dataset()
