@@ -14,6 +14,6 @@ def test_observer_adding_folder_path():
     po = PathsObserver()
     with patch.object(DataFileHandler, 'run_initial_walk'), \
          patch.object(PathsObserver, 'schedule') as mocked_method:
-        po.start_observe_folder('.', Identity('cedric', debug=True))
+        po.start_observe_folder('.', Identity('cedric', '123', debug=True))
         assert mocked_method.called_once_with(ANY, '.', recursive=True)
         assert po.observed_paths == ['.']
