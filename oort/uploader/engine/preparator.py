@@ -94,7 +94,7 @@ class UploadPreparator(object):
             if resource is None:
                 raise UploadPreparationError('cant create resource')
 
-            self._create_local_resource(db_class, **kwargs)
+            self._create_local_resource(db_class, **resource)
 
         return resource
 
@@ -142,12 +142,12 @@ class UploadPreparator(object):
             return remote_resource
 
     def _create_local_resource(self, db_class: Type[BaseModel], **kwargs):
-        fields = {k: v for k, v in kwargs.items() if k in db_class._meta.get_field_names()}
+        fields = {k: v for k, v in kwargs.items() if k in db_class._meta.sorted_field_names}
 
         # Deal with organisation!
         if self._identity.organisation and 'organisation' in db_class._meta.get_field_names():
             org = Organisation.get(subdomain=self._identity.organisation, debug=self._debug)
-            fields.update(organisartion=org)
+            fields.update(organisation=org)
 
         return db_class.create(**fields)
 
