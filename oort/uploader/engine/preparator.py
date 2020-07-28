@@ -164,7 +164,7 @@ class UploadPreparator(object):
 
     def _sync_telescope(self):
         if not self._identity.telescope:
-            pass
+            return
 
         api = Arcsecond.build_telescopes_api(**self.api_kwargs)
 
