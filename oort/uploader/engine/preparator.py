@@ -176,14 +176,11 @@ class UploadPreparator(object):
             raise UploadPreparationFatalError(str(e))
 
     def _sync_night_log(self):
-        if not self._pack.night_log_date_string:
-            pass
-
+        kwargs = {'date': self._pack.night_log_date_string}
+        if self._identity.telescope is not None:
+            kwargs.update(telescope=self._identity.telescope)
         api = Arcsecond.build_nightlogs_api(**self.api_kwargs)
-        self._night_log = self._sync_remote_resource(NightLog,
-                                                     api,
-                                                     date=self._pack.night_log_date_string,
-                                                     telescope=self._identity.telescope)
+        self._night_log = self._sync_remote_resource(NightLog, api, **kwargs)
 
     # observations or calibrations
     def _sync_observation_or_calibration(self):
