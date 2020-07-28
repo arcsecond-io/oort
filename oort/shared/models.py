@@ -32,7 +32,7 @@ class Telescope(BaseModel):
 class NightLog(BaseModel):
     uuid = UUIDField(unique=True)
     date = CharField(default='')
-    telescope_uuid = UUIDField(unique=True)
+    telescope = ForeignKeyField(Telescope, backref='night_logs')
     organisation = ForeignKeyField(Organisation, backref='night_logs')
 
 
@@ -46,6 +46,7 @@ class Calibration(BaseModel):
     uuid = UUIDField(unique=True)
     name = CharField(default='')
     night_log = ForeignKeyField(Organisation, backref='calibrations')
+
 
 # class Dataset(BaseModel):
 #     uuid = UUIDField(unique=True)
