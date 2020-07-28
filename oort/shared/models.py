@@ -26,14 +26,14 @@ class Organisation(BaseModel):
 class Telescope(BaseModel):
     uuid = UUIDField(unique=True)
     name = CharField(default='')
-    organisation = ForeignKeyField(Organisation, backref='telescopes')
+    organisation = ForeignKeyField(Organisation, backref='telescopes', null=True)
 
 
 class NightLog(BaseModel):
     uuid = UUIDField(unique=True)
     date = CharField(default='')
-    telescope = ForeignKeyField(Telescope, backref='night_logs')
-    organisation = ForeignKeyField(Organisation, backref='night_logs')
+    telescope = ForeignKeyField(Telescope, backref='night_logs', null=True)
+    organisation = ForeignKeyField(Organisation, backref='night_logs', null=True)
 
 
 class Observation(BaseModel):
