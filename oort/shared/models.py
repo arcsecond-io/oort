@@ -70,3 +70,6 @@ class Calibration(BaseModel):
 #     dataset = ForeignKeyField(Dataset, null=True, backref='uploads')
 #     night_log = ForeignKeyField(NightLog, null=True, backref='uploads')
 #     telescope = ForeignKeyField(Telescope, null=True, backref='uploads')
+
+db.connect()
+db.create_tables([Organisation, Telescope, NightLog, Observation, Calibration])
