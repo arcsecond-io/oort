@@ -195,7 +195,7 @@ class UploadPreparator(object):
     def _sync_dataset(self):
         kwargs = {'name': self._pack.dataset_name, self._pack.resource_type: self._obs_or_calib.get('uuid')}
         datasets_api = getattr(Arcsecond, 'build_datasets_api')(**self.api_kwargs)
-        self._dataset = self._sync_remote_resource(self._pack.resource_db_class, datasets_api, **kwargs)
+        self._dataset = self._sync_remote_resource(Dataset, datasets_api, **kwargs)
 
     # ------------------------------------------------------------------------------------------------------------------
 
