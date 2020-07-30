@@ -61,4 +61,6 @@ def save_upload_folder(folder, telescope_uuid, debug):
                             telescope=final_telescope_uuid or '',
                             debug=debug)
 
+        identity.save_with_folder(upload_folder=upload_folder)
+        
         paths_observer.start_observe_folder(upload_folder, identity)
