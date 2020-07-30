@@ -13,7 +13,7 @@ DEFAULT_PROCESSES = [SERVER_PROCESS, UPLOADER_PROCESS]
 # noinspection OsChmod
 def configure_supervisor(debug=False):
     logger = get_logger(debug=debug)
-    logger.debug('Configuring supervisord...')
+    logger.debug(f'Configuring supervisord debug={debug}...')
 
     conf_file_path = get_supervisor_conf_file_path()
     if not os.path.exists(conf_file_path):

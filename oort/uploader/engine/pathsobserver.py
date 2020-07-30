@@ -10,6 +10,15 @@ class PathsObserver(Observer):
     def __init__(self):
         super().__init__()
         self._mapping = {}
+        self._debug = False
+
+    @property
+    def debug(self):
+        return self._debug
+
+    @debug.setter
+    def debug(self, value):
+        self._debug = value
 
     def start_observe_folder(self, folder_path: str, identity: Identity) -> None:
         event_handler = DataFileHandler(path=folder_path, identity=identity)
