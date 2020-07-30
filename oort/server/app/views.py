@@ -6,6 +6,7 @@ from flask import current_app as app, redirect, url_for
 from flask import render_template, Response, Blueprint, request
 
 from oort.shared.config import get_logger
+from .context import Context
 
 logger = get_logger()
 
@@ -30,18 +31,17 @@ def login():
 
 @main.route('/state')
 def state():
-    context = app.config['context']
+    context: Context = app.config['context']
     return Response(json.dumps(context.to_dict()), mimetype='application/json')
 
 
 @main.route('/uploads')
 def uploads():
     # print(app.config)
-    context = app.config['context']
+    context: Context = app.config['context']
 
     def generate():
         while True:
-            context.read_folders()
             yield context.get_yield_string()
             time.sleep(1)
 
