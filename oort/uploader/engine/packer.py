@@ -60,6 +60,9 @@ class UploadPack(object):
         if self._type == ResourceType.OBSERVATION:
             self._dataset_name = ' '.join(self._segments)
 
+        if len(self._dataset_name.strip()) == 0:
+            self._dataset_name = f'(folder {os.path.basename(self._root_path)})'
+
     @property
     def file_path(self):
         return self._file_path
