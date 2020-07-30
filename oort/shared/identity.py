@@ -1,4 +1,9 @@
+import hashlib
 from typing import Optional
+
+from arcsecond import Arcsecond
+
+from oort.shared.config import write_config_section_values
 
 
 class Identity(object):
@@ -39,3 +44,14 @@ class Identity(object):
     @property
     def debug(self) -> bool:
         return self._debug
+
+    def save_with_folder(self, upload_folder):
+        folder_hash = hashlib.shake_128(upload_folder.encode('utf8')).hexdigest(3)
+        write_config_section_values(f'upload-folder-{folder_hash}',
+                                    username=Arcsecond.username(),
+                                    api_key=Arcsecond.api_key(debug=self.debug),
+                                    organisation=self.organisation,
+                                    role=self.role,
+                                    path=upload_folder,
+                                    telescope=self.telescope,
+                                    debug=self.debug)
