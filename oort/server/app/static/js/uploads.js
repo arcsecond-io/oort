@@ -27,9 +27,7 @@ var app = new Vue({
     }
   },
   mounted: function () {
-    // this.requestState()
     const self = this
-
     this.source = new EventSource('/uploads')
     this.source.onmessage = function (event) {
       const json = JSON.parse(event.data)
