@@ -1,4 +1,6 @@
-from .engine.pathsobserver import PathsObserver
+#!/usr/bin/env python3
+
+from oort.uploader.engine.pathsobserver import PathsObserver
 
 paths_observer = PathsObserver()
 
