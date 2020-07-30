@@ -16,7 +16,9 @@ from oort.uploader.engine.packer import UploadPack
 from oort.uploader.engine.preparator import UploadPreparator
 
 spec = importlib.util.find_spec('oort')
-fits_file_path = os.path.join(os.path.dirname(spec.origin), '..', 'tests', 'fixtures', 'very_simple.fits')
+
+folder_path = os.path.join(os.path.dirname(spec.origin), '..', 'tests', 'fixtures')
+fits_file_path = os.path.join(folder_path, 'very_simple.fits')
 
 MODELS = [m[1] for m in inspect.getmembers(sys.modules['oort.shared.models'], inspect.isclass) if
           issubclass(m[1], peewee.Model) and m[1] != peewee.Model and m[1] != BaseModel]
@@ -38,7 +40,7 @@ def use_test_database(fn):
 
 
 def test_preparator_init():
-    pack = UploadPack('.', fits_file_path)
+    pack = UploadPack(folder_path, fits_file_path)
     with patch.object(UploadPreparator, 'prepare') as mock_method:
         up = UploadPreparator(pack, Identity('cedric', str(uuid.uuid4()), debug=True))
         assert up is not None
@@ -53,23 +55,25 @@ def test_preparator_init():
 @pytest.mark.asyncio
 @use_test_database
 async def test_preparator_prepare_no_org_no_telescope():
-    pack = UploadPack('.', fits_file_path)
+    pack = UploadPack(folder_path, fits_file_path)
     identity = Identity('cedric', str(uuid.uuid4()), debug=True)
     assert len(pack.night_log_date_string) > 0
     assert identity.telescope is None
 
     nl = {'uuid': str(uuid.uuid4()), 'date': pack.night_log_date_string}
-    obs = {'uuid': str(uuid.uuid4()), 'night_log': nl['uuid']}
+    obs = {'uuid': str(uuid.uuid4()), 'night_log': nl['uuid'], 'name': 'observation!'}
+    ds = {'uuid': str(uuid.uuid4()), 'observation': obs['uuid'], 'name': 'dataset!'}
 
     with patch.object(ArcsecondAPI, 'list', return_value=([], None)) as mock_method_list, \
-            patch.object(ArcsecondAPI, 'create', return_value=(nl, None)) as mock_method_create_log, \
-            patch.object(ArcsecondAPI, 'create', return_value=(nl, None)) as mock_method_create_obs:
+            patch.object(ArcsecondAPI, 'create') as mock_method_create:
+        mock_method_create.side_effect = [(nl, None), (obs, None), (ds, None)]
+        
         up = UploadPreparator(pack, identity)
         await up.prepare()
         assert mock_method_list.called_once_with(date=pack.night_log_date_string)
-        assert mock_method_create_log.called_once_with(**nl)
-        assert up.night_log is not None
+        assert mock_method_create.called_with(**nl)
         assert up.night_log == nl
-        assert mock_method_create_obs.called_once_with(**obs)
-        assert up.obs_or_calib is not None
+        assert mock_method_create.called_with(**obs)
         assert up.obs_or_calib == obs
+        assert mock_method_create.called_with(**ds)
+        assert up.dataset == ds
