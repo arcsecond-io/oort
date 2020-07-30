@@ -56,7 +56,7 @@ def write_config_value(section: str, key: str, value):
         config.write(f)
 
 
-def write_config_section_values(section: str, **kwargs: dict):
+def write_config_section_values(section: str, **kwargs):
     for k, v in kwargs.items():
         write_config_value(section, k, v)
 
