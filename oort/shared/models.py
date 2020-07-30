@@ -48,11 +48,13 @@ class Calibration(BaseModel):
     night_log = ForeignKeyField(Organisation, backref='calibrations')
 
 
-# class Dataset(BaseModel):
-#     uuid = UUIDField(unique=True)
-#     name = CharField(default='')
-#
-#
+class Dataset(BaseModel):
+    uuid = UUIDField(unique=True)
+    name = CharField(default='')
+    observation = ForeignKeyField(Observation, unique=True, null=True)
+    calibration = ForeignKeyField(Calibration, unique=True, null=True)
+
+
 # class Upload(BaseModel):
 #     filepath = CharField(unique=True)
 #     filedate = DateTimeField()
