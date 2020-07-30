@@ -11,7 +11,7 @@ from oort.shared.identity import Identity
 from oort.shared.utils import look_for_telescope_uuid
 
 
-def save_upload_folder(folder, telescope_uuid, debug):
+def save_upload_folders(folders, telescope_uuid, debug):
     if not Arcsecond.is_logged_in():
         raise NotLoggedInOortCloudError()
 
@@ -42,8 +42,10 @@ def save_upload_folder(folder, telescope_uuid, debug):
 
     from oort.uploader.main import paths_observer
 
-    for raw_folder in folder:
+    for raw_folder in folders:
         upload_folder = os.path.expanduser(os.path.realpath(raw_folder))
+        if not os.path.exists(upload_folder):
+            continue
         if os.path.isfile(upload_folder):
             upload_folder = os.path.dirname(upload_folder)
 
@@ -62,5 +64,5 @@ def save_upload_folder(folder, telescope_uuid, debug):
                             debug=debug)
 
         identity.save_with_folder(upload_folder=upload_folder)
-        
+
         paths_observer.start_observe_folder(upload_folder, identity)

@@ -4,7 +4,7 @@ import click
 from arcsecond import Arcsecond
 
 from oort import __version__
-from oort.cli.folders import save_upload_folder
+from oort.cli.folders import save_upload_folders
 from oort.cli.options import State, basic_options
 from oort.cli.supervisor import (
     configure_supervisor,
@@ -89,13 +89,13 @@ def open(state):
     webbrowser.open(f"http://{host}:{port}")
 
 
-@main.command(help='Select a root folder to upload.')
-@click.argument('folder', required=True, nargs=-1)
+@main.command(help='Select folder(s) containing files and folders to upload.')
+@click.argument('folders', required=True, nargs=-1)
 @click.option('-t', '--tel', '--telescope',
               required=False, nargs=1,
               help="The UUID of the telescope acquiring data (in the case of organisation uploads).")
 @pass_state
-def upload(state, folder, t=None, tel=None, telescope=None):
+def upload(state, folders, t=None, tel=None, telescope=None):
     """
     Oort will walk through the folder tree and uploads file according to the
     name of the subfolders.
@@ -104,4 +104,4 @@ def upload(state, folder, t=None, tel=None, telescope=None):
     folder can also be provided, separated by a white space.
     """
     telescope_uuid = t or tel or telescope
-    save_upload_folder(folder, telescope_uuid, state.debug)
+    save_upload_folders(folders, telescope_uuid, state.debug)

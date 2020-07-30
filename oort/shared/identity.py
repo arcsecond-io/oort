@@ -50,8 +50,7 @@ class Identity(object):
         write_config_section_values(f'upload-folder-{folder_hash}',
                                     username=Arcsecond.username(),
                                     api_key=Arcsecond.api_key(debug=self.debug),
-                                    organisation=self.organisation,
-                                    role=self.role,
+                                    organisation=self.organisation or '',
+                                    role=self.role or '',
                                     path=upload_folder,
-                                    telescope=self.telescope,
-                                    debug=self.debug)
+                                    telescope=self.telescope or '')
