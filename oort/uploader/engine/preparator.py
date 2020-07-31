@@ -201,10 +201,15 @@ class UploadPreparator(object):
 
     async def prepare(self):
         try:
+            self._pack.save(status='Preparing', substatus='Syncing Telescope...')
             self._sync_telescope()
+            self._pack.save(status='Preparing', substatus='Syncing Night Log...')
             self._sync_night_log()
+            self._pack.save(status='Preparing', substatus='Syncing Observation/Calibration...')
             self._sync_observation_or_calibration()  # observation or calibration
+            self._pack.save(status='Preparing', substatus='Syncing Dataset...')
             self._sync_dataset()
+            self._pack.save(dataset=self.dataset)
         except UploadPreparationFatalError as e:
             logger.error(str(e))
             self._preparation_succeeded = False
