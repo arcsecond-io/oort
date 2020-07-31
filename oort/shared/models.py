@@ -55,23 +55,22 @@ class Dataset(BaseModel):
     calibration = ForeignKeyField(Calibration, unique=True, null=True)
 
 
-# class Upload(BaseModel):
-#     filepath = CharField(unique=True)
-#     filedate = DateTimeField()
-#
-#     filesize = IntegerField(default=0)
-#     status = CharField(default='ready')
-#     substatus = CharField('pending')
-#     progress = FloatField(default=0)
-#
-#     started = DateTimeField(null=True)
-#     ended = DateTimeField(null=True)
-#     duration = FloatField(default=0)
-#     error = CharField(default='')
-#
-#     dataset = ForeignKeyField(Dataset, null=True, backref='uploads')
-#     night_log = ForeignKeyField(NightLog, null=True, backref='uploads')
-#     telescope = ForeignKeyField(Telescope, null=True, backref='uploads')
+class Upload(BaseModel):
+    file_path = CharField(unique=True)
+    file_date = DateTimeField()
+    file_size = IntegerField(default=0)
+
+    status = CharField(default='ready')
+    substatus = CharField(default='pending')
+    progress = FloatField(default=0)
+
+    started = DateTimeField(null=True)
+    ended = DateTimeField(null=True)
+    duration = FloatField(default=0)
+    error = CharField(default='')
+
+    dataset = ForeignKeyField(Dataset, null=True, backref='uploads')
+
 
 db.connect()
 db.create_tables([Organisation, Telescope, NightLog, Observation, Calibration])
