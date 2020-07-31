@@ -6,7 +6,7 @@ from enum import Enum, auto
 import dateparser
 from astropy.io import fits as pyfits
 
-from oort.shared.models import Calibration, Observation
+from oort.shared.models import Calibration, Observation, Upload, DoesNotExist, Dataset
 
 CALIB_PREFIXES = ['bias', 'dark', 'flats']
 
@@ -37,10 +37,12 @@ class UploadPack(object):
     def __init__(self, root_path, file_path):
         self._root_path = root_path
         self._file_path = file_path
+        self._upload = None
         self._pack()
 
     def _pack(self):
-        self._filedate = self._find_fits_filedate(self._file_path) or self._find_xisf_filedate(self._file_path)
+        self._file_date = self._find_fits_filedate(self._file_path) or self._find_xisf_filedate(self._file_path)
+        self._file_size = os.path.getsize(self._file_path)
 
         self._segments = self._file_path[len(self._root_path):].split(os.sep)
         self._filename = self._segments.pop()
@@ -63,20 +65,41 @@ class UploadPack(object):
         if len(self._dataset_name.strip()) == 0:
             self._dataset_name = f'(folder {os.path.basename(self._root_path)})'
 
+        try:
+            self._upload = Upload.get(file_path=self.file_path)
+        except DoesNotExist:
+            self._upload = Upload.create(file_path=self.file_path)
+
+        self._upload.file_date = self.file_date
+        self._upload.file_size = self._file_size
+        self._upload.save()
+
     @property
     def file_path(self):
         return self._file_path
 
     @property
+    def file_date(self):
+        return self._file_date
+
+    @property
+    def file_name(self):
+        return os.sep.join(self._segments)
+
+    @property
+    def file_size(self):
+        return self._file_size
+
+    @property
     def is_fits_or_xisf(self) -> bool:
-        return self._filedate is not None
+        return self._file_date is not None
 
     @property
     def night_log_date_string(self) -> str:
         if not self.is_fits_or_xisf:
             return ''
-        x = 0 if self._filedate.hour >= 12 else 1
-        return (self._filedate - timedelta(days=x)).date().isoformat()
+        x = 0 if self._file_date.hour >= 12 else 1
+        return (self._file_date - timedelta(days=x)).date().isoformat()
 
     @property
     def resource_type(self):
@@ -142,3 +165,19 @@ class UploadPack(object):
                 return None
             else:
                 return file_date
+
+    def save(self, **kwargs):
+        if 'dataset' in kwargs.keys():
+            dataset_uuid = kwargs.pop('dataset')
+            try:
+                dataset = Dataset.get(uuid=dataset_uuid)
+            except DoesNotExist:
+                # really?
+                pass
+            else:
+                self._upload.dataset = dataset
+
+        for k, v in kwargs.items():
+            setattr(self._upload, k, v)
+
+        self._upload.save()
