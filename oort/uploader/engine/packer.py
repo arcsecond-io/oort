@@ -71,7 +71,7 @@ class UploadPack(object):
             self._upload = Upload.create(file_path=self.file_path)
 
         self._upload.file_date = self.file_date
-        self._upload.file_size = self._file_size
+        self._upload.file_size = self.file_size
         self._upload.save()
 
     @property
