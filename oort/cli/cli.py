@@ -6,15 +6,10 @@ from arcsecond import Arcsecond
 from oort import __version__
 from oort.cli.folders import save_upload_folders
 from oort.cli.options import State, basic_options
-from oort.cli.supervisor import (
-    configure_supervisor,
-    start_supervisor_daemon,
-    start_supervisor_processes,
-    stop_supervisor_processes,
-    restart_supervisor_processes,
-    get_supervisor_processes_status
-)
+from oort.cli.supervisor import (configure_supervisor, get_supervisor_processes_status, restart_supervisor_processes,
+                                 start_supervisor_daemon, start_supervisor_processes, stop_supervisor_processes)
 from oort.shared.config import get_config_value
+from oort.uploader.main import paths_observer
 
 pass_state = click.make_pass_decorator(State, ensure=True)
 
