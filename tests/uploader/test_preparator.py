@@ -1,44 +1,23 @@
 import importlib
-import inspect
 import os
-import sys
 import uuid
-from functools import wraps
 from unittest.mock import patch
 
-import peewee
 import pytest
 from arcsecond.api.main import ArcsecondAPI
 
 from oort.shared.identity import Identity
-from oort.shared.models import BaseModel
 from oort.uploader.engine.packer import UploadPack
 from oort.uploader.engine.preparator import UploadPreparator
+from tests.utils import use_test_database
 
 spec = importlib.util.find_spec('oort')
 
 folder_path = os.path.join(os.path.dirname(spec.origin), '..', 'tests', 'fixtures')
 fits_file_path = os.path.join(folder_path, 'very_simple.fits')
 
-MODELS = [m[1] for m in inspect.getmembers(sys.modules['oort.shared.models'], inspect.isclass) if
-          issubclass(m[1], peewee.Model) and m[1] != peewee.Model and m[1] != BaseModel]
 
-
-def use_test_database(fn):
-    test_db = peewee.SqliteDatabase(':memory:')
-
-    @wraps(fn)
-    async def inner():
-        with test_db.bind_ctx(MODELS):
-            test_db.create_tables(MODELS)
-            try:
-                await fn()
-            finally:
-                test_db.drop_tables(MODELS)
-
-    return inner
-
-
+@use_test_database
 def test_preparator_init():
     pack = UploadPack(folder_path, fits_file_path)
     with patch.object(UploadPreparator, 'prepare') as mock_method:
@@ -67,7 +46,7 @@ async def test_preparator_prepare_no_org_no_telescope():
     with patch.object(ArcsecondAPI, 'list', return_value=([], None)) as mock_method_list, \
             patch.object(ArcsecondAPI, 'create') as mock_method_create:
         mock_method_create.side_effect = [(nl, None), (obs, None), (ds, None)]
-        
+
         up = UploadPreparator(pack, identity)
         await up.prepare()
         assert mock_method_list.called_once_with(date=pack.night_log_date_string)

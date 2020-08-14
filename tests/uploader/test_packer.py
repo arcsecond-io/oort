@@ -2,15 +2,18 @@ import re
 from datetime import datetime
 from unittest.mock import patch
 
-from oort.uploader.engine.packer import UploadPack
 from oort.shared.utils import get_random_string
+from oort.uploader.engine.packer import UploadPack
+from tests.utils import use_test_database
 
 root_path = '/Users/onekiloparsec/data/'
 
 
+@use_test_database
 def test_packer_calib_bias():
     path = f'/Users/onekiloparsec/data/Biases{get_random_string(5)}/dummy_001.fits'
-    with patch.object(UploadPack, '_find_fits_filedate', return_value=datetime.now()), \
+    with patch('os.path.getsize', return_value=10), \
+         patch.object(UploadPack, '_find_fits_filedate', return_value=datetime.now()), \
          patch.object(UploadPack, '_find_xisf_filedate', return_value=datetime.now()):
         pack = UploadPack(root_path, path)
         assert pack is not None
@@ -25,9 +28,11 @@ def test_packer_calib_bias():
         assert pack.dataset_name == path.split('/')[-2]
 
 
+@use_test_database
 def test_packer_calib_dark():
     path = f'/Users/onekiloparsec/data/dArkss{get_random_string(5)}/dummy_001.fits'
-    with patch.object(UploadPack, '_find_fits_filedate', return_value=datetime.now()), \
+    with patch('os.path.getsize', return_value=10), \
+         patch.object(UploadPack, '_find_fits_filedate', return_value=datetime.now()), \
          patch.object(UploadPack, '_find_xisf_filedate', return_value=datetime.now()):
         pack = UploadPack(root_path, path)
         assert pack is not None
@@ -42,9 +47,11 @@ def test_packer_calib_dark():
         assert pack.dataset_name == path.split('/')[-2]
 
 
+@use_test_database
 def test_packer_calibs_flat_no_filter():
     path = f'/Users/onekiloparsec/data/FLATS{get_random_string(5)}/dummy_001.fits'
-    with patch.object(UploadPack, '_find_fits_filedate', return_value=datetime.now()), \
+    with patch('os.path.getsize', return_value=10), \
+         patch.object(UploadPack, '_find_fits_filedate', return_value=datetime.now()), \
          patch.object(UploadPack, '_find_xisf_filedate', return_value=datetime.now()):
         pack = UploadPack(root_path, path)
         assert pack is not None
@@ -59,9 +66,11 @@ def test_packer_calibs_flat_no_filter():
         assert pack.dataset_name == path.split('/')[-2]
 
 
+@use_test_database
 def test_packer_calibs_flat_with_filter():
     path = f'/Users/onekiloparsec/data/FLATS{get_random_string(5)}/U/dummy_001.fits'
-    with patch.object(UploadPack, '_find_fits_filedate', return_value=datetime.now()), \
+    with patch('os.path.getsize', return_value=10), \
+         patch.object(UploadPack, '_find_fits_filedate', return_value=datetime.now()), \
          patch.object(UploadPack, '_find_xisf_filedate', return_value=datetime.now()):
         pack = UploadPack(root_path, path)
         assert pack is not None
@@ -76,9 +85,11 @@ def test_packer_calibs_flat_with_filter():
         assert pack.dataset_name == path.split('/')[-3] + ' ' + path.split('/')[-2]
 
 
+@use_test_database
 def test_packer_observation_no_filter():
     path = f'/Users/onekiloparsec/data/HD5980/dummy_010.fits'
-    with patch.object(UploadPack, '_find_fits_filedate', return_value=datetime.now()), \
+    with patch('os.path.getsize', return_value=10), \
+         patch.object(UploadPack, '_find_fits_filedate', return_value=datetime.now()), \
          patch.object(UploadPack, '_find_xisf_filedate', return_value=datetime.now()):
         pack = UploadPack(root_path, path)
         assert pack is not None
@@ -93,9 +104,11 @@ def test_packer_observation_no_filter():
         assert pack.dataset_name == 'HD5980'
 
 
+@use_test_database
 def test_packer_observation_with_filter():
     path = f'/Users/onekiloparsec/data/HD5980/Halpha/dummy_010.fits'
-    with patch.object(UploadPack, '_find_fits_filedate', return_value=datetime.now()), \
+    with patch('os.path.getsize', return_value=10), \
+         patch.object(UploadPack, '_find_fits_filedate', return_value=datetime.now()), \
          patch.object(UploadPack, '_find_xisf_filedate', return_value=datetime.now()):
         pack = UploadPack(root_path, path)
         assert pack is not None
@@ -110,9 +123,11 @@ def test_packer_observation_with_filter():
         assert pack.dataset_name == 'HD5980 Halpha'
 
 
+@use_test_database
 def test_packer_observation_with_double_filter():
     path = f'/Users/onekiloparsec/data/Tests/HD5980/Halpha/dummy_010.fits'
-    with patch.object(UploadPack, '_find_fits_filedate', return_value=datetime.now()), \
+    with patch('os.path.getsize', return_value=10), \
+         patch.object(UploadPack, '_find_fits_filedate', return_value=datetime.now()), \
          patch.object(UploadPack, '_find_xisf_filedate', return_value=datetime.now()):
         pack = UploadPack(root_path, path)
         assert pack is not None
@@ -127,9 +142,11 @@ def test_packer_observation_with_double_filter():
         assert pack.dataset_name == 'Tests HD5980 Halpha'
 
 
+@use_test_database
 def test_packer_calibration_no_fits_no_xisf():
     path = f'/Users/onekiloparsec/data/Biases/dummy_010.fits'
-    with patch.object(UploadPack, '_find_fits_filedate', return_value=None), \
+    with patch('os.path.getsize', return_value=10), \
+         patch.object(UploadPack, '_find_fits_filedate', return_value=None), \
          patch.object(UploadPack, '_find_xisf_filedate', return_value=None):
         pack = UploadPack(root_path, path)
         assert pack is not None
