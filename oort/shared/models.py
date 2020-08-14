@@ -57,7 +57,7 @@ class Dataset(BaseModel):
 
 class Upload(BaseModel):
     file_path = CharField(unique=True)
-    file_date = DateTimeField()
+    file_date = DateTimeField(null=True)
     file_size = IntegerField(default=0)
 
     status = CharField(default='ready')
