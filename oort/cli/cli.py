@@ -104,4 +104,7 @@ def upload(state, folders, t=None, tel=None, telescope=None):
     folder can also be provided, separated by a white space.
     """
     telescope_uuid = t or tel or telescope
-    save_upload_folders(folders, telescope_uuid, state.debug)
+    prepared_folders = save_upload_folders(folders, telescope_uuid, state.debug)
+
+    for (upload_folder, identity) in prepared_folders:
+        paths_observer.start_observe_folder(upload_folder, identity)

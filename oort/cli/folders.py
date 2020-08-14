@@ -40,8 +40,7 @@ def save_upload_folders(folders, telescope_uuid, debug):
         if organisation is None:
             raise InvalidOrganisationTelescopeOortCloudError('')
 
-    from oort.uploader.main import paths_observer
-
+    prepared_folders = []
     for raw_folder in folders:
         upload_folder = os.path.expanduser(os.path.realpath(raw_folder))
         if not os.path.exists(upload_folder):
@@ -64,5 +63,6 @@ def save_upload_folders(folders, telescope_uuid, debug):
                             debug=debug)
 
         identity.save_with_folder(upload_folder=upload_folder)
+        prepared_folders.append((upload_folder, identity))
 
-        paths_observer.start_observe_folder(upload_folder, identity)
+    return prepared_folders
