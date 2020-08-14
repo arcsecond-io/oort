@@ -22,6 +22,41 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @basic_options
 @click.pass_context
 def main(ctx, version=False, **kwargs):
+    """
+    Oort-Cloud ('oort' command) is a super-easy upload manager for arcsecond.io
+
+    It monitors folders you indicates, and upload all files contained in the
+    folder (and its subfolders), *using the folder structure to infer the
+    organisation of files*.
+
+    For instance, if a folder contains the word "Bias" (case-insensitive), the
+    files inside it will be put inside a Calibration object, associated with
+    a Dataset whose name is that of the folder.
+
+    Special names directing files in Calibrations are "Bias", "Dark" and "Flat".
+    Subfolders of "Flat" will be considered as filter names. All other folder
+    names are considered as target names, and put inside Observation objects.
+
+    All Calibrations and Observations are automatically  associated with
+    Night Logs whose date is inferred from the observation date of the files.
+    Oort takes automatically care of the right "date" whether the file is taken
+    before or after midnight on that local place.
+
+    It does so by knowing the Telescope. If no telescope could be found, the
+    date is taken at face value.
+
+    Oort-Cloud works by managing 2 processes:\n
+    • An uploader, which takes care of creating/syncing the right Night Logs,
+        Datasets and Datafiles in Arcsecond.io (either in your personal account,
+        or your Organisation). And then upload the files.\n
+    • A small web server, which allow you to monitor, control and setup what is
+        happening in the uploader (and find what happened before too).
+
+    The `oort` command is dedicated to starting, stopping and getting status
+    of these two processes. Once they are up and running, only ONE thing
+    remain to be done by you: indicate which folders `oort` should monitor
+    to find files to upload.
+    """
     if version:
         click.echo(__version__)
     elif ctx.invoked_subcommand is None:
