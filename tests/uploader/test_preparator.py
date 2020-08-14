@@ -17,8 +17,9 @@ folder_path = os.path.join(os.path.dirname(spec.origin), '..', 'tests', 'fixture
 fits_file_path = os.path.join(folder_path, 'very_simple.fits')
 
 
+@pytest.mark.asyncio
 @use_test_database
-def test_preparator_init():
+async def test_preparator_init():
     pack = UploadPack(folder_path, fits_file_path)
     with patch.object(UploadPreparator, 'prepare') as mock_method:
         up = UploadPreparator(pack, Identity('cedric', str(uuid.uuid4()), debug=True))
