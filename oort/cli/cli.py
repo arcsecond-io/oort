@@ -63,14 +63,20 @@ def main(ctx, version=False, **kwargs):
         click.echo(ctx.get_help())
 
 
-@main.command(help='Login to Arcsecond.io (Oort Mothership).')
+@main.command()
 @click.option('-u', '--username', required=True, nargs=1, prompt=True)
 @click.option('-p', '--password', required=True, nargs=1, prompt=True, hide_input=True)
 @click.option('-o', '--organisation', required=False, help='organisation subdomain')
 @basic_options
 @pass_state
 def login(state, u, username, p, password, o=None, organisation=None):
-    """Login to your personal Arcsecond.io account, and retrieve the associated API key."""
+    """Login to your personal Arcsecond.io account, and retrieve the associated API key.
+    This API key is a secret token you should take care. It will be stored locally on a file:
+    ~/.arcsecond.ini
+
+    Make sure to indicate the organisation subdomain if you intend to upload for that
+    organisation.
+    """
     Arcsecond.login(u or username, p or password, o or organisation, state)
 
 
@@ -119,19 +125,23 @@ def open(state):
     webbrowser.open(f"http://{host}:{port}")
 
 
-@main.command(help='Select folder(s) containing files and folders to upload.')
+@main.command()
 @click.argument('folders', required=True, nargs=-1)
 @click.option('-t', '--tel', '--telescope',
-              required=False, nargs=1,
+              required=False,
+              nargs=1,
+              type=click.UUID,
               help="The UUID of the telescope acquiring data (in the case of organisation uploads).")
 @pass_state
 def upload(state, folders, t=None, tel=None, telescope=None):
     """
+    Indicate a folder (or multiple folders) that oort should monitor for files
+    to upload.
+
     Oort will walk through the folder tree and uploads file according to the
     name of the subfolders.
 
-    If no folder is provided, the current one is selected. Multiple
-    folder can also be provided, separated by a white space.
+    If no folder is provided, the current one is selected.
     """
     telescope_uuid = t or tel or telescope
     prepared_folders = save_upload_folders(folders, telescope_uuid, state.debug)
