@@ -41,9 +41,9 @@
       {% if context.memberships|length > 0 %}
         <span class="right">
         &nbsp;
-        {% for subdomain, role in context.memberships.items() %}
-          ({$ subdomain $}: {$ role $})
-        {% endfor %}
+          {% for subdomain, role in context.memberships.items() %}
+            ({$ subdomain $}: {$ role $})
+          {% endfor %}
         </span>
       {% endif %}
     {% endif %}
