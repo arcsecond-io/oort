@@ -73,4 +73,4 @@ class Upload(BaseModel):
 
 
 db.connect()
-db.create_tables([Organisation, Telescope, NightLog, Observation, Calibration])
+db.create_tables([Organisation, Telescope, NightLog, Observation, Calibration, Dataset, Upload])
