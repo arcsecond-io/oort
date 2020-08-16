@@ -46,10 +46,10 @@ var app = new Vue({
       //   }
       //
       //   self.uploads = json.uploads
-      //   self.filtered_pending_uploads = self.uploads.filter(u => u.state === 'pending')
-      //   self.filtered_current_uploads = self.uploads.filter(u => u.state === 'current')
-      //   self.filtered_finished_uploads = self.uploads.filter(u => u.state === 'finished')
-      //
+      self.pending_uploads = json.pending
+      self.current_uploads = json.current
+      self.finished_uploads = json.finished
+
       //   if (self.selected_telescope) {
       //     self.filtered_pending_uploads = self.filtered_pending_uploads.filter(u => u.telescope['uuid'] === self.selected_telescope['uuid'])
       //     self.filtered_current_uploads = self.filtered_current_uploads.filter(u => u.telescope['uuid'] === self.selected_telescope['uuid'])
@@ -60,13 +60,13 @@ var app = new Vue({
       //   self.filtered_current_uploads.sort((u1, u2) => new Date(u1.started).getDate() < new Date(u2.started).getDate())
       //   self.filtered_finished_uploads.sort((u1, u2) => new Date(u1.ended).getDate() < new Date(u2.ended).getDate())
       //
-      //   const bars = document.getElementsByClassName('progress-bar')
-      //   self.filtered_current_uploads.forEach((upload, index) => {
-      //     let bar = bars[index]
-      //     if (bar) {
-      //       bar.style.width = upload.progress.toFixed(1).toString() + '%'
-      //     }
-      //   })
+      const bars = document.getElementsByClassName('progress-bar')
+      self.current_uploads.forEach((upload, index) => {
+        let bar = bars[index]
+        if (bar) {
+          bar.style.width = upload.progress.toFixed(1).toString() + '%'
+        }
+      })
     }
   },
   methods: {

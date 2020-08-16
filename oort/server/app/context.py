@@ -4,6 +4,7 @@ import json
 from arcsecond import ArcsecondAPI
 
 from oort.shared.config import get_config_upload_folder_sections
+from oort.shared.models import Upload
 
 
 class Context:
@@ -29,7 +30,10 @@ class Context:
 
     def get_yield_string(self):
         data = {
-            'state': self.to_dict()
+            'state': self.to_dict(),
+            'pending': [u for u in Upload.select().where(Upload.status == 'pending').dicts()],
+            'current': [u for u in Upload.select().where(Upload.status == 'current').dicts()],
+            'finished': [u for u in Upload.select().where(Upload.status == 'finished').dicts()]
         }
         json_data = json.dumps(data)
         return f"data:{json_data}\n\n"

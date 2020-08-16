@@ -195,243 +195,242 @@
       <div class="row row-tables text-small" v-if="selected_folder">
         <div class="col-xs-12">
 
-          {#          <div id="uploads" v-if="state">#}
-          {#            <div class="state-block">#}
-          {#              <div class="label-centered darkgray">{{ state.message }}</div>#}
-          {#            </div>#}
-          {##}
-          {#            <div class="state-block" v-if="state.warning">#}
-          {#              <div>#}
-          {#                <pre class="alert-warning">{{ state.warning }}</pre>#}
-          {#              </div>#}
-          {#            </div>#}
-          {##}
-          {#            <div class="state-block" v-if="!isAlive">#}
-          {#              <div>#}
-          {#                <pre class="alert-warning">Oort server is disconnected. Issue the command above again.</pre>#}
-          {#              </div>#}
-          {#            </div>#}
-          {##}
-          {#            <div class="table-block" v-if="isAlive">#}
-          {#              <div class="table-title">#}
-          {#                Active Uploads ({{ filtered_current_uploads.length }})#}
-          {#                <i class="fa fa-spin fa-spinner"></i>#}
-          {#              </div>#}
-          {#              <table class="table table-striped text-small" v-if="filtered_current_uploads.length > 0">#}
-          {#                <thead>#}
-          {#                <tr>#}
-          {#                  <th>Filename</th>#}
-          {#                  <th>Dataset</th>#}
-          {#                  <th>Night Log</th>#}
-          {#                  <th>Telescope</th>#}
-          {#                  <th>Owner</th>#}
-          {#                  <th>Size</th>#}
-          {#                  <th>Status</th>#}
-          {#                  <th>Progress</th>#}
-          {#                  <th>Started</th>#}
-          {#                  <th>Ended</th>#}
-          {#                  <th>Duration</th>#}
-          {#                  <th>Error</th>#}
-          {#                </tr>#}
-          {#                </thead>#}
-          {#                <tbody>#}
-          {#                <tr v-for="upload in filtered_current_uploads">#}
-          {#                  <td>#}
-          {#                    {{ upload.filename }}#}
-          {#                    <div class="subtitle">{{ upload.filedate }}</div>#}
-          {#                  </td>#}
-          {#                  <td :title="upload.dataset.uuid">#}
-          {#                    <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/datasets/${upload.dataset.uuid}`#}
-          {#                       target="_blank">#}
-          {#                      {{ upload.dataset.name }}#}
-          {#                    </a>#}
-          {#                    <a v-else#}
-          {#                       :href=`https://${upload.organisation}.arcsecond.io/data/${upload.night_log.date}`#}
-          {#                       target="_blank"#}
-          {#                    >#}
-          {#                      {{ upload.dataset.name }}#}
-          {#                    </a>#}
-          {#                    <div class="subtitle">{{ upload.dataset.uuid }}</div>#}
-          {#                  </td>#}
-          {#                  <td>#}
-          {#                    <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/nightlogs/${upload.night_log.uuid}`#}
-          {#                       target="_blank">#}
-          {#                      {{ upload.night_log.date }}#}
-          {#                    </a>#}
-          {#                    <a v-else#}
-          {#                       :href=`https://${upload.organisation}.arcsecond.io/nights/${upload.night_log.date}`#}
-          {#                       target="_blank"#}
-          {#                    >#}
-          {#                      {{ upload.night_log.date }}#}
-          {#                    </a>#}
-          {#                    <div class="subtitle">{{ upload.night_log.uuid }}</div>#}
-          {#                  </td>#}
-          {#                  <td>#}
-          {#                    {{ upload.telescope.name }} ({{ upload.telescope.folder_name }})#}
-          {#                    <div class="subtitle">{{ upload.telescope.uuid }}</div>#}
-          {#                  </td>#}
-          {#                  <td>#}
-          {#                    <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/@${upload.astronomer}`#}
-          {#                       target="_blank">@{{ upload.astronomer }}</a>#}
-          {#                    <a v-else :href=`https://${upload.organisation}.arcsecond.io`#}
-          {#                       target="_blank">{{ upload.organisation }}</a>#}
-          {#                  </td>#}
-          {#                  <td :title="`upload.filesize bytes`">#}
-          {#                    {{ getFormatedSize(upload.filesize) }}#}
-          {#                  </td>#}
-          {#                  <td>#}
-          {#                    {{ upload.status }}#}
-          {#                    <div class="subtitle">{{ upload.substatus }}</div>#}
-          {#                  </td>#}
-          {#                  <td>#}
-          {#                    <div class="progress" style="width: 90%;">#}
-          {#                      <div class="progress-bar progress-bar-striped active"#}
-          {#                           role="progressbar"#}
-          {#                           aria-valuenow="0"#}
-          {#                           aria-valuemin="0"#}
-          {#                           aria-valuemax="100">#}
-          {#                        <span class="progress-bar-label">{{ Math.round(upload.progress) }}%</span>#}
-          {#                      </div>#}
-          {#                    </div>#}
-          {#                  </td>#}
-          {#                  <td>{{ upload.started }}</td>#}
-          {#                  <td>{{ upload.ended }}</td>#}
-          {#                  <td>{{ upload.duration }} s</td>#}
-          {#                  <td>{{ upload.error }}</td>#}
-          {#                </tr>#}
-          {#                </tbody>#}
-          {#              </table>#}
-          {#              <div v-else>#}
-          {#                <span class="label-centered">There are no active uploads.</span>#}
-          {#              </div>#}
-          {#            </div>#}
-          {##}
-          {#            <div class="table-block">#}
-          {#              <div class="table-title">Pending Uploads ({{ filtered_pending_uploads.length }})</div>#}
-          {#              <table class="table table-striped text-small" v-if="filtered_pending_uploads.length > 0">#}
-          {#                <thead>#}
-          {#                <tr>#}
-          {#                  <th>Filename</th>#}
-          {#                  <th>Owner</th>#}
-          {#                  <th>Size</th>#}
-          {#                  <th>Status</th>#}
-          {#                </tr>#}
-          {#                </thead>#}
-          {#                <tbody>#}
-          {#                <tr v-for="upload in filtered_pending_uploads">#}
-          {#                  <td>#}
-          {#                    {{ upload.filename }}#}
-          {#                    <div class="subtitle">{{ upload.filedate }}</div>#}
-          {#                  </td>#}
-          {#                  <td>#}
-          {#                    <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/@${upload.astronomer}`#}
-          {#                       target="_blank">@{{ upload.astronomer }}</a>#}
-          {#                    <a v-else :href=`https://${upload.organisation}.arcsecond.io`#}
-          {#                       target="_blank">{{ upload.organisation }}</a>#}
-          {#                  </td>#}
-          {#                  <td :title="`upload.filesize bytes`">#}
-          {#                    {{ getFormatedSize(upload.filesize) }}#}
-          {#                  </td>#}
-          {#                  <td>#}
-          {#                    {{ upload.status }}#}
-          {#                    <div class="subtitle">{{ upload.substatus }}</div>#}
-          {#                  </td>#}
-          {#                </tr>#}
-          {#                </tbody>#}
-          {#              </table>#}
-          {#              <div v-else>#}
-          {#                <span class="label-centered">There are no pending uploads.</span>#}
-          {#              </div>#}
-          {#            </div>#}
-          {##}
-          {#            <div class="table-block">#}
-          {#              <div class="table-title">Finished Uploads ({{ filtered_finished_uploads.length }})</div>#}
-          {#              <table class="table table-striped text-small" v-if="filtered_finished_uploads.length > 0">#}
-          {#                <thead>#}
-          {#                <tr>#}
-          {#                  <th>Filename</th>#}
-          {#                  <th>Dataset</th>#}
-          {#                  <th>Night Log</th>#}
-          {#                  <th>Telescope</th>#}
-          {#                  <th>Owner</th>#}
-          {#                  <th>Size</th>#}
-          {#                  <th>Status</th>#}
-          {#                  <th>Started</th>#}
-          {#                  <th>Ended</th>#}
-          {#                  <th>Duration</th>#}
-          {#                  <th>Error</th>#}
-          {#                </tr>#}
-          {#                </thead>#}
-          {#                <tbody>#}
-          {#                <tr v-for="upload in filtered_finished_uploads">#}
-          {#                  <td>#}
-          {#                    {{ upload.filename }}#}
-          {#                    <div class="subtitle">{{ upload.filedate }}</div>#}
-          {#                  </td>#}
-          {#                  <td :title="upload.dataset.uuid">#}
-          {#                    <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/datasets/${upload.dataset.uuid}`#}
-          {#                       target="_blank">#}
-          {#                      {{ upload.dataset.name }}#}
-          {#                    </a>#}
-          {#                    <a v-else#}
-          {#                       :href=`https://${upload.organisation}.arcsecond.io/data/${upload.night_log.date}`#}
-          {#                       target="_blank"#}
-          {#                    >#}
-          {#                      {{ upload.dataset.name }}#}
-          {#                    </a>#}
-          {#                    <div class="subtitle">{{ upload.dataset.uuid }}</div>#}
-          {#                  </td>#}
-          {#                  <td>#}
-          {#                    <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/nightlogs/${upload.night_log.uuid}`#}
-          {#                       target="_blank">#}
-          {#                      {{ upload.night_log.date }}#}
-          {#                    </a>#}
-          {#                    <a v-else#}
-          {#                       :href=`https://${upload.organisation}.arcsecond.io/nights/${upload.night_log.date}`#}
-          {#                       target="_blank"#}
-          {#                    >#}
-          {#                      {{ upload.night_log.date }}#}
-          {#                    </a>#}
-          {#                    <div class="subtitle">{{ upload.night_log.uuid }}</div>#}
-          {#                  </td>#}
-          {#                  <td>#}
-          {#                    {{ upload.telescope.name }} ({{ upload.telescope.folder_name }})#}
-          {#                    <div class="subtitle">{{ upload.telescope.uuid }}</div>#}
-          {#                  </td>#}
-          {#                  <td>#}
-          {#                    <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/@${upload.astronomer}`#}
-          {#                       target="_blank">@{{ upload.astronomer }}</a>#}
-          {#                    <a v-else :href=`https://${upload.organisation}.arcsecond.io`#}
-          {#                       target="_blank">{{ upload.organisation }}</a>#}
-          {#                  </td>#}
-          {#                  <td :title="`upload.filesize bytes`">#}
-          {#                    {{ getFormatedSize(upload.filesize) }}#}
-          {#                  </td>#}
-          {#                  <td>#}
-          {#                    {{ upload.status }}#}
-          {#                    <div class="subtitle">{{ upload.substatus }}</div>#}
-          {#                  </td>#}
-          {#                  <td>{{ upload.started }}</td>#}
-          {#                  <td>{{ upload.ended }}</td>#}
-          {#                  <td>{{ upload.duration }} s</td>#}
-          {#                  <td>{{ upload.error }}</td>#}
-          {#                </tr>#}
-          {#                </tbody>#}
-          {#              </table>#}
-          {#              <div v-else>#}
-          {#                <span class="label-centered">There are no inactive / past uploads.</span>#}
-          {#              </div>#}
-          {#            </div>#}
-          {##}
-          {#          </div>#}
+          <div id="uploads" v-if="state">
+            {#            <div class="state-block">#}
+            {#              <div class="label-centered darkgray">{{ state.message }}</div>#}
+            {#            </div>#}
+
+            {#            <div class="state-block" v-if="state.warning">#}
+            {#              <div>#}
+            {#                <pre class="alert-warning">{{ state.warning }}</pre>#}
+            {#              </div>#}
+            {#            </div>#}
+
+            {#            <div class="state-block" v-if="!isAlive">#}
+            {#              <div>#}
+            {#                <pre class="alert-warning">Oort server is disconnected. Issue the command above again.</pre>#}
+            {#              </div>#}
+            {#            </div>#}
+
+            <div class="table-block">
+              <div class="table-title">
+                Active Uploads ({{ current_uploads.length }})
+                <i class="fa fa-spin fa-spinner"></i>
+              </div>
+              <table class="table table-striped text-small" v-if="current_uploads.length > 0">
+                <thead>
+                <tr>
+                  <th>Filename</th>
+                  <th>Dataset</th>
+                  <th>Night Log</th>
+                  <th>Telescope</th>
+                  <th>Owner</th>
+                  <th>Size</th>
+                  <th>Status</th>
+                  <th>Progress</th>
+                  <th>Started</th>
+                  <th>Ended</th>
+                  <th>Duration</th>
+                  <th>Error</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr v-for="upload in current_uploads">
+                  <td>
+                    {{ upload.filename }}
+                    <div class="subtitle">{{ upload.filedate }}</div>
+                  </td>
+                  <td :title="upload.dataset.uuid">
+                    <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/datasets/${upload.dataset.uuid}`
+                       target="_blank">
+                      {{ upload.dataset.name }}
+                    </a>
+                    <a v-else
+                       :href=`https://${upload.organisation}.arcsecond.io/data/${upload.night_log.date}`
+                       target="_blank"
+                    >
+                      {{ upload.dataset.name }}
+                    </a>
+                    <div class="subtitle">{{ upload.dataset.uuid }}</div>
+                  </td>
+                  <td>
+                    <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/nightlogs/${upload.night_log.uuid}`
+                       target="_blank">
+                      {{ upload.night_log.date }}
+                    </a>
+                    <a v-else
+                       :href=`https://${upload.organisation}.arcsecond.io/nights/${upload.night_log.date}`
+                       target="_blank"
+                    >
+                      {{ upload.night_log.date }}
+                    </a>
+                    <div class="subtitle">{{ upload.night_log.uuid }}</div>
+                  </td>
+                  <td>
+                    {{ upload.telescope.name }} ({{ upload.telescope.folder_name }})
+                    <div class="subtitle">{{ upload.telescope.uuid }}</div>
+                  </td>
+                  <td>
+                    <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/@${upload.astronomer}`
+                       target="_blank">@{{ upload.astronomer }}</a>
+                    <a v-else :href=`https://${upload.organisation}.arcsecond.io`
+                       target="_blank">{{ upload.organisation }}</a>
+                  </td>
+                  <td :title="`upload.filesize bytes`">
+                    {{ getFormatedSize(upload.filesize) }}
+                  </td>
+                  <td>
+                    {{ upload.status }}
+                    <div class="subtitle">{{ upload.substatus }}</div>
+                  </td>
+                  <td>
+                    <div class="progress" style="width: 90%;">
+                      <div class="progress-bar progress-bar-striped active"
+                           role="progressbar"
+                           aria-valuenow="0"
+                           aria-valuemin="0"
+                           aria-valuemax="100">
+                        <span class="progress-bar-label">{{ Math.round(upload.progress) }}%</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td>{{ upload.started }}</td>
+                  <td>{{ upload.ended }}</td>
+                  <td>{{ upload.duration }} s</td>
+                  <td>{{ upload.error }}</td>
+                </tr>
+                </tbody>
+              </table>
+              <div v-else>
+                <span class="label-centered">There are no active uploads.</span>
+              </div>
+            </div>
+
+            <div class="table-block">
+              <div class="table-title">Pending Uploads ({{ pending_uploads.length }})</div>
+              <table class="table table-striped text-small" v-if="pending_uploads.length > 0">
+                <thead>
+                <tr>
+                  <th>Filename</th>
+                  <th>Owner</th>
+                  <th>Size</th>
+                  <th>Status</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr v-for="upload in pending_uploads">
+                  <td>
+                    {{ upload.filename }}
+                    <div class="subtitle">{{ upload.filedate }}</div>
+                  </td>
+                  <td>
+                    <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/@${upload.astronomer}`
+                       target="_blank">@{{ upload.astronomer }}</a>
+                    <a v-else :href=`https://${upload.organisation}.arcsecond.io`
+                       target="_blank">{{ upload.organisation }}</a>
+                  </td>
+                  <td :title="`upload.filesize bytes`">
+                    {{ getFormatedSize(upload.filesize) }}
+                  </td>
+                  <td>
+                    {{ upload.status }}
+                    <div class="subtitle">{{ upload.substatus }}</div>
+                  </td>
+                </tr>
+                </tbody>
+              </table>
+              <div v-else>
+                <span class="label-centered">There are no pending uploads.</span>
+              </div>
+            </div>
+
+            <div class="table-block">
+              <div class="table-title">Finished Uploads ({{ finished_uploads.length }})</div>
+              <table class="table table-striped text-small" v-if="finished_uploads.length > 0">
+                <thead>
+                <tr>
+                  <th>Filename</th>
+                  <th>Dataset</th>
+                  <th>Night Log</th>
+                  <th>Telescope</th>
+                  <th>Owner</th>
+                  <th>Size</th>
+                  <th>Status</th>
+                  <th>Started</th>
+                  <th>Ended</th>
+                  <th>Duration</th>
+                  <th>Error</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr v-for="upload in finished_uploads">
+                  <td>
+                    {{ upload.filename }}
+                    <div class="subtitle">{{ upload.filedate }}</div>
+                  </td>
+                  <td :title="upload.dataset.uuid">
+                    <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/datasets/${upload.dataset.uuid}`
+                       target="_blank">
+                      {{ upload.dataset.name }}
+                    </a>
+                    <a v-else
+                       :href=`https://${upload.organisation}.arcsecond.io/data/${upload.night_log.date}`
+                       target="_blank"
+                    >
+                      {{ upload.dataset.name }}
+                    </a>
+                    <div class="subtitle">{{ upload.dataset.uuid }}</div>
+                  </td>
+                  <td>
+                    <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/nightlogs/${upload.night_log.uuid}`
+                       target="_blank">
+                      {{ upload.night_log.date }}
+                    </a>
+                    <a v-else
+                       :href=`https://${upload.organisation}.arcsecond.io/nights/${upload.night_log.date}`
+                       target="_blank"
+                    >
+                      {{ upload.night_log.date }}
+                    </a>
+                    <div class="subtitle">{{ upload.night_log.uuid }}</div>
+                  </td>
+                  <td>
+                    {{ upload.telescope.name }} ({{ upload.telescope.folder_name }})
+                    <div class="subtitle">{{ upload.telescope.uuid }}</div>
+                  </td>
+                  <td>
+                    <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/@${upload.astronomer}`
+                       target="_blank">@{{ upload.astronomer }}</a>
+                    <a v-else :href=`https://${upload.organisation}.arcsecond.io`
+                       target="_blank">{{ upload.organisation }}</a>
+                  </td>
+                  <td :title="`upload.filesize bytes`">
+                    {{ getFormatedSize(upload.filesize) }}
+                  </td>
+                  <td>
+                    {{ upload.status }}
+                    <div class="subtitle">{{ upload.substatus }}</div>
+                  </td>
+                  <td>{{ upload.started }}</td>
+                  <td>{{ upload.ended }}</td>
+                  <td>{{ upload.duration }} s</td>
+                  <td>{{ upload.error }}</td>
+                </tr>
+                </tbody>
+              </table>
+              <div v-else>
+                <span class="label-centered">There are no inactive / past uploads.</span>
+              </div>
+            </div>
+
+          </div>
         </div>
       </div>
-    </div>
     </div>
 
   {% endif %}
 
-<script src="{$ url_for('static', filename='js/uploads.js') $}"></script>
+  <script src="{$ url_for('static', filename='js/uploads.js') $}"></script>
 
 </div>
 </body>
