@@ -29,10 +29,10 @@ def login():
     return redirect(url_for('main.index'))
 
 
-@main.route('/state')
-def state():
-    context: Context = app.config['context']
-    return Response(json.dumps(context.to_dict()), mimetype='application/json')
+# @main.route('/state')
+# def state():
+#     context: Context = app.config['context']
+#     return Response(json.dumps(context.to_dict()), mimetype='application/json')
 
 
 @main.route('/uploads')
