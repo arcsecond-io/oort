@@ -10,8 +10,8 @@ class Context:
         self.debug = config['debug']
         self.start_time = datetime.datetime.utcnow()
         self.login_error = config.get('login_error')
-        self.username = Arcsecond.username(debug=self.debug)
-        self.is_authenticated = Arcsecond.is_logged_in(debug=self.debug)
+        self.username = ArcsecondAPI.username(debug=self.debug)
+        self.is_authenticated = ArcsecondAPI.is_logged_in(debug=self.debug)
 
     def to_dict(self):
         return {
