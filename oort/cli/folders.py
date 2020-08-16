@@ -12,7 +12,7 @@ from oort.shared.utils import look_for_telescope_uuid
 
 
 def save_upload_folders(folders, telescope_uuid, debug):
-    if not Arcsecond.is_logged_in():
+    if not ArcsecondAPI.is_logged_in():
         raise NotLoggedInOortCloudError()
 
     role, organisation, telescope_data = None, None, None
@@ -26,7 +26,7 @@ def save_upload_folders(folders, telescope_uuid, debug):
 
     # Check whether telescope is part of current organisation
     # NOTE: Logged in with organisation necessarily imply uploading for that organisation.
-    memberships = Arcsecond.memberships(debug=debug)
+    memberships = ArcsecondAPI.memberships(debug=debug)
     if telescope_data and len(memberships) > 0:
         for org_subdomain, membership_role in memberships.items():
             org_api = ArcsecondAPI.telescopes(debug=debug, organisation=org_subdomain)
@@ -55,8 +55,8 @@ def save_upload_folders(folders, telescope_uuid, debug):
 
         final_telescope_uuid = telescope_uuid or legacy_telescope_uuid
 
-        identity = Identity(username=Arcsecond.username(debug=debug),
-                            api_key=Arcsecond.api_key(debug=debug),
+        identity = Identity(username=ArcsecondAPI.username(debug=debug),
+                            api_key=ArcsecondAPI.api_key(debug=debug),
                             organisation=organisation or '',
                             role=role or '',
                             telescope=final_telescope_uuid or '',
