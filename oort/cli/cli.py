@@ -1,6 +1,7 @@
 import webbrowser
 
 import click
+from arcsecond import ArcsecondAPI
 
 from oort import __version__
 from oort.cli.folders import save_upload_folders
@@ -76,7 +77,7 @@ def login(state, u, username, p, password, o=None, organisation=None):
     Make sure to indicate the organisation subdomain if you intend to upload for that
     organisation.
     """
-    Arcsecond.login(u or username, p or password, o or organisation, state)
+    ArcsecondAPI.login(u or username, p or password, o or organisation, state)
 
 
 @main.command(help='Start Oort processes.')
