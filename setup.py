@@ -33,7 +33,7 @@ setup(
     zip_safe=False,
     platforms='any',
     install_requires=[
-        'arcsecond>=1.0.1',
+        'arcsecond>=1.0.2',
         'astropy',
         'flask',
         'peewee',
