@@ -2,7 +2,7 @@ import json
 import os
 from datetime import datetime
 
-from arcsecond import Arcsecond
+from arcsecond import ArcsecondAPI
 
 from oort.shared.config import get_logger
 from oort.shared.identity import Identity
@@ -40,11 +40,11 @@ class FileUploader(object):
 
     def _prepare(self):
         if self._identity.organisation:
-            self.api = Arcsecond.build_datafiles_api(dataset=self._dataset['uuid'],
+            self.api = ArcsecondAPI.datafiles(dataset=self._dataset['uuid'],
                                                      debug=self._identity.debug,
                                                      organisation=self._identity.organisation)
         else:
-            self.api = Arcsecond.build_datafiles_api(dataset=self._dataset['uuid'],
+            self.api = ArcsecondAPI.datafiles(dataset=self._dataset['uuid'],
                                                      debug=self._identity.debug,
                                                      api_key=self._identity.api_key)
 

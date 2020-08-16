@@ -1,7 +1,7 @@
 import datetime
 import json
 
-from arcsecond import Arcsecond
+from arcsecond import ArcsecondAPI
 from oort.shared.config import get_config_upload_folder_sections
 
 

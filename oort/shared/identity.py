@@ -1,7 +1,7 @@
 import hashlib
 from typing import Optional
 
-from arcsecond import Arcsecond
+from arcsecond import ArcsecondAPI
 
 from oort.shared.config import write_config_section_values
 

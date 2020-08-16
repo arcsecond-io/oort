@@ -2,7 +2,7 @@ import copy
 import os
 from datetime import datetime, timedelta
 
-from arcsecond import Arcsecond
+from arcsecond import ArcsecondAPI
 from arcsecond.api.main import ArcsecondAPI
 
 from oort.uploader.utils import find_first_in_list, find_fits_filedate, find_xisf_filedate
@@ -16,8 +16,8 @@ MAX_SIMULTANEOUS_UPLOADS = 3
 class FilesFolderSyncer(FilesFolder):
     def __init__(self, context, astronomer, folderpath, prefix=''):
         super().__init__(context, astronomer, folderpath, prefix=prefix)
-        self.api_nightlogs = Arcsecond.build_nightlogs_api(**self.api_kwargs)
-        self.api_datasets = Arcsecond.build_datasets_api(**self.api_kwargs)
+        self.api_nightlogs = ArcsecondAPI.nightlogs(**self.api_kwargs)
+        self.api_datasets = ArcsecondAPI.datasets(**self.api_kwargs)
         self.night_logs = []
         self.resources = []
         self.resources_datasets = []

@@ -1,7 +1,7 @@
 import json
 import time
 
-from arcsecond import Arcsecond
+from arcsecond import ArcsecondAPI
 from flask import current_app as app, redirect, url_for
 from flask import render_template, Response, Blueprint, request
 

@@ -1,6 +1,6 @@
 import os
 
-from arcsecond import Arcsecond
+from arcsecond import ArcsecondAPI
 
 from oort.server.errors import (
     InvalidOrganisationTelescopeOortCloudError,
@@ -19,7 +19,7 @@ def save_upload_folders(folders, telescope_uuid, debug):
 
     if telescope_uuid is not None:
         # Checking whether telescope exists.
-        api = Arcsecond.build_telescopes_api(debug=debug)
+        api = ArcsecondAPI.telescopes(debug=debug)
         telescope_data, error = api.read(telescope_uuid)
         if error:
             raise UnknownTelescopeOortCloudError(telescope_uuid)
@@ -29,7 +29,7 @@ def save_upload_folders(folders, telescope_uuid, debug):
     memberships = Arcsecond.memberships(debug=debug)
     if telescope_data and len(memberships) > 0:
         for org_subdomain, membership_role in memberships.items():
-            org_api = Arcsecond.build_telescopes_api(debug=debug, organisation=org_subdomain)
+            org_api = ArcsecondAPI.telescopes(debug=debug, organisation=org_subdomain)
             org_telescope_data, error = org_api.read(telescope_uuid)
 
             if error is None:

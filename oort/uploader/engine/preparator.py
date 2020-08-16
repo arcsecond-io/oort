@@ -1,6 +1,6 @@
 from typing import Optional, Type
 
-from arcsecond import Arcsecond
+from arcsecond import ArcsecondAPI
 from arcsecond.api.main import ArcsecondAPI
 
 from oort.shared.config import get_logger
@@ -29,7 +29,7 @@ class UploadPreparator(object):
         self._dataset = None
 
         if self._identity.organisation:
-            api = Arcsecond.build_organisations_api(debug=self._debug)
+            api = ArcsecondAPI.organisations(debug=self._debug)
             self._sync_local_resource(Organisation, api, subdomain=self._identity.organisation)
 
     # ------ PROPERTIES ------------------------------------------------------------------------------------------------
@@ -166,7 +166,7 @@ class UploadPreparator(object):
         if not self._identity.telescope:
             return
 
-        api = Arcsecond.build_telescopes_api(**self.api_kwargs)
+        api = ArcsecondAPI.telescopes(**self.api_kwargs)
 
         try:
             # Telescope is supposed to exist already. Don't create new ones from here.
@@ -179,7 +179,7 @@ class UploadPreparator(object):
         kwargs = {'date': self._pack.night_log_date_string}
         if self._identity.telescope is not None:
             kwargs.update(telescope=self._identity.telescope)
-        api = Arcsecond.build_nightlogs_api(**self.api_kwargs)
+        api = ArcsecondAPI.nightlogs(**self.api_kwargs)
         self._night_log = self._sync_remote_resource(NightLog, api, **kwargs)
 
     # observations or calibrations

@@ -3,7 +3,7 @@ import os
 import uuid
 from datetime import datetime
 
-from arcsecond import Arcsecond
+from arcsecond import ArcsecondAPI
 
 from oort.shared.config import get_logger
 
@@ -74,11 +74,11 @@ class LegacyFileUploader(object):
         self.telescope = telescope
 
         if self.astronomer:
-            self.api = Arcsecond.build_datafiles_api(dataset=self.dataset['uuid'],
+            self.api = ArcsecondAPI.datafiles(dataset=self.dataset['uuid'],
                                                      debug=self.debug,
                                                      api_key=self.astronomer[1])
         else:
-            self.api = Arcsecond.build_datafiles_api(dataset=self.dataset['uuid'],
+            self.api = ArcsecondAPI.datafiles(dataset=self.dataset['uuid'],
                                                      debug=self.debug,
                                                      organisation=self.organisation)
 

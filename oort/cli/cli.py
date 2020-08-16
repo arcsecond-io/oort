@@ -1,7 +1,7 @@
 import webbrowser
 
 import click
-from arcsecond import Arcsecond
+from arcsecond import ArcsecondAPI
 
 from oort import __version__
 from oort.cli.folders import save_upload_folders

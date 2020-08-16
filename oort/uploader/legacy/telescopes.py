@@ -1,6 +1,6 @@
 import os
 
-from arcsecond import Arcsecond
+from arcsecond import ArcsecondAPI
 
 from oort.uploader.legacy.filesfolder import FilesFolder
 from oort.uploader.legacy.calibrations import CalibrationsFolder
@@ -45,7 +45,7 @@ class TelescopeFolder(FilesFolder):
 
     def read_remote_telescope(self):
         if self.context.verbose: print(f'Reading remote telescope with uuid {self.uuid}')
-        telescopes_api = Arcsecond.build_telescopes_api(**self.api_kwargs)
+        telescopes_api = ArcsecondAPI.telescopes(**self.api_kwargs)
         response_detail, error = telescopes_api.read(self.uuid)
         if response_detail:
             response_detail['folder_name'] = self.name
