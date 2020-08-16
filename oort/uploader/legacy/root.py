@@ -3,7 +3,7 @@ from configparser import ConfigParser
 
 from arcsecond import ArcsecondConnectionError
 
-from oort.uploader.utils import find_first_in_list
+from oort.shared.utils import find_first_in_list
 from oort.shared.constants import OORT_FILENAME
 from oort.uploader.legacy.filesfolder import FilesFolder
 from oort.uploader.legacy.telescopes import TelescopeFolder
