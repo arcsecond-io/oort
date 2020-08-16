@@ -64,12 +64,11 @@ def main(ctx, version=False, **kwargs):
 
 
 @main.command()
-@click.option('-u', '--username', required=True, nargs=1, prompt=True)
-@click.option('-p', '--password', required=True, nargs=1, prompt=True, hide_input=True)
-@click.option('-o', '--organisation', required=False, help='organisation subdomain')
+@click.option('--username', required=True, nargs=1, prompt=True)
+@click.option('--password', required=True, nargs=1, prompt=True, hide_input=True)
 @basic_options
 @pass_state
-def login(state, u, username, p, password, o=None, organisation=None):
+def login(state, username, password):
     """Login to your personal Arcsecond.io account, and retrieve the associated API key.
     This API key is a secret token you should take care. It will be stored locally on a file:
     ~/.arcsecond.ini
@@ -77,7 +76,7 @@ def login(state, u, username, p, password, o=None, organisation=None):
     Make sure to indicate the organisation subdomain if you intend to upload for that
     organisation.
     """
-    ArcsecondAPI.login(u or username, p or password, o or organisation, state)
+    ArcsecondAPI.login(username, password, None, debug=state.debug)
 
 
 @main.command(help='Start Oort processes.')
