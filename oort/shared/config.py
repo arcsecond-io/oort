@@ -37,10 +37,10 @@ def get_logger(debug=False):
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     fh.setFormatter(formatter)
     logger.addHandler(fh)
+    console_handler = logging.StreamHandler()
     if debug is True:
-        console_handler = logging.StreamHandler()
         console_handler.setLevel(logging.DEBUG)
-        logger.addHandler(console_handler)
+    logger.addHandler(console_handler)
     return logger
 
 
