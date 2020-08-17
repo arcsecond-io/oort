@@ -1,7 +1,6 @@
 from typing import Optional, Type
 
 from arcsecond import ArcsecondAPI
-from arcsecond.api.main import ArcsecondAPI
 
 from oort.shared.config import get_logger
 from oort.shared.identity import Identity
@@ -184,7 +183,7 @@ class UploadPreparator(object):
 
     # observations or calibrations
     def _sync_observation_or_calibration(self):
-        resources_api = getattr(Arcsecond, 'build_' + self._pack.remote_resources_name + '_api')(**self.api_kwargs)
+        resources_api = getattr(ArcsecondAPI, self._pack.remote_resources_name)(**self.api_kwargs)
 
         # Using dataset name for Obs/Calib name too.
         self._obs_or_calib = self._sync_remote_resource(self._pack.resource_db_class,
@@ -194,7 +193,7 @@ class UploadPreparator(object):
 
     def _sync_dataset(self):
         kwargs = {'name': self._pack.dataset_name, self._pack.resource_type: self._obs_or_calib.get('uuid')}
-        datasets_api = getattr(Arcsecond, 'build_datasets_api')(**self.api_kwargs)
+        datasets_api = ArcsecondAPI.datasets(**self.api_kwargs)
         self._dataset = self._sync_remote_resource(Dataset, datasets_api, **kwargs)
 
     # ------------------------------------------------------------------------------------------------------------------
