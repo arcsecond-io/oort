@@ -94,6 +94,7 @@
           v-if="state.folders.length"
           :options="state.folders"
           v-model="selected_folder"
+          :clearable="false"
           label="path"
         >
         </v-select>
