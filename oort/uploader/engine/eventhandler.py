@@ -15,7 +15,17 @@ class DataFileHandler(FileSystemEventHandler):
         super().__init__()
         self._path = path
         self._identity = identity
-        self._logger = get_logger()
+        self._debug = False
+        self._logger = get_logger(debug=self._debug)
+
+    @property
+    def debug(self):
+        return self._debug
+
+    @debug.setter
+    def debug(self, value):
+        self._debug = value
+        self._logger = get_logger(debug=self._debug)
 
     def run_initial_walk(self):
         for file in os.listdir(self._path):
