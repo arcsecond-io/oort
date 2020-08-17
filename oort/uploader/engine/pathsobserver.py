@@ -2,6 +2,7 @@ from typing import List
 
 from watchdog.observers import Observer
 
+from oort.shared.config import get_logger
 from oort.shared.identity import Identity
 from .eventhandler import DataFileHandler
 
@@ -11,6 +12,7 @@ class PathsObserver(Observer):
         super().__init__()
         self._mapping = {}
         self._debug = False
+        self._logger = get_logger(debug=self._debug)
 
     @property
     def debug(self):
@@ -19,15 +21,20 @@ class PathsObserver(Observer):
     @debug.setter
     def debug(self, value):
         self._debug = value
+        self._logger = get_logger(debug=self._debug)
+        for folder_path in self._mapping.keys():
+            self._mapping[folder_path]['handler'].debug = self._debug
 
-    def start_observe_folder(self, folder_path: str, identity: Identity) -> None:
+    def observe_folder(self, folder_path: str, identity: Identity) -> None:
+        self._logger.info(f'Starting to observe folder {folder_path}')
         event_handler = DataFileHandler(path=folder_path, identity=identity)
         event_handler.run_initial_walk()
         watch = self.schedule(event_handler, folder_path, recursive=True)
         self._mapping[folder_path] = {'watcher': watch, 'handler': event_handler}
 
-    def stop_observe_path(self, folder_path: str) -> None:
+    def forget_folder(self, folder_path: str) -> None:
         if folder_path in self._mapping.keys():
+            self._logger.info(f'Forgetting to observe folder {folder_path}')
             self.unschedule(self._mapping[folder_path]['watcher'])
             del self._mapping[folder_path]
 
