@@ -1,3 +1,4 @@
+import builtins
 import webbrowser
 
 import click
@@ -8,7 +9,8 @@ from oort.cli.folders import save_upload_folders
 from oort.cli.options import State, basic_options
 from oort.cli.supervisor import (configure_supervisor, get_supervisor_processes_status, restart_supervisor_processes,
                                  start_supervisor_daemon, start_supervisor_processes, stop_supervisor_processes)
-from oort.shared.config import get_config_value
+from oort.shared.config import get_config_value, get_log_file_path
+from oort.shared.utils import tail
 from oort.uploader.main import paths_observer
 
 pass_state = click.make_pass_decorator(State, ensure=True)
@@ -122,6 +124,15 @@ def open(state):
     host = get_config_value('server', 'host')
     port = get_config_value('server', 'port')
     webbrowser.open(f"http://{host}:{port}")
+
+
+@main.command(help='Tail the logs.')
+@click.option('-n', required=False, nargs=1, type=click.INT, help="The number of (last) lines to show (Default: 10).")
+@basic_options
+@pass_state
+def logs(state, n):
+    with builtins.open(get_log_file_path(), 'r') as f:
+        print(''.join(tail(f, n or 10)))
 
 
 @main.command()
