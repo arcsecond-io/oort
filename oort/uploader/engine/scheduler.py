@@ -31,9 +31,9 @@ class UploadScheduler(object):
             # await file_uploader.upload()
             queue.task_done()
 
-    def prepare_and_upload(self, preparator: UploadPreparator):
+    async def prepare_and_upload(self, preparator: UploadPreparator):
         # Enquing new preparator.
-        self._queue.put(preparator)
+        await self._queue.put(preparator)
 
 
 scheduler = UploadScheduler()
