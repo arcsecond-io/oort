@@ -125,7 +125,7 @@ class UploadPack(object):
             print(str(error))
         else:
             for hdu in hdulist:
-                date_header = hdu.header.get('DATE') or hdu.header.get('DATE-OBS')
+                date_header = hdu.header.get('DATE') or hdu.header.get('DATE-OBS') or hdu.header.get('DATE_OBS')
                 if not date_header:
                     continue
                 file_date = dateparser.parse(date_header)
