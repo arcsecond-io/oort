@@ -53,4 +53,5 @@ class Identity(object):
                                     organisation=self.organisation or '',
                                     role=self.role or '',
                                     path=upload_folder,
-                                    telescope=self.telescope or '')
+                                    telescope=self.telescope or '',
+                                    debug=self.debug)
