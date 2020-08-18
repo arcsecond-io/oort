@@ -1,3 +1,4 @@
+import os
 from typing import Optional, Type
 
 from arcsecond import ArcsecondAPI
@@ -71,6 +72,10 @@ class UploadPreparator(object):
     def dataset(self) -> Optional[dict]:
         return self._dataset
 
+    @property
+    def prefix(self) -> str:
+        return '[' + '/'.join(self._pack.file_path.split(os.sep)[-2:]) + ']'
+
     # ------ SYNC ------------------------------------------------------------------------------------------------------
 
     def _sync_local_resource(self, db_class: Type[BaseModel], api: ArcsecondAPI, **kwargs):
@@ -79,46 +84,48 @@ class UploadPreparator(object):
             raise UploadPreparationAPIError(str(error))
 
         try:
-            resource = db_class.get(**kwargs)
+            resource = db_class.smart_get(**kwargs)
         except DoesNotExist:
             resource = self._create_local_resource(db_class, **kwargs)
 
         return resource
 
-    def _sync_remote_resource(self, db_class: Type[BaseModel], api: ArcsecondAPI, **kwargs):
+    # ------------------------------------------------------------------------------------------------------------------
+
+    def _sync_resource(self, db_class: Type[BaseModel], api: ArcsecondAPI, **kwargs):
         try:
-            resource = db_class.get(**kwargs)
+            resource = db_class.smart_get(**kwargs)
 
         except DoesNotExist:
-            resource = self._find_or_create_remote_resource(api, **kwargs)
-            if resource is None:
+            self._logger.info(f'{self.prefix} Local resource does not exists. Find or create remote one.')
+
+            remote_resource = self._find_or_create_remote_resource(api, **kwargs)
+            if remote_resource is None:
                 raise UploadPreparationError('cant create resource')
 
-            self._create_local_resource(db_class, **resource)
+            self._logger.info(f'{self.prefix} Remote resource ok.')
+            resource = self._create_local_resource(db_class, **remote_resource)
+
+        else:
+            self._logger.info(f'{self.prefix} Local resource exists already.')
 
         return resource
 
+    # ------------------------------------------------------------------------------------------------------------------
+
     def _find_or_create_remote_resource(self, api: ArcsecondAPI, **kwargs) -> Optional[dict]:
-        new_resource = None
-
-        # One must use the list endpoint since we don't have the existing UUID.
-        # We do not use name as filter argument for list API request, as it may changes, and
-        # thus isn't reliable to filter existing remote resources.
-        kwargs_name = kwargs.pop('name', None)
         response_list, error = api.list(**kwargs)
-
-        # Dealing with paginated results
-        if isinstance(response_list, dict) and 'results' in response_list.keys():
-            response_list = response_list['results']
 
         # An error occurred. Deal with it.
         if error is not None:
             raise UploadPreparationError(str(error))
 
+        # Dealing with paginated results
+        if isinstance(response_list, dict) and 'results' in response_list.keys():
+            response_list = response_list['results']
+
         # The resource doesn't exist. Create it.
-        elif len(response_list) == 0:
-            # Reintroduce name into resource creation.
-            if kwargs_name: kwargs.update(name=kwargs_name)
+        if len(response_list) == 0:
             new_resource = self._create_remote_resource(api, **kwargs)
 
         # The resource exists. Do nothing.
@@ -133,32 +140,30 @@ class UploadPreparator(object):
 
         return new_resource
 
+    # ------------------------------------------------------------------------------------------------------------------
+
     def _create_remote_resource(self, api: ArcsecondAPI, **kwargs) -> Optional[dict]:
+        self._logger.info(f'{self.prefix} Creating remote resource.')
+
         remote_resource, error = api.create(kwargs)
+
         if error is not None:
             msg = f'Failed to create resource in {api} endpoint. Retry is automatic.'
             raise UploadPreparationError(msg)
         else:
             return remote_resource
 
+    # ------------------------------------------------------------------------------------------------------------------
+
     def _create_local_resource(self, db_class: Type[BaseModel], **kwargs):
-        fields = {k: v for k, v in kwargs.items() if k in db_class._meta.sorted_field_names}
+        self._logger.info('Creating local resource.')
 
-        # Deal with organisation!
+        fields = {k: v for k, v in kwargs.items() if k in db_class._meta.sorted_field_names and v is not None}
+
         if self._identity.organisation and 'organisation' in db_class._meta.get_field_names():
-            org = Organisation.get(subdomain=self._identity.organisation, debug=self._debug)
-            fields.update(organisation=org)
+            fields.update(organisation=self._identity.organisation)
 
-        return db_class.create(**fields)
-
-    # Legacy
-    # def _check_resource_name(self, db_class: BaseModel, api: ArcsecondAPI, new_resource: dict, kwargs_name: str):
-    #     if kwargs_name is None or len(kwargs_name) == 0:
-    #         return new_resource
-    #     if 'name' in new_resource.keys():
-    #         current_name = new_resource.get('name', '').strip()
-    #         if len(current_name) == 0:
-    #             updated_new_resource, error = api.update(new_resource['uuid'], {'name': kwargs_name})
+        return db_class.smart_create(**fields)
 
     # ------ CHECKS ----------------------------------------------------------------------------------------------------
 
@@ -166,7 +171,7 @@ class UploadPreparator(object):
         if not self._identity.telescope:
             return
 
-        self._logger.info(f'Syncing telescope {self._identity.telescope}...')
+        self._logger.info(f'\nSyncing telescope {self._identity.telescope}...')
         api = ArcsecondAPI.telescopes(**self.api_kwargs)
 
         try:
@@ -176,35 +181,38 @@ class UploadPreparator(object):
             # Raising a FATAL error: we can't continue without an unknown telescope
             raise UploadPreparationFatalError(str(e))
 
+    # ------------------------------------------------------------------------------------------------------------------
+
     def _sync_night_log(self):
-        self._logger.info(f'Syncing nightlog {self._pack.night_log_date_string}...')
+        self._logger.info(f'{self.prefix} Syncing nightlog {self._pack.night_log_date_string}...')
+
         kwargs = {'date': self._pack.night_log_date_string}
-        if self._identity.telescope is not None:
+        if self._identity.telescope:
             kwargs.update(telescope=self._identity.telescope)
 
         api = ArcsecondAPI.nightlogs(**self.api_kwargs)
-        self._night_log = self._sync_remote_resource(NightLog, api, **kwargs)
+        self._night_log = self._sync_resource(NightLog, api, **kwargs)
 
-    # observations or calibrations
+    # ------------------------------------------------------------------------------------------------------------------
+
     def _sync_observation_or_calibration(self):
-        self._logger.info(f'Syncing {self._pack.remote_resources_name}...')
+        self._logger.info(f'{self.prefix} Syncing {self._pack.remote_resources_name}...')
         resources_api = getattr(ArcsecondAPI, self._pack.remote_resources_name)(**self.api_kwargs)
+        kwargs = {'night_log': str(self._night_log.uuid), 'name': self._pack.dataset_name}
+        self._obs_or_calib = self._sync_resource(self._pack.resource_db_class, resources_api, **kwargs)
 
-        # Using dataset name for Obs/Calib name too.
-        self._obs_or_calib = self._sync_remote_resource(self._pack.resource_db_class,
-                                                        resources_api,
-                                                        night_log=self._night_log.get('uuid'),
-                                                        name=self._pack.dataset_name)
+    # ------------------------------------------------------------------------------------------------------------------
 
     def _sync_dataset(self):
-        self._logger.info(f'Syncing {self._pack.dataset_name}...')
-        kwargs = {'name': self._pack.dataset_name, self._pack.resource_type: self._obs_or_calib.get('uuid')}
+        self._logger.info(f'{self.prefix} Syncing Dataset {self._pack.dataset_name}...')
         datasets_api = ArcsecondAPI.datasets(**self.api_kwargs)
-        self._dataset = self._sync_remote_resource(Dataset, datasets_api, **kwargs)
+        kwargs = {'name': self._pack.dataset_name, self._pack.resource_type: str(self._obs_or_calib.uuid)}
+        self._dataset = self._sync_resource(Dataset, datasets_api, **kwargs)
 
     # ------------------------------------------------------------------------------------------------------------------
 
     async def prepare(self):
+        self._logger.info(f'Preparation started for {self._pack.file_path}')
         try:
             self._pack.save(status='Preparing', substatus='Syncing Telescope...')
             self._sync_telescope()
@@ -216,12 +224,14 @@ class UploadPreparator(object):
             self._sync_dataset()
             self._pack.save(dataset=self.dataset)
         except UploadPreparationFatalError as e:
-            self._logger.error(str(e))
+            self._logger.info(f'Preparation failed for {self._pack.file_path} with error: {str(e)}')
             self._preparation_succeeded = False
             self._preparation_can_be_restarted = False
         except UploadPreparationError as e:
-            self._logger.error(str(e))
+            self._logger.info(f'Preparation failed for {self._pack.file_path} with error: {str(e)}')
             self._preparation_succeeded = False
             self._preparation_can_be_restarted = True
         else:
+            self._logger.info(f'Preparation succeeded for {self._pack.file_path}')
+            self._pack.save(status='Ready', substatus='')
             self._preparation_succeeded = True
