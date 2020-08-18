@@ -6,6 +6,7 @@ import sys
 
 from oort.shared.config import get_logger
 from .preparator import UploadPreparator
+from .uploader import FileUploader
 
 MAX_TASKS = 3
 
@@ -40,8 +41,9 @@ class UploadScheduler(object):
             preparator: UploadPreparator = await queue.get()
             self._logger.info('Launching upload preparation...')
             await preparator.prepare()
-            # file_uploader = FileUploader(preparator.pack, preparator.identity)
-            # await file_uploader.upload()
+            file_uploader = FileUploader(preparator.pack, preparator.identity, preparator.dataset)
+            self._logger.info('Launching upload itself...')
+            await file_uploader.upload()
             queue.task_done()
 
     async def _producer(self, preparator: UploadPreparator):

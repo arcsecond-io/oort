@@ -7,15 +7,16 @@ from arcsecond import ArcsecondAPI
 from oort.shared.config import get_logger
 from oort.shared.identity import Identity
 from .packer import UploadPack
-
-logger = get_logger()
+from ...shared.models import Dataset
 
 
 class FileUploader(object):
-    def __init__(self, pack: UploadPack, identity: Identity, dataset: dict):
+    def __init__(self, pack: UploadPack, identity: Identity, dataset: Dataset):
         self._pack = pack
         self._identity = identity
         self._dataset = dataset
+
+        self._logger = get_logger(debug=True)
 
         self.filesize = os.path.getsize(self._pack.file_path)
         self.status = 'ready'
@@ -39,14 +40,14 @@ class FileUploader(object):
         return log_string
 
     def _prepare(self):
-        if self._identity.organisation:
-            self.api = ArcsecondAPI.datafiles(dataset=self._dataset['uuid'],
-                                                     debug=self._identity.debug,
-                                                     organisation=self._identity.organisation)
+        if self._identity.organisation is None or len(self._identity.organisation) == 0:
+            self.api = ArcsecondAPI.datafiles(dataset=str(self._dataset.uuid),
+                                              debug=self._identity.debug,
+                                              api_key=self._identity.api_key)
         else:
-            self.api = ArcsecondAPI.datafiles(dataset=self._dataset['uuid'],
-                                                     debug=self._identity.debug,
-                                                     api_key=self._identity.api_key)
+            self.api = ArcsecondAPI.datafiles(dataset=str(self._dataset.uuid),
+                                              debug=self._identity.debug,
+                                              organisation=self._identity.organisation)
 
         def update_progress(event, progress_percent):
             self.status = 'OK'
@@ -87,7 +88,7 @@ class FileUploader(object):
             self.status, self.substatus = 'checking', 'asking arcsecond.io...'
             exists_remotely = self._check_remote_file()
         except Exception as error:
-            logger.info('error' + self.log_string + f' {str(self.error)}')
+            self._logger.info('error' + self.log_string + f' {str(self.error)}')
             self._finish()
             self.status = '?'
             self.substatus = str(error)
@@ -96,7 +97,7 @@ class FileUploader(object):
                 self._finish()
                 self.status, self.substatus = 'OK', 'already synced'
             else:
-                logger.info(str.ljust('start', 5) + self.log_string)
+                self._logger.info(str.ljust('start', 5) + self.log_string)
                 self.status, self.substatus = 'OK', 'starting'
                 self.uploader.start()
 
@@ -112,12 +113,12 @@ class FileUploader(object):
         self.duration = (self.ended - self.started).total_seconds()
 
         if self.error:
-            logger.info('error' + self.log_string + f' {str(self.error)}')
+            self._logger.info('error' + self.log_string + f' {str(self.error)}')
             self.status = 'error'
             self.substatus = str(self.error)[:20] + '...'
             self._process_error(self.error)
         else:
-            logger.info(str.ljust('ok', 5) + self.log_string)
+            self._logger.info(str.ljust('ok', 5) + self.log_string)
             self.status = 'OK'
             self.substatus = 'Done'
 
@@ -137,9 +138,13 @@ class FileUploader(object):
                     self.substatus = 'already synced'
 
     async def upload(self):
+        self._logger.info('Preparing upload.')
         self._prepare()
+        self._logger.info('Starting upload.')
         self._start()
+        self._logger.info('Finished upload.')
         self._finish()
+        self._logger.info('Upload done.')
 
     @property
     def is_started(self):
