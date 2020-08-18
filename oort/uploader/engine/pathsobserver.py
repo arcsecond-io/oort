@@ -27,7 +27,7 @@ class PathsObserver(Observer):
 
     def observe_folder(self, folder_path: str, identity: Identity) -> None:
         self._logger.info(f'Starting to observe folder {folder_path}')
-        event_handler = DataFileHandler(path=folder_path, identity=identity)
+        event_handler = DataFileHandler(path=folder_path, identity=identity, debug=self._debug)
         event_handler.run_initial_walk()
         watch = self.schedule(event_handler, folder_path, recursive=True)
         self._mapping[folder_path] = {'watcher': watch, 'handler': event_handler}

@@ -11,11 +11,11 @@ from .scheduler import scheduler
 
 
 class DataFileHandler(FileSystemEventHandler):
-    def __init__(self, path: str, identity: Identity):
+    def __init__(self, path: str, identity: Identity, debug=False):
         super().__init__()
         self._path = path
         self._identity = identity
-        self._debug = False
+        self._debug = debug
         self._logger = get_logger(debug=self._debug)
 
     @property
@@ -36,7 +36,7 @@ class DataFileHandler(FileSystemEventHandler):
     def on_created(self, event):
         self._logger.info(f'event type: {event.event_type}  path : {event.src_path}')
         pack = UploadPack(self._path, event.src_path)
-        preparator = UploadPreparator(pack=pack, identity=self._identity)
+        preparator = UploadPreparator(pack=pack, identity=self._identity, debug=self._debug)
         scheduler.prepare_and_upload(preparator)
 
     def on_moved(self, event):

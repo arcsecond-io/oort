@@ -12,10 +12,10 @@ from .packer import UploadPack
 class UploadPreparator(object):
     """Sync remote Telescope, Night Log, Observation or Calibration and Dataset."""
 
-    def __init__(self, pack: UploadPack, identity: Identity):
+    def __init__(self, pack: UploadPack, identity: Identity, debug=False):
         self._pack = pack
         self._identity = identity
-        self._debug = self._identity.debug
+        self._debug = debug
         self._logger = get_logger(debug=self._debug)
 
         self._preparation_succeeded = False
@@ -26,8 +26,10 @@ class UploadPreparator(object):
         self._obs_or_calib = None
         self._dataset = None
 
+        # Do NOT mix debug and self._identity.debug
+
         if self._identity.organisation:
-            api = ArcsecondAPI.organisations(debug=self._debug)
+            api = ArcsecondAPI.organisations(debug=self._identity.debug)
             self._sync_local_resource(Organisation, api, subdomain=self._identity.organisation)
 
     # ------ PROPERTIES ------------------------------------------------------------------------------------------------
@@ -46,7 +48,7 @@ class UploadPreparator(object):
 
     @property
     def api_kwargs(self) -> dict:
-        kwargs = {'debug': self._debug}
+        kwargs = {'debug': self._identity.debug}
         if self._identity.organisation is not None and len(self._identity.organisation) > 0:
             kwargs.update(organisation=self._identity.organisation)
         else:
