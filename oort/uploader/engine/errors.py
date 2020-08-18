@@ -19,3 +19,7 @@ class UploadPackingError(OortCloudError):
 
 class PathObservationError(OortCloudError):
     pass
+
+
+class MultipleDBInstanceError(OortCloudError):
+    pass
