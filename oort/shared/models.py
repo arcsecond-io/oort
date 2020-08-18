@@ -39,13 +39,13 @@ class NightLog(BaseModel):
 class Observation(BaseModel):
     uuid = UUIDField(unique=True)
     name = CharField(default='')
-    night_log = ForeignKeyField(Organisation, backref='observations')
+    night_log = ForeignKeyField(NightLog, backref='observations')
 
 
 class Calibration(BaseModel):
     uuid = UUIDField(unique=True)
     name = CharField(default='')
-    night_log = ForeignKeyField(Organisation, backref='calibrations')
+    night_log = ForeignKeyField(NightLog, backref='calibrations')
 
 
 class Dataset(BaseModel):
