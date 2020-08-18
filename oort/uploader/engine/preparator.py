@@ -8,8 +8,6 @@ from oort.shared.models import *
 from .errors import *
 from .packer import UploadPack
 
-logger = get_logger()
-
 
 class UploadPreparator(object):
     """Sync remote Telescope, Night Log, Observation or Calibration and Dataset."""
@@ -18,6 +16,7 @@ class UploadPreparator(object):
         self._pack = pack
         self._identity = identity
         self._debug = self._identity.debug
+        self._logger = get_logger(debug=self._debug)
 
         self._preparation_succeeded = False
         self._preparation_can_be_restarted = False
@@ -165,6 +164,7 @@ class UploadPreparator(object):
         if not self._identity.telescope:
             return
 
+        self._logger.info(f'Syncing telescope {self._identity.telescope}...')
         api = ArcsecondAPI.telescopes(**self.api_kwargs)
 
         try:
@@ -175,14 +175,17 @@ class UploadPreparator(object):
             raise UploadPreparationFatalError(str(e))
 
     def _sync_night_log(self):
+        self._logger.info(f'Syncing nightlog {self._pack.night_log_date_string}...')
         kwargs = {'date': self._pack.night_log_date_string}
         if self._identity.telescope is not None:
             kwargs.update(telescope=self._identity.telescope)
+
         api = ArcsecondAPI.nightlogs(**self.api_kwargs)
         self._night_log = self._sync_remote_resource(NightLog, api, **kwargs)
 
     # observations or calibrations
     def _sync_observation_or_calibration(self):
+        self._logger.info(f'Syncing {self._pack.remote_resources_name}...')
         resources_api = getattr(ArcsecondAPI, self._pack.remote_resources_name)(**self.api_kwargs)
 
         # Using dataset name for Obs/Calib name too.
@@ -192,6 +195,7 @@ class UploadPreparator(object):
                                                         name=self._pack.dataset_name)
 
     def _sync_dataset(self):
+        self._logger.info(f'Syncing {self._pack.dataset_name}...')
         kwargs = {'name': self._pack.dataset_name, self._pack.resource_type: self._obs_or_calib.get('uuid')}
         datasets_api = ArcsecondAPI.datasets(**self.api_kwargs)
         self._dataset = self._sync_remote_resource(Dataset, datasets_api, **kwargs)
@@ -210,11 +214,11 @@ class UploadPreparator(object):
             self._sync_dataset()
             self._pack.save(dataset=self.dataset)
         except UploadPreparationFatalError as e:
-            logger.error(str(e))
+            self._logger.error(str(e))
             self._preparation_succeeded = False
             self._preparation_can_be_restarted = False
         except UploadPreparationError as e:
-            logger.error(str(e))
+            self._logger.error(str(e))
             self._preparation_succeeded = False
             self._preparation_can_be_restarted = True
         else:
