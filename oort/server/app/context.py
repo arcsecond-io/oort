@@ -1,10 +1,22 @@
 import datetime
 import json
+from json import JSONEncoder
+from uuid import UUID
 
 from arcsecond import ArcsecondAPI
+from playhouse.shortcuts import model_to_dict
 
 from oort.shared.config import get_config_upload_folder_sections
-from oort.shared.models import Upload
+from oort.shared.models import *
+
+
+class BoostedJSONEncoder(JSONEncoder):
+    def default(self, o):
+        if isinstance(o, datetime.datetime):
+            return f'{o:%Y-%m-%d %H:%M:%S%z}'
+        if isinstance(o, UUID):
+            return str(o)
+        return super().default(o)
 
 
 class Context:
@@ -29,11 +41,37 @@ class Context:
         }
 
     def get_yield_string(self):
+        pending_query = Upload.select().where((Upload.status == STATUS_NEW) | (Upload.status == STATUS_CHECKING))
+        current_query = Upload.select().where(Upload.status == STATUS_OK).where(
+            (Upload.substatus == SUBSTATUS_STARTING) |
+            (Upload.substatus == SUBSTATUS_UPLOADING) |
+            (Upload.substatus == SUBSTATUS_FINISHING)
+        )
+        finished_query = Upload.select().where(Upload.status == STATUS_OK).where(
+            (Upload.substatus == SUBSTATUS_DONE) |
+            (Upload.substatus == SUBSTATUS_ALREADY_SYNCED)
+        )
+        error_query = Upload.select().where(Upload.status == STATUS_ERROR)
+
+        def _ff(u):
+            # fill and flatten
+            ds = Dataset.get(Dataset.uuid == u['dataset']['uuid'])
+            if ds.observation is not None:
+                u['observation'] = model_to_dict(ds.observation, max_depth=0)
+            if ds.calibration is not None:
+                u['calibration'] = model_to_dict(ds.calibration, max_depth=0)
+            obs_or_calib = ds.observation or ds.calibration
+            u['night_log'] = model_to_dict(obs_or_calib.night_log, max_depth=1)
+            u['telescope'] = {'name': '?', 'uuid': '?'}
+            return u
+
         data = {
             'state': self.to_dict(),
-            'pending': [u for u in Upload.select().where(Upload.status == 'pending').dicts()],
-            'current': [u for u in Upload.select().where(Upload.status == 'current').dicts()],
-            'finished': [u for u in Upload.select().where(Upload.status == 'finished').dicts()]
+            'pending': [_ff(model_to_dict(u, max_depth=1)) for u in pending_query],
+            'current': [_ff(model_to_dict(u, max_depth=1)) for u in current_query],
+            'finished': [_ff(model_to_dict(u, max_depth=1)) for u in finished_query],
+            'errors': [_ff(model_to_dict(u, max_depth=1)) for u in error_query]
         }
-        json_data = json.dumps(data)
+        json_data = json.dumps(data, cls=BoostedJSONEncoder)
+        # print(json_data)
         return f"data:{json_data}\n\n"
