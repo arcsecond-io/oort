@@ -6,8 +6,8 @@ from arcsecond import ArcsecondAPI
 
 from oort.shared.config import get_logger
 from oort.shared.identity import Identity
+from oort.shared.models import Dataset, Upload
 from .packer import UploadPack
-from ...shared.models import Dataset
 
 
 class FileUploader(object):
