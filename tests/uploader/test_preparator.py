@@ -52,8 +52,8 @@ async def test_preparator_prepare_no_org_no_telescope():
         await up.prepare()
         assert mock_method_list.called_once_with(date=pack.night_log_date_string)
         assert mock_method_create.called_with(**nl)
-        assert up.night_log == nl
+        assert up.night_log.uuid == nl['uuid']
         assert mock_method_create.called_with(**obs)
-        assert up.obs_or_calib == obs
+        assert up.obs_or_calib.uuid == obs['uuid']
         assert mock_method_create.called_with(**ds)
-        assert up.dataset == ds
+        assert up.dataset.uuid == ds['uuid']
