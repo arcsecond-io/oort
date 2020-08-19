@@ -61,15 +61,15 @@ class UploadPreparator(object):
         return self._telescope
 
     @property
-    def night_log(self) -> Optional[dict]:
+    def night_log(self) -> Optional[BaseModel]:
         return self._night_log
 
     @property
-    def obs_or_calib(self) -> Optional[dict]:
+    def obs_or_calib(self) -> Optional[BaseModel]:
         return self._obs_or_calib
 
     @property
-    def dataset(self) -> Optional[dict]:
+    def dataset(self) -> Optional[BaseModel]:
         return self._dataset
 
     @property
@@ -78,7 +78,7 @@ class UploadPreparator(object):
 
     # ------ SYNC ------------------------------------------------------------------------------------------------------
 
-    def _sync_local_resource(self, db_class: Type[BaseModel], api: ArcsecondAPI, **kwargs):
+    def _sync_local_resource(self, db_class: Type[BaseModel], api: ArcsecondAPI, **kwargs) -> BaseModel:
         remote_resource, error = api.read(kwargs)
         if error:
             raise UploadPreparationAPIError(str(error))
@@ -92,7 +92,7 @@ class UploadPreparator(object):
 
     # ------------------------------------------------------------------------------------------------------------------
 
-    def _sync_resource(self, db_class: Type[BaseModel], api: ArcsecondAPI, **kwargs):
+    def _sync_resource(self, db_class: Type[BaseModel], api: ArcsecondAPI, **kwargs) -> BaseModel:
         try:
             resource = db_class.smart_get(**kwargs)
 
