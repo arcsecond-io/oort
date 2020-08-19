@@ -3,10 +3,11 @@ import os
 from datetime import datetime
 
 from arcsecond import ArcsecondAPI
+from arcsecond.api.endpoints import AsyncFileUploader
 
 from oort.shared.config import get_logger
 from oort.shared.identity import Identity
-from oort.shared.models import Dataset, Upload
+from oort.shared.models import *
 from .packer import UploadPack
 
 
@@ -15,22 +16,16 @@ class FileUploader(object):
         self._pack = pack
         self._identity = identity
         self._dataset = dataset
-
         self._logger = get_logger(debug=True)
 
-        self.filesize = os.path.getsize(self._pack.file_path)
-        self.status = 'ready'
-        self.substatus = 'pending'
-        self.progress = 0
-        self.started = None
-        self.ended = None
-        self.duration = None
-        self.result = None
-        self.error = None
+        self._upload, _ = Upload.get_or_create(file_path=self._pack.file_path)
+        self._upload.smart_update(file_date=self._pack.file_date,
+                                  file_size=self._pack.file_size,
+                                  dataset=dataset)
 
         self._stalled_progress = 0
         self._exists_remotely = False
-        self.api = None
+        self._api = None
 
     @property
     def log_string(self):
@@ -41,28 +36,30 @@ class FileUploader(object):
 
     def _prepare(self):
         if self._identity.organisation is None or len(self._identity.organisation) == 0:
-            self.api = ArcsecondAPI.datafiles(dataset=str(self._dataset.uuid),
-                                              debug=self._identity.debug,
-                                              api_key=self._identity.api_key)
+            self._api = ArcsecondAPI.datafiles(dataset=str(self._dataset.uuid),
+                                               debug=self._identity.debug,
+                                               api_key=self._identity.api_key)
         else:
-            self.api = ArcsecondAPI.datafiles(dataset=str(self._dataset.uuid),
-                                              debug=self._identity.debug,
-                                              organisation=self._identity.organisation)
+            self._api = ArcsecondAPI.datafiles(dataset=str(self._dataset.uuid),
+                                               debug=self._identity.debug,
+                                               organisation=self._identity.organisation)
 
         def update_progress(event, progress_percent):
-            self.status = 'OK'
-            self.substatus = 'uploading...'
-            self.progress = progress_percent
-            self.duration = (datetime.now() - self.started).total_seconds()
+            self._logger.info(f'progress: {progress_percent}')
+            # self._upload.smart_update(status=STATUS_OK,
+            #                           substatus=SUBSTATUS_UPLOADING,
+            #                           progress=progress_percent,
+            #                           duration=(datetime.now() - self._upload.started).total_seconds())
 
-        self.uploader, _ = self.api.create({'file': self._pack.file_path}, callback=update_progress)
+        self._async_file_uploader: AsyncFileUploader
+        self._async_file_uploader, _ = self._api.create({'file': self._pack.file_path}, callback=update_progress)
 
     def _check_remote_file(self):
         if self._exists_remotely is True:
             return self._exists_remotely
 
         filename = os.path.basename(self._pack.file_path)
-        response_list, error = self.api.list(name=filename)
+        response_list, error = self._api.list(name=filename)
         if error:
             raise Exception(str(error)[:20] + '...')
 
@@ -79,50 +76,48 @@ class FileUploader(object):
         return self._exists_remotely
 
     def _start(self):
-        if self.started is not None:
+        if self._upload.started is not None:
             return
 
-        self.started = datetime.now()
+        self._upload.smart_update(started=datetime.now())
 
         try:
-            self.status, self.substatus = 'checking', 'asking arcsecond.io...'
+            self._upload.smart_update(status=STATUS_CHECKING, substatus=SUBSTATUS_CHECKING)
             exists_remotely = self._check_remote_file()
         except Exception as error:
-            self._logger.info('error' + self.log_string + f' {str(self.error)}')
+            self._logger.info('error' + self.log_string + f' {str(error)}')
             self._finish()
-            self.status = '?'
-            self.substatus = str(error)
+            self._upload.smart_update(status=STATUS_ERROR, substatus=SUBSTATUS_ERROR, error=str(error))
         else:
             if exists_remotely:
                 self._finish()
-                self.status, self.substatus = 'OK', 'already synced'
+                self._upload.smart_update(status=STATUS_OK, substatus=SUBSTATUS_ALREADY_SYNCED, error='')
             else:
                 self._logger.info(str.ljust('start', 5) + self.log_string)
-                self.status, self.substatus = 'OK', 'starting'
-                self.uploader.start()
+                self._upload.smart_update(status=STATUS_OK, substatus=SUBSTATUS_STARTING, error='')
+                self._logger.info('••• real upload start •••')
+                self._async_file_uploader.start()
 
     def _finish(self):
-        if self.ended is not None:
+        if self._upload.ended is not None:
             return
 
-        self.substatus = 'finishing...'
-        _, self.error = self.uploader.finish()
+        self._upload.smart_update(status=STATUS_OK, substatus=SUBSTATUS_FINISHING)
+        _, upload_error = self._async_file_uploader.finish()
 
-        self.ended = datetime.now()
-        self.progress = 0
-        self.duration = (self.ended - self.started).total_seconds()
+        ended = datetime.now()
+        self._upload.smart_update(ended=ended, progress=0, duration=(ended - self._upload.started).total_seconds())
 
-        if self.error:
-            self._logger.info('error' + self.log_string + f' {str(self.error)}')
-            self.status = 'error'
-            self.substatus = str(self.error)[:20] + '...'
-            self._process_error(self.error)
+        if upload_error:
+            self._logger.info('error' + self.log_string + f' {str(upload_error)}')
+            self._process_error(upload_error)
         else:
             self._logger.info(str.ljust('ok', 5) + self.log_string)
-            self.status = 'OK'
-            self.substatus = 'Done'
+            self._upload.smart_update(status=STATUS_OK, substatus=SUBSTATUS_DONE, error='')
 
     def _process_error(self, error):
+        status, substatus, error = STATUS_ERROR, SUBSTATUS_ERROR, str(error)
+
         try:
             error_body = json.loads(error)
         except Exception as err:
@@ -133,9 +128,9 @@ class FileUploader(object):
                 detail = error_body['detail']
                 error_content = detail[0] if isinstance(detail, list) and len(detail) > 0 else detail
                 if 'already exists in dataset' in error_content:
-                    self.error = ''
-                    self.status = 'OK'
-                    self.substatus = 'already synced'
+                    status, substatus, error = STATUS_OK, SUBSTATUS_ALREADY_SYNCED, ''
+
+        self._upload.smart_update(status=status, substatus=substatus, error=error)
 
     async def upload(self):
         self._logger.info('Preparing upload.')
@@ -148,11 +143,11 @@ class FileUploader(object):
 
     @property
     def is_started(self):
-        return self.started is not None and self.ended is None
+        return self._upload.started is not None and self._upload.ended is None
 
     @property
     def is_finished(self):
-        return self.started is not None and self.ended is not None
+        return self._upload.started is not None and self._upload.ended is not None
 
     @property
     def state(self):
@@ -163,24 +158,11 @@ class FileUploader(object):
         elif self.is_finished():
             return 'finished'
 
-    # def to_dict(self):
-    #     self._check_stalled()
-    #     return {
-    #         'filename': os.path.basename(self.filepath),
-    #         'filepath': self.filepath,
-    #         'filesize': self.filesize,
-    #         'filedate': self.filedate.isoformat(),
-    #         'status': self.status,
-    #         'substatus': self.substatus,
-    #         'progress': self.progress,
-    #         'started': self.started.strftime('%Y-%m-%dT%H:%M:%S') if self.started else '',
-    #         'ended': self.ended.strftime('%Y-%m-%dT%H:%M:%S') if self.ended else '',
-    #         'duration': '{:.1f}'.format(self.duration) if self.duration else '',
-    #         'dataset': self.dataset,
-    #         'night_log': self.night_log,
-    #         'telescope': self.telescope,
-    #         'organisation': self.organisation or '',
-    #         'astronomer': self.astronomer[0] if self.astronomer else '',
-    #         'error': self.error or '',
-    #         'state': self.state
-    #     }
+
+async def test_upload():
+    root = '/Users/onekiloparsec/code/onekiloparsec/arcsecond-oort/data/test_folder/'
+    dataset = Dataset.get(Dataset.uuid == '4968f81d-77cc-4f16-b83a-5a0587235a56')
+    identity = Identity('cedric', '764837d11cf32dda5f71df24d4a017a4', None, None, None, True)
+    pack = UploadPack(root, os.path.join(root, 'jup999.fits'))
+    uploader = FileUploader(pack=pack, identity=identity, dataset=dataset)
+    await uploader.upload()

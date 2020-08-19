@@ -70,6 +70,11 @@ class BaseModel(Model):
 
         return instance
 
+    def smart_update(self, **kwargs):
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+        self.save()
+
 
 class Organisation(BaseModel):
     _primary_field = 'subdomain'
@@ -108,13 +113,28 @@ class Dataset(BaseModel):
     calibration = ForeignKeyField(Calibration, unique=True, null=True)
 
 
+STATUS_NEW = 'New'
+STATUS_CHECKING = 'Checking'
+STATUS_OK = 'OK'
+STATUS_ERROR = 'Error'
+
+SUBSTATUS_PENDING = 'pending'
+SUBSTATUS_CHECKING = 'asking arcsecond.io...'
+SUBSTATUS_STARTING = 'starting...'
+SUBSTATUS_UPLOADING = 'uploading...'
+SUBSTATUS_FINISHING = 'finishing...'
+SUBSTATUS_ERROR = ''
+SUBSTATUS_ALREADY_SYNCED = 'already synced'
+SUBSTATUS_DONE = 'done'
+
+
 class Upload(BaseModel):
     file_path = CharField(unique=True)
     file_date = DateTimeField(null=True)
     file_size = IntegerField(default=0)
 
-    status = CharField(default='ready')
-    substatus = CharField(default='pending')
+    status = CharField(default=STATUS_NEW)
+    substatus = CharField(default=SUBSTATUS_PENDING)
     progress = FloatField(default=0)
 
     started = DateTimeField(null=True)
