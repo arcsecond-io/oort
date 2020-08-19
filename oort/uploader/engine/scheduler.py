@@ -15,6 +15,7 @@ class UploadScheduler(object):
     def __init__(self):
         signal.signal(signal.SIGINT, self.signal_handler)  # register the signal with the signal handler first
         self._logger = get_logger()
+        self._loop = asyncio.get_event_loop()
 
         # Creating a single async Queue
         self._queue = asyncio.Queue(0)
@@ -28,6 +29,8 @@ class UploadScheduler(object):
     def __del__(self):
         for _consumer in self._consumers:
             _consumer.cancel()
+        self._loop.stop()
+        self._loop.close()
 
     def signal_handler(self, signum, frame):
         print('Cleaning up consumer tasks before exiting...')
@@ -52,8 +55,9 @@ class UploadScheduler(object):
     def prepare_and_upload(self, preparator: UploadPreparator):
         # Enqueuing new preparator.
         self._logger.info('Queuing for prepare and upload...')
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(self._producer(preparator))
+        # loop = asyncio.new_event_loop()
+        # asyncio.set_event_loop(loop)
+        self._loop.run_until_complete(self._producer(preparator))
 
 
 scheduler = UploadScheduler()
