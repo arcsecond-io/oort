@@ -197,22 +197,6 @@
         <div class="col-xs-12">
 
           <div id="uploads" v-if="state">
-            {#            <div class="state-block">#}
-            {#              <div class="label-centered darkgray">{{ state.message }}</div>#}
-            {#            </div>#}
-
-            {#            <div class="state-block" v-if="state.warning">#}
-            {#              <div>#}
-            {#                <pre class="alert-warning">{{ state.warning }}</pre>#}
-            {#              </div>#}
-            {#            </div>#}
-
-            {#            <div class="state-block" v-if="!isAlive">#}
-            {#              <div>#}
-            {#                <pre class="alert-warning">Oort server is disconnected. Issue the command above again.</pre>#}
-            {#              </div>#}
-            {#            </div>#}
-
             <div class="table-block">
               <div class="table-title">
                 Active Uploads ({{ current_uploads.length }})
@@ -238,8 +222,8 @@
                 <tbody>
                 <tr v-for="upload in current_uploads">
                   <td>
-                    {{ upload.filename }}
-                    <div class="subtitle">{{ upload.filedate }}</div>
+                    {{ upload.file_path }}
+                    <div class="subtitle">{{ upload.file_date }}</div>
                   </td>
                   <td :title="upload.dataset.uuid">
                     <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/datasets/${upload.dataset.uuid}`
@@ -278,7 +262,7 @@
                        target="_blank">{{ upload.organisation }}</a>
                   </td>
                   <td :title="`upload.filesize bytes`">
-                    {{ getFormatedSize(upload.filesize) }}
+                    {{ getFormattedSize(upload.filesize) }}
                   </td>
                   <td>
                     {{ upload.status }}
@@ -331,7 +315,7 @@
                        target="_blank">{{ upload.organisation }}</a>
                   </td>
                   <td :title="`upload.filesize bytes`">
-                    {{ getFormatedSize(upload.filesize) }}
+                    {{ getFormattedSize(upload.filesize) }}
                   </td>
                   <td>
                     {{ upload.status }}
@@ -366,8 +350,8 @@
                 <tbody>
                 <tr v-for="upload in finished_uploads">
                   <td>
-                    {{ upload.filename }}
-                    <div class="subtitle">{{ upload.filedate }}</div>
+                    {{ upload.file_path }}
+                    <div class="subtitle">{{ upload.file_date }}</div>
                   </td>
                   <td :title="upload.dataset.uuid">
                     <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/datasets/${upload.dataset.uuid}`
@@ -405,8 +389,8 @@
                     <a v-else :href=`https://${upload.organisation}.arcsecond.io`
                        target="_blank">{{ upload.organisation }}</a>
                   </td>
-                  <td :title="`upload.filesize bytes`">
-                    {{ getFormatedSize(upload.filesize) }}
+                  <td :title="`upload.file_size bytes`">
+                    {{ getFormattedSize(upload.file_size) }}
                   </td>
                   <td>
                     {{ upload.status }}
