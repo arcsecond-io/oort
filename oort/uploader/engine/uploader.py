@@ -85,7 +85,6 @@ class FileUploader(object):
             self._upload.smart_update(status=STATUS_CHECKING, substatus=SUBSTATUS_CHECKING)
             exists_remotely = self._check_remote_file()
         except Exception as error:
-            self._logger.info('error' + self.log_string + f' {str(error)}')
             self._finish()
             self._upload.smart_update(status=STATUS_ERROR, substatus=SUBSTATUS_ERROR, error=str(error))
         else:
@@ -93,9 +92,7 @@ class FileUploader(object):
                 self._finish()
                 self._upload.smart_update(status=STATUS_OK, substatus=SUBSTATUS_ALREADY_SYNCED, error='')
             else:
-                self._logger.info(str.ljust('start', 5) + self.log_string)
                 self._upload.smart_update(status=STATUS_OK, substatus=SUBSTATUS_STARTING, error='')
-                self._logger.info('••• real upload start •••')
                 self._async_file_uploader.start()
 
     def _finish(self):
