@@ -38,7 +38,7 @@ def main(ctx, version=False, **kwargs):
 
     Special names directing files in Calibrations are "Bias", "Dark" and "Flat".
     Subfolders of "Flat" will be considered as filter names. All other folder
-    names are considered as target names, and put inside Observation objects.
+    names are considered as target names, and put inside Observations.
 
     All Calibrations and Observations are automatically  associated with
     Night Logs whose date is inferred from the observation date of the files.
@@ -55,7 +55,7 @@ def main(ctx, version=False, **kwargs):
     • A small web server, which allow you to monitor, control and setup what is
         happening in the uploader (and find what happened before too).
 
-    The `oort` command is dedicated to starting, stopping and getting status
+    The `oort` command is dedicated to start, stop and get status
     of these two processes. Once they are up and running, only ONE thing
     remain to be done by you: indicate which folders `oort` should monitor
     to find files to upload.
