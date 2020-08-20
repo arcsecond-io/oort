@@ -126,6 +126,7 @@ SUBSTATUS_FINISHING = 'finishing...'
 SUBSTATUS_ERROR = ''
 SUBSTATUS_ALREADY_SYNCED = 'already synced'
 SUBSTATUS_DONE = 'done'
+SUBSTATUS_WILL_RESTART = 'will restart'
 
 
 class Upload(BaseModel):
