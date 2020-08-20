@@ -45,6 +45,9 @@ class UploadScheduler(object):
             await preparator.prepare()
             file_uploader = FileUploader(preparator.pack, preparator.identity, preparator.dataset)
             await file_uploader.upload()
+            # if file_uploader.should_restart:
+            #     await asyncio.sleep(5)
+            #     self._queue.put_nowait(preparator)
             queue.task_done()
 
     async def _producer(self, preparator: UploadPreparator):
