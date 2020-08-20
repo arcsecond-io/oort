@@ -1,4 +1,5 @@
 import os
+import time
 
 from watchdog.events import FileCreatedEvent
 from watchdog.events import FileSystemEventHandler
@@ -33,11 +34,27 @@ class DataFileHandler(FileSystemEventHandler):
             event = FileCreatedEvent(filename)
             self.on_created(event)
 
-    def on_created(self, event):
-        self._logger.info(f'Created event for path : {event.src_path}')
-        pack = UploadPack(self._path, event.src_path)
+    def upload_upon_complete(self, file_path):
+        file_size = -1
+        while file_size != os.path.getsize(file_path):
+            file_size = os.path.getsize(file_path)
+            time.sleep(1)
+
+        # file_done = False
+        # while not file_done:
+        #     try:
+        #         os.rename(file_path, file_path)
+        #         file_done = True
+        #     except:
+        #         return True
+
+        pack = UploadPack(self._path, file_path)
         preparator = UploadPreparator(pack=pack, identity=self._identity, debug=self._debug)
         scheduler.prepare_and_upload(preparator)
+
+    def on_created(self, event):
+        self._logger.info(f'Created event for path : {event.src_path}')
+        self.upload_upon_complete(event.src_path)
 
     # def on_moved(self, event):
     #     self._logger.info(f'event type: {event.event_type}  path : {event.src_path}')
