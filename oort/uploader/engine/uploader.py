@@ -81,6 +81,9 @@ class FileUploader(object):
         try:
             self._upload.smart_update(status=STATUS_CHECKING, substatus=SUBSTATUS_CHECKING)
             exists_remotely = self._check_remote_file()
+        except UploadRemoteFileCheckError as error:
+            self._finish()
+            self._upload.smart_update(status=STATUS_ERROR, substatus=SUBSTATUS_REMOTE_CHECK_ERROR, error=str(error))
         except Exception as error:
             self._finish()
             self._upload.smart_update(status=STATUS_ERROR, substatus=SUBSTATUS_ERROR, error=str(error))
