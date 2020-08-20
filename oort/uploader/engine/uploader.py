@@ -8,6 +8,7 @@ from arcsecond.api.endpoints import AsyncFileUploader
 from oort.shared.config import get_logger
 from oort.shared.identity import Identity
 from oort.shared.models import *
+from .errors import UploadRemoteFileCheckError
 from .packer import UploadPack
 
 
@@ -58,20 +59,16 @@ class FileUploader(object):
         if self._exists_remotely is True:
             return self._exists_remotely
 
-        filename = os.path.basename(self._pack.file_path)
-        response_list, error = self._api.list(name=filename)
+        response, error = self._api.read(os.path.basename(self._pack.file_path))
+
         if error:
-            raise Exception(str(error)[:20] + '...')
-
-        # Dealing with pagination
-        if isinstance(response_list, dict) and 'results' in response_list.keys():
-            response_list = response_list['results']
-
-        if len(response_list) > 1:
-            raise Exception(f'multiple files?')
-
-        if len(response_list) == 1:
-            self._exists_remotely = 'amazonaws.com' in response_list[0].get('file', '')
+            if 'not found' in error.lower():
+                self._exists_remotely = False
+            else:
+                self._logger.info('error' + self.log_string + f' {str(error)}')
+                raise UploadRemoteFileCheckError(str(error))
+        else:
+            self._exists_remotely = 'amazonaws.com' in response.get('file', '')
 
         return self._exists_remotely
 
