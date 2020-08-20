@@ -17,10 +17,6 @@ class ResourceType(Enum):
 
 
 class CalibrationType(Enum):
-    BIASES = auto()
-    DARKS = auto()
-    FLATS = auto()
-
     def _generate_next_value_(name, start, count, last_values):
         return name.lower().capitalize()
 
@@ -29,6 +25,10 @@ class CalibrationType(Enum):
             assert (len(suffix) > 0)
             suffix = ' ' + suffix
         return f'{self.name}{suffix}'
+
+    BIASES = auto()
+    DARKS = auto()
+    FLATS = auto()
 
 
 class UploadPack(object):
