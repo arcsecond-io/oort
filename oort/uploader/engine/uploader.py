@@ -147,6 +147,10 @@ class FileUploader(object):
         return self._upload.started is not None and self._upload.ended is not None
 
     @property
+    def should_restart(self):
+        return self._upload.substatus == SUBSTATUS_WILL_RESTART
+
+    @property
     def state(self):
         if not self.is_started() and not self.is_finished():
             return 'pending'
