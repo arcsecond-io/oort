@@ -1,45 +1,55 @@
 import os
 
+import click
 from arcsecond import ArcsecondAPI
 
 from oort.server.errors import (
     InvalidOrganisationTelescopeOortCloudError,
     NotLoggedInOortCloudError,
-    UnknownTelescopeOortCloudError
+    UnknownTelescopeOortCloudError, InvalidOrgMembershipOortCloudError
 )
 from oort.shared.identity import Identity
 from oort.shared.utils import look_for_telescope_uuid
 
 
-def save_upload_folders(folders, telescope_uuid, debug):
+def check_organisation_telescope(org_subdomain, telescope_uuid, debug):
     if not ArcsecondAPI.is_logged_in():
         raise NotLoggedInOortCloudError()
 
-    role, organisation, telescope_data = None, None, None
+    telescope_detail = None
 
-    if telescope_uuid is not None:
-        # Checking whether telescope exists.
-        api = ArcsecondAPI.telescopes(debug=debug)
-        telescope_data, error = api.read(telescope_uuid)
+    if org_subdomain and not telescope_uuid:
+        click.echo(f"Error: if an organisation is provided, you must specify a telescope UUID.")
+        click.echo(f"Here a list of existing telescopes for organisation {org_subdomain}:")
+        telescope_list, error = ArcsecondAPI.telescopes(debug=debug, organisation=org_subdomain).list()
+        for telescope in telescope_list:
+            click.echo(f" • {telescope['name']} : {telescope['uuid']}")
+
+    elif org_subdomain and telescope_uuid:
+        telescope_detail, error = ArcsecondAPI.telescopes(debug=debug, organisation=org_subdomain).read(telescope_uuid)
         if error:
-            raise UnknownTelescopeOortCloudError(telescope_uuid)
+            raise InvalidOrganisationTelescopeOortCloudError(str(error))
 
-    # Check whether telescope is part of current organisation
-    # NOTE: Logged in with organisation necessarily imply uploading for that organisation.
-    memberships = ArcsecondAPI.memberships(debug=debug)
-    if telescope_data and len(memberships) > 0:
-        for org_subdomain, membership_role in memberships.items():
-            org_api = ArcsecondAPI.telescopes(debug=debug, organisation=org_subdomain)
-            org_telescope_data, error = org_api.read(telescope_uuid)
+    elif not org_subdomain and telescope_uuid:
+        telescope_detail, error = ArcsecondAPI.telescopes(debug=debug).read(telescope_uuid)
+        if error:
+            raise UnknownTelescopeOortCloudError(str(error))
 
-            if error is None:
-                organisation = org_subdomain
-                role = membership_role
-                break
+    return telescope_detail
 
-        if organisation is None:
-            raise InvalidOrganisationTelescopeOortCloudError('')
 
+def check_organisation_membership(org_subdomain, debug):
+    if org_subdomain is None or len(org_subdomain.strip()) == 0:
+        return ''
+
+    role = ArcsecondAPI.memberships(debug=debug).get(org_subdomain, None) if org_subdomain else None
+    if org_subdomain and role is None:
+        raise InvalidOrgMembershipOortCloudError(org_subdomain)
+
+    return role
+
+
+def save_upload_folders(folders, org_subdomain, org_role, telescope_uuid, debug):
     prepared_folders = []
     for raw_folder in folders:
         upload_folder = os.path.expanduser(os.path.realpath(raw_folder))
@@ -57,8 +67,8 @@ def save_upload_folders(folders, telescope_uuid, debug):
 
         identity = Identity(username=ArcsecondAPI.username(debug=debug),
                             api_key=ArcsecondAPI.api_key(debug=debug),
-                            organisation=organisation or '',
-                            role=role or '',
+                            organisation=org_subdomain or '',
+                            role=org_role or '',
                             telescope=final_telescope_uuid or '',
                             debug=debug)
 

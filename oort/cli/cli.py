@@ -1,11 +1,12 @@
 import builtins
+import os
 import webbrowser
 
 import click
 from arcsecond import ArcsecondAPI
 
 from oort import __version__
-from oort.cli.folders import save_upload_folders
+from oort.cli.folders import save_upload_folders, check_organisation_telescope, check_organisation_membership
 from oort.cli.options import State, basic_options
 from oort.cli.supervisor import (configure_supervisor, get_supervisor_processes_status, restart_supervisor_processes,
                                  start_supervisor_daemon, start_supervisor_processes, stop_supervisor_processes)
@@ -137,13 +138,18 @@ def logs(state, n):
 
 @main.command()
 @click.argument('folders', required=True, nargs=-1)
+@click.option('-o', '--org', '--organisation',
+              required=False,
+              nargs=1,
+              help="The Organisation subdomain, if uploading to an organisation.")
 @click.option('-t', '--tel', '--telescope',
               required=False,
               nargs=1,
               type=click.UUID,
               help="The UUID of the telescope acquiring data (in the case of organisation uploads).")
+@basic_options
 @pass_state
-def upload(state, folders, t=None, tel=None, telescope=None):
+def upload(state, folders, o=None, org=None, organisation=None, t=None, tel=None, telescope=None):
     """
     Indicate a folder (or multiple folders) that oort should monitor for files
     to upload.
@@ -153,8 +159,34 @@ def upload(state, folders, t=None, tel=None, telescope=None):
 
     If no folder is provided, the current one is selected.
     """
-    telescope_uuid = t or tel or telescope
-    prepared_folders = save_upload_folders(folders, telescope_uuid, state.debug)
+    telescope_uuid = t or tel or telescope or ''
+    org_subdomain = o or org or organisation or ''
 
-    for (upload_folder, identity) in prepared_folders:
-        paths_observer.observe_folder(upload_folder, identity)
+    telescope_detail = check_organisation_telescope(org_subdomain, telescope_uuid, state.debug)
+    org_role = check_organisation_membership(org_subdomain, state.debug)
+
+    click.echo(" --- Upload folder(s) summary --- ")
+    click.echo(f" • Account username: @{ArcsecondAPI.username(debug=state.debug)}")
+    if org_subdomain:
+        click.echo(f" • Uploading for organisation: {org_subdomain} (role: {org_role})")
+    else:
+        click.echo(f" • Uploading in *personal* account.")
+
+    if telescope_detail:
+        click.echo(f" • NightLogs will be linked to telescope {telescope_detail['name']} ({telescope_detail['uuid']}).")
+    else:
+        click.echo(" • No designated telescope.")
+
+    if len(folders) == 1:
+        click.echo(f" • Folder: {os.path.expanduser(os.path.realpath(folders[0]))}")
+    else:
+        click.echo(f" • Folders:")
+        for folder in folders:
+            click.echo(f"   - {os.path.expanduser(os.path.realpath(folder))}")
+
+    ok = input(' --> OK? (Press Enter) ')
+
+    if ok.strip() == '':
+        prepared_folders = save_upload_folders(folders, org_subdomain, org_role, telescope_uuid, state.debug)
+        for (upload_folder, identity) in prepared_folders:
+            paths_observer.observe_folder(upload_folder, identity)
