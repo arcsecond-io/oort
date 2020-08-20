@@ -13,6 +13,10 @@ class UploadPreparationFatalError(OortCloudError):
     pass
 
 
+class UploadRemoteFileCheckError(OortCloudError):
+    pass
+
+
 class UploadPackingError(OortCloudError):
     pass
 
