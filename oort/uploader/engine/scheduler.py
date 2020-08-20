@@ -42,10 +42,8 @@ class UploadScheduler(object):
     async def _consumer(self, queue):
         while True:
             preparator: UploadPreparator = await queue.get()
-            self._logger.info('Launching upload preparation...')
             await preparator.prepare()
             file_uploader = FileUploader(preparator.pack, preparator.identity, preparator.dataset)
-            self._logger.info('Launching upload itself...')
             await file_uploader.upload()
             queue.task_done()
 
