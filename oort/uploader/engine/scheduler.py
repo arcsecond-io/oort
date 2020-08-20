@@ -53,10 +53,7 @@ class UploadScheduler(object):
         await self._queue.put(preparator)
 
     def prepare_and_upload(self, preparator: UploadPreparator):
-        # Enqueuing new preparator.
-        self._logger.info('Queuing for prepare and upload...')
-        # loop = asyncio.new_event_loop()
-        # asyncio.set_event_loop(loop)
+        self._logger.info('Queuing upload...')
         self._loop.run_until_complete(self._producer(preparator))
 
 
