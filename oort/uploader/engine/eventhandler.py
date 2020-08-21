@@ -56,11 +56,11 @@ class DataFileHandler(FileSystemEventHandler):
         self._logger.info(f'Created event for path : {event.src_path}')
         self.upload_upon_complete(event.src_path)
 
-    # def on_moved(self, event):
-    #     self._logger.info(f'event type: {event.event_type}  path : {event.src_path}')
-    #
-    # def on_deleted(self, event):
-    #     self._logger.info(f'event type: {event.event_type}  path : {event.src_path}')
-    #
-    # def on_modified(self, event):
-    #     self._logger.info(f'event type: {event.event_type}  path : {event.src_path}')
+    def on_moved(self, event):
+        self._logger.info(f'{event.event_type}: {event.src_path}')
+
+    def on_deleted(self, event):
+        self._logger.info(f'{event.event_type}: {event.src_path}')
+
+    def on_modified(self, event):
+        self._logger.info(f'{event.event_type}: {event.src_path}')
