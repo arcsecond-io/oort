@@ -8,7 +8,7 @@ from astropy.io import fits as pyfits
 
 from oort.shared.models import Calibration, Observation, Upload, DoesNotExist, Dataset
 
-CALIB_PREFIXES = ['bias', 'dark', 'flats']
+CALIB_PREFIXES = ['bias', 'dark', 'flats', 'calib']
 
 
 class ResourceType(Enum):

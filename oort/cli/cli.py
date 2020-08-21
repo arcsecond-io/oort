@@ -36,9 +36,9 @@ def main(ctx, version=False, **kwargs):
     files inside it will be put inside a Calibration object, associated with
     a Dataset whose name is that of the folder.
 
-    Special names directing files in Calibrations are "Bias", "Dark" and "Flat".
-    Subfolders of "Flat" will be considered as filter names. All other folder
-    names are considered as target names, and put inside Observations.
+    Special names directing files in Calibrations are "Bias", "Dark", "Flat" and
+    "Calib". All other folder names are considered as target names, and put
+    inside Observations.
 
     All Calibrations and Observations are automatically  associated with
     Night Logs whose date is inferred from the observation date of the files.
