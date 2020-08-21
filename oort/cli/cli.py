@@ -43,10 +43,8 @@ def main(ctx, version=False, **kwargs):
     All Calibrations and Observations are automatically  associated with
     Night Logs whose date is inferred from the observation date of the files.
     Oort takes automatically care of the right "date" whether the file is taken
-    before or after midnight on that local place.
-
-    It does so by knowing the Telescope. If no telescope could be found, the
-    date is taken at face value.
+    before or after noon on that local place. In other words, the "night"
+    boundaries are running from local noon to the next local noon.
 
     Oort-Cloud works by managing 2 processes:\n
     • An uploader, which takes care of creating/syncing the right Night Logs,

@@ -169,3 +169,27 @@ async def test_packer_calibration_no_fits_no_xisf():
         assert pack.remote_resources_name == 'calibrations'
         # Check name of dataset respect folder name
         assert pack.dataset_name == 'Biases'
+
+
+@pytest.mark.asyncio
+@use_test_database
+async def test_packer_no_telescope_date_after_noon():
+    path = f'/Users/onekiloparsec/data/Biases/dummy_010.fits'
+    obs_date = datetime.fromisoformat('2020-03-21T20:56:35.450686')
+    with patch('os.path.getsize', return_value=10), \
+         patch.object(UploadPack, '_find_fits_filedate', return_value=obs_date), \
+         patch.object(UploadPack, '_find_xisf_filedate', return_value=None):
+        pack = UploadPack(root_path, path)
+        assert pack.night_log_date_string == '2020-03-21'
+
+
+@pytest.mark.asyncio
+@use_test_database
+async def test_packer_no_telescope_date_before_noon():
+    path = f'/Users/onekiloparsec/data/Biases/dummy_010.fits'
+    obs_date = datetime.fromisoformat('2020-03-21T07:56:35.450686')
+    with patch('os.path.getsize', return_value=10), \
+         patch.object(UploadPack, '_find_fits_filedate', return_value=obs_date), \
+         patch.object(UploadPack, '_find_xisf_filedate', return_value=None):
+        pack = UploadPack(root_path, path)
+        assert pack.night_log_date_string == '2020-03-20'
