@@ -12,7 +12,7 @@ if __name__ == "__main__":
     logger = get_logger(debug=debug)
     paths_observer.debug = debug
 
-    logger.info(f'Starting infinite loop of PathsObserver...')
+    logger.info('Starting infinite loop of PathsObserver...')
     paths_observer.start()
 
     for folder_section in get_config_upload_folder_sections():

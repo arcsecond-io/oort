@@ -2,11 +2,12 @@ import os
 from typing import Optional, Type
 
 from arcsecond import ArcsecondAPI
+from peewee import DoesNotExist
 
 from oort.shared.config import get_logger
 from oort.shared.identity import Identity
-from oort.shared.models import *
-from .errors import *
+from oort.shared.models import BaseModel, Dataset, NightLog, Organisation, Telescope
+from .errors import UploadPreparationAPIError, UploadPreparationError, UploadPreparationFatalError
 from .packer import UploadPack
 
 
