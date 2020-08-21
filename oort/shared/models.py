@@ -1,4 +1,15 @@
-from peewee import *
+from peewee import (
+    CharField,
+    DateTimeField,
+    DoesNotExist,
+    Field,
+    FloatField,
+    ForeignKeyField,
+    IntegerField,
+    Model,
+    SqliteDatabase,
+    UUIDField
+)
 
 from oort.shared.config import get_db_file_path
 from oort.uploader.engine.errors import MultipleDBInstanceError

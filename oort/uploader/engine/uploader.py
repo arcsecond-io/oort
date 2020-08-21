@@ -7,7 +7,22 @@ from arcsecond.api.endpoints import AsyncFileUploader
 
 from oort.shared.config import get_logger
 from oort.shared.identity import Identity
-from oort.shared.models import *
+from oort.shared.models import (
+    Dataset,
+    STATUS_CHECKING,
+    STATUS_ERROR,
+    STATUS_OK,
+    SUBSTATUS_ALREADY_SYNCED,
+    SUBSTATUS_CHECKING,
+    SUBSTATUS_DONE,
+    SUBSTATUS_ERROR,
+    SUBSTATUS_FINISHING,
+    SUBSTATUS_REMOTE_CHECK_ERROR,
+    SUBSTATUS_STARTING,
+    SUBSTATUS_UPLOADING,
+    SUBSTATUS_WILL_RESTART,
+    Upload
+)
 from .errors import UploadRemoteFileCheckError
 from .packer import UploadPack
 
