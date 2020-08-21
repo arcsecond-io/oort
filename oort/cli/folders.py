@@ -1,7 +1,9 @@
 import os
+from typing import Optional, Union
 
 import click
 from arcsecond import ArcsecondAPI
+from click import UUID
 
 from oort.server.errors import (
     InvalidOrganisationTelescopeOortCloudError,
@@ -11,7 +13,9 @@ from oort.server.errors import (
 from oort.shared.identity import Identity
 
 
-def check_organisation_telescope(org_subdomain, telescope_uuid, debug):
+def check_organisation_telescope(org_subdomain: Optional[str],
+                                 telescope_uuid: Optional[Union[str, UUID]],
+                                 debug: bool) -> Optional[dict]:
     if not ArcsecondAPI.is_logged_in():
         raise NotLoggedInOortCloudError()
 
@@ -37,7 +41,7 @@ def check_organisation_telescope(org_subdomain, telescope_uuid, debug):
     return telescope_detail
 
 
-def check_organisation_membership(org_subdomain, debug):
+def check_organisation_membership(org_subdomain: str, debug: bool) -> str:
     if org_subdomain is None or len(org_subdomain.strip()) == 0:
         return ''
 
