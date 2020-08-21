@@ -61,7 +61,11 @@ def check_organisation_membership(org_subdomain: str, debug: bool) -> str:
     return role
 
 
-def save_upload_folders(folders, org_subdomain, org_role, telescope_uuid, debug):
+def save_upload_folders(folders: list,
+                        org_subdomain: Optional[str],
+                        org_role: Optional[str],
+                        telescope_details: Optional[dict],
+                        debug: bool) -> list:
     prepared_folders = []
     for raw_folder in folders:
         upload_folder = os.path.expanduser(os.path.realpath(raw_folder))
@@ -76,12 +80,18 @@ def save_upload_folders(folders, org_subdomain, org_role, telescope_uuid, debug)
         #     raise InvalidOrganisationTelescopeOortCloudError(legacy_telescope_uuid)
         # final_telescope_uuid = telescope_uuid or legacy_telescope_uuid
 
+        telescope_uuid = ''
+        longitude = None
+        if telescope_details:
+            telescope_uuid = telescope_details.get('uuid') or ''
+            longitude = telescope_details.get('coordinates').get('longitude') or ''
 
         identity = Identity(username=ArcsecondAPI.username(debug=debug),
                             api_key=ArcsecondAPI.api_key(debug=debug),
                             organisation=org_subdomain or '',
                             role=org_role or '',
-                            telescope=final_telescope_uuid or '',
+                            telescope=telescope_uuid,
+                            longitude=longitude,
                             debug=debug)
 
         identity.save_with_folder(upload_folder=upload_folder)

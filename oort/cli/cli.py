@@ -186,6 +186,6 @@ def upload(state, folders, o=None, org=None, organisation=None, t=None, tel=None
     ok = input(' --> OK? (Press Enter) ')
 
     if ok.strip() == '':
-        prepared_folders = save_upload_folders(folders, org_subdomain, org_role, telescope_uuid, state.debug)
+        prepared_folders = save_upload_folders(folders, org_subdomain, org_role, telescope_details, state.debug)
         for (upload_folder, identity) in prepared_folders:
             paths_observer.observe_folder(upload_folder, identity)
