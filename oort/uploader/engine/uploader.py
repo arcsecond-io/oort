@@ -46,11 +46,11 @@ class FileUploader(object):
                                                organisation=self._identity.organisation)
 
         def update_progress(event, progress_percent):
-            self._logger.info(f'progress: {progress_percent}')
-            # self._upload.smart_update(status=STATUS_OK,
-            #                           substatus=SUBSTATUS_UPLOADING,
-            #                           progress=progress_percent,
-            #                           duration=(datetime.now() - self._upload.started).total_seconds())
+            if progress_percent > self._upload.progress + 0.1 or progress_percent > 99:
+                self._upload.smart_update(status=STATUS_OK,
+                                          substatus=SUBSTATUS_UPLOADING,
+                                          progress=progress_percent,
+                                          duration=(datetime.now() - self._upload.started).total_seconds())
 
         self._async_file_uploader: AsyncFileUploader
         self._async_file_uploader, _ = self._api.create({'file': self._pack.file_path}, callback=update_progress)
