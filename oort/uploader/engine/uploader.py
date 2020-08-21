@@ -29,11 +29,8 @@ class FileUploader(object):
         self._api = None
 
     @property
-    def log_string(self):
-        log_string = f' {self._pack.file_path} {self._pack.night_log_date_string}'
-        # log_string += f'ds_{self.dataset["uuid"]} nl_{self.night_log["uuid"]} tel_{self.telescope["uuid"]} '
-        # log_string += f'as_{self.astronomer[0] if self.astronomer else ""} org_{self.organisation}'
-        return log_string
+    def prefix(self) -> str:
+        return '[' + '/'.join(self._pack.file_path.split(os.sep)[-2:]) + ']'
 
     def _prepare(self):
         if self._identity.organisation is None or len(self._identity.organisation) == 0:
@@ -65,7 +62,7 @@ class FileUploader(object):
             if 'not found' in error.lower():
                 self._exists_remotely = False
             else:
-                self._logger.info('error' + self.log_string + f' {str(error)}')
+                self._logger.info(f'{self.prefix} {str(error)}')
                 raise UploadRemoteFileCheckError(str(error))
         else:
             self._exists_remotely = 'amazonaws.com' in response.get('file', '')
@@ -74,6 +71,7 @@ class FileUploader(object):
 
     def _start(self):
         if self._upload.started is not None:
+            self._logger.info(f'{self.prefix} {self._upload.status} {self._upload.substatus}')
             return
 
         self._upload.smart_update(started=datetime.now())
@@ -84,15 +82,19 @@ class FileUploader(object):
         except UploadRemoteFileCheckError as error:
             self._finish()
             self._upload.smart_update(status=STATUS_ERROR, substatus=SUBSTATUS_REMOTE_CHECK_ERROR, error=str(error))
+            self._logger.info(f'{self.prefix} {str(error)}')
         except Exception as error:
             self._finish()
             self._upload.smart_update(status=STATUS_ERROR, substatus=SUBSTATUS_ERROR, error=str(error))
+            self._logger.info(f'{self.prefix} {str(error)}')
         else:
             if exists_remotely:
                 self._finish()
                 self._upload.smart_update(status=STATUS_OK, substatus=SUBSTATUS_ALREADY_SYNCED, error='')
+                self._logger.info(f'{self.prefix} Already synced.')
             else:
                 self._upload.smart_update(status=STATUS_OK, substatus=SUBSTATUS_STARTING, error='')
+                self._logger.info(f'{self.prefix} Starting upload.')
                 self._async_file_uploader.start()
 
     def _finish(self):
@@ -106,10 +108,10 @@ class FileUploader(object):
         self._upload.smart_update(ended=ended, progress=0, duration=(ended - self._upload.started).total_seconds())
 
         if upload_error:
-            self._logger.info('error' + self.log_string + f' {str(upload_error)}')
+            self._logger.info(f'{self.prefix} {str(upload_error)}')
             self._process_error(upload_error)
         else:
-            self._logger.info(str.ljust('ok', 5) + self.log_string)
+            self._logger.info(f'{self.prefix} successfully uploaded in {self._upload.duration} seconds.')
             self._upload.smart_update(status=STATUS_OK, substatus=SUBSTATUS_DONE, error='')
 
     def _process_error(self, error):
@@ -130,13 +132,11 @@ class FileUploader(object):
         self._upload.smart_update(status=status, substatus=substatus, error=error)
 
     async def upload(self):
-        self._logger.info('Preparing upload.')
+        self._logger.info(f'{self.prefix} Preparing upload.')
         self._prepare()
-        self._logger.info('Starting upload.')
         self._start()
-        self._logger.info('Finished upload.')
         self._finish()
-        self._logger.info('Upload done.')
+        self._logger.info(f'{self.prefix} Closing.')
 
     @property
     def is_started(self):
