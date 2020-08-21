@@ -13,12 +13,14 @@ class Identity(object):
                  organisation: Optional[str] = None,
                  role: Optional[str] = None,
                  telescope: Optional[str] = None,
+                 longitude: Optional[float] = None,
                  debug: bool = False):
         self._username = username
         self._api_key = api_key
         self._organisation = organisation
         self._role = role
         self._telescope = telescope
+        self._longitude = longitude
         self._debug = debug
 
     @property
@@ -40,6 +42,10 @@ class Identity(object):
     @property
     def telescope(self) -> Optional[str]:
         return self._telescope
+
+    @property
+    def longitude(self) -> Optional[float]:
+        return self._longitude
 
     @property
     def debug(self) -> bool:
