@@ -41,7 +41,7 @@ def configure_supervisor(debug=False):
         if debug is True:
             command_path += ' --debug'
 
-        conf.set(section_name, 'command', command_path)
+        conf.set(section_name, 'command', 'python3 ' + command_path)
 
     with open(conf_file_path, 'w') as f:
         conf.write(f)
