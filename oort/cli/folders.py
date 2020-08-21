@@ -30,14 +30,22 @@ def check_organisation_telescope(org_subdomain: Optional[str],
 
     elif org_subdomain and telescope_uuid:
         click.echo("Fetching telescope details...")
+        telescope_uuid = str(telescope_uuid)
         telescope_detail, error = ArcsecondAPI.telescopes(debug=debug, organisation=org_subdomain).read(telescope_uuid)
         if error:
             raise InvalidOrganisationTelescopeOortCloudError(str(error))
 
     elif not org_subdomain and telescope_uuid:
+        telescope_uuid = str(telescope_uuid)
         telescope_detail, error = ArcsecondAPI.telescopes(debug=debug).read(telescope_uuid)
         if error:
             raise UnknownTelescopeOortCloudError(str(error))
+
+    if telescope_detail is not None and telescope_detail.get('coordinates', None) is None:
+        site_uuid = telescope_detail.get('observing_site', None)
+        site_detail, error = ArcsecondAPI.observingsites(debug=debug).read(site_uuid)
+        print(site_uuid, site_detail, error)
+        telescope_detail['coordinates'] = site_detail.get('coordinates')
 
     return telescope_detail
 
