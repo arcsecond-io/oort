@@ -74,12 +74,6 @@ def save_upload_folders(folders: list,
         if os.path.isfile(upload_folder):
             upload_folder = os.path.dirname(upload_folder)
 
-        # legacy_telescope_uuid = look_for_telescope_uuid(upload_folder)
-        #
-        # if telescope_uuid and legacy_telescope_uuid and telescope_uuid != legacy_telescope_uuid:
-        #     raise InvalidOrganisationTelescopeOortCloudError(legacy_telescope_uuid)
-        # final_telescope_uuid = telescope_uuid or legacy_telescope_uuid
-
         telescope_uuid = ''
         longitude = None
         if telescope_details:
