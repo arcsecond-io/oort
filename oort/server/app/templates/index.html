@@ -223,7 +223,7 @@
                 <tr v-for="upload in current_uploads">
                   <td>
                     {{ upload.file_path }}
-                    <div class="subtitle">{{ upload.file_date }}</div>
+                    <div class="subtitle">Obs Date: {{ upload.file_date }}</div>
                   </td>
                   <td :title="upload.dataset.uuid">
                     <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/datasets/${upload.dataset.uuid}`
@@ -306,7 +306,7 @@
                 <tr v-for="upload in pending_uploads">
                   <td>
                     {{ upload.filename }}
-                    <div class="subtitle">{{ upload.filedate }}</div>
+                    <div class="subtitle">Obs Date: {{ upload.filedate }}</div>
                   </td>
                   <td>
                     <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/@${upload.astronomer}`
@@ -351,7 +351,7 @@
                 <tr v-for="upload in finished_uploads">
                   <td>
                     {{ upload.file_path }}
-                    <div class="subtitle">{{ upload.file_date }}</div>
+                    <div class="subtitle">Obs Date: {{ upload.file_date }}</div>
                   </td>
                   <td :title="upload.dataset.uuid">
                     <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/datasets/${upload.dataset.uuid}`
@@ -398,7 +398,7 @@
                   </td>
                   <td>{{ upload.started }}</td>
                   <td>{{ upload.ended }}</td>
-                  <td>{{ upload.duration }} s</td>
+                  <td>{{ upload.duration.toFixed(1) }} s</td>
                   <td>{{ upload.error }}</td>
                 </tr>
                 </tbody>
