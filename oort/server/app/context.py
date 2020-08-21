@@ -75,7 +75,7 @@ class Context:
             'state': self.to_dict(),
             'pending': [_ff(model_to_dict(u, max_depth=1)) for u in pending_query],
             'current': [_ff(model_to_dict(u, max_depth=1)) for u in current_query],
-            'finished': [_ff(model_to_dict(u, max_depth=1)) for u in finished_query],
+            'finished': [_ff(model_to_dict(u, max_depth=1)) for u in finished_query.order_by(-Upload.ended)],
             'errors': [_ff(model_to_dict(u, max_depth=1)) for u in error_query]
         }
         json_data = json.dumps(data, cls=BoostedJSONEncoder)
