@@ -64,7 +64,7 @@ class Context:
                 u['calibration'] = model_to_dict(ds.calibration, max_depth=0)
             obs_or_calib = ds.observation or ds.calibration
             u['night_log'] = model_to_dict(obs_or_calib.night_log, max_depth=1)
-            u['telescope'] = {'name': '?', 'uuid': '?'}
+            u['telescope'] = {}
             return u
 
         data = {
