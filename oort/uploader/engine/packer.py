@@ -34,9 +34,10 @@ class CalibrationType(Enum):
 class UploadPack(object):
     """Logic to determine dataset, night_log and observations/calibrations from filepath."""
 
-    def __init__(self, root_path, file_path):
+    def __init__(self, root_path, file_path, longitude=None):
         self._root_path = root_path
         self._file_path = file_path
+        self._longitude = longitude
         self._upload = None
         self._pack()
 
