@@ -252,8 +252,13 @@
                     <div class="subtitle">{{ upload.night_log.uuid }}</div>
                   </td>
                   <td>
-                    {{ upload.telescope.name }} ({{ upload.telescope.folder_name }})
-                    <div class="subtitle">{{ upload.telescope.uuid }}</div>
+                    <div v-if="upload.telescope.name">
+                      {{ upload.telescope.name }}
+                      <div class="subtitle">{{ upload.telescope.uuid }}</div>
+                    </div>
+                    <div v-else>
+                      <span class="subtitle">(no telescope)</span>
+                    </div>
                   </td>
                   <td>
                     <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/@${upload.astronomer}`
@@ -380,8 +385,13 @@
                     <div class="subtitle">{{ upload.night_log.uuid }}</div>
                   </td>
                   <td>
-                    {{ upload.telescope.name }} ({{ upload.telescope.folder_name }})
-                    <div class="subtitle">{{ upload.telescope.uuid }}</div>
+                    <div v-if="upload.telescope.name">
+                      {{ upload.telescope.name }}
+                      <div class="subtitle">{{ upload.telescope.uuid }}</div>
+                    </div>
+                    <div v-else>
+                      <span class="subtitle">(no telescope)</span>
+                    </div>
                   </td>
                   <td>
                     <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/@${upload.astronomer}`
