@@ -94,7 +94,7 @@ async def test_packer_calibs_flat_with_filter():
 @pytest.mark.asyncio
 @use_test_database
 async def test_packer_observation_no_filter():
-    path = f'/Users/onekiloparsec/data/HD5980/dummy_010.fits'
+    path = '/Users/onekiloparsec/data/HD5980/dummy_010.fits'
     with patch('os.path.getsize', return_value=10), \
          patch.object(UploadPack, '_find_fits_filedate', return_value=datetime.now()), \
          patch.object(UploadPack, '_find_xisf_filedate', return_value=datetime.now()):
@@ -114,7 +114,7 @@ async def test_packer_observation_no_filter():
 @pytest.mark.asyncio
 @use_test_database
 async def test_packer_observation_with_filter():
-    path = f'/Users/onekiloparsec/data/HD5980/Halpha/dummy_010.fits'
+    path = '/Users/onekiloparsec/data/HD5980/Halpha/dummy_010.fits'
     with patch('os.path.getsize', return_value=10), \
          patch.object(UploadPack, '_find_fits_filedate', return_value=datetime.now()), \
          patch.object(UploadPack, '_find_xisf_filedate', return_value=datetime.now()):
@@ -134,7 +134,7 @@ async def test_packer_observation_with_filter():
 @pytest.mark.asyncio
 @use_test_database
 async def test_packer_observation_with_double_filter():
-    path = f'/Users/onekiloparsec/data/Tests/HD5980/Halpha/dummy_010.fits'
+    path = '/Users/onekiloparsec/data/Tests/HD5980/Halpha/dummy_010.fits'
     with patch('os.path.getsize', return_value=10), \
          patch.object(UploadPack, '_find_fits_filedate', return_value=datetime.now()), \
          patch.object(UploadPack, '_find_xisf_filedate', return_value=datetime.now()):
@@ -154,7 +154,7 @@ async def test_packer_observation_with_double_filter():
 @pytest.mark.asyncio
 @use_test_database
 async def test_packer_calibration_no_fits_no_xisf():
-    path = f'/Users/onekiloparsec/data/Biases/dummy_010.fits'
+    path = '/Users/onekiloparsec/data/Biases/dummy_010.fits'
     with patch('os.path.getsize', return_value=10), \
          patch.object(UploadPack, '_find_fits_filedate', return_value=None), \
          patch.object(UploadPack, '_find_xisf_filedate', return_value=None):
@@ -174,7 +174,7 @@ async def test_packer_calibration_no_fits_no_xisf():
 @pytest.mark.asyncio
 @use_test_database
 async def test_packer_no_telescope_date_after_noon():
-    path = f'/Users/onekiloparsec/data/Biases/dummy_010.fits'
+    path = '/Users/onekiloparsec/data/Biases/dummy_010.fits'
     obs_date = datetime.fromisoformat('2020-03-21T20:56:35.450686')
     with patch('os.path.getsize', return_value=10), \
          patch.object(UploadPack, '_find_fits_filedate', return_value=obs_date), \
@@ -186,7 +186,7 @@ async def test_packer_no_telescope_date_after_noon():
 @pytest.mark.asyncio
 @use_test_database
 async def test_packer_no_telescope_date_before_noon():
-    path = f'/Users/onekiloparsec/data/Biases/dummy_010.fits'
+    path = '/Users/onekiloparsec/data/Biases/dummy_010.fits'
     obs_date = datetime.fromisoformat('2020-03-21T07:56:35.450686')
     with patch('os.path.getsize', return_value=10), \
          patch.object(UploadPack, '_find_fits_filedate', return_value=obs_date), \

@@ -30,4 +30,4 @@ def test_find_observation_skipping_keys_failure():
     kwargs = {'name': '[HD 5980] V'}
     # Name will be skipped because it doesn't exists in observation. But no keys are left
     # for comparison, hence the result must be None.
-    assert (find_first_in_list(observations, **kwargs) == None)
+    assert find_first_in_list(observations, **kwargs) is None

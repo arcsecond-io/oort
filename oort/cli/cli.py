@@ -166,20 +166,20 @@ def upload(state, folders, o=None, org=None, organisation=None, t=None, tel=None
     if org_subdomain:
         click.echo(f" • Uploading for organisation: {org_subdomain} (role: {org_role})")
     else:
-        click.echo(f" • Uploading in *personal* account.")
+        click.echo(" • Uploading in *personal* account.")
 
     if telescope_details:
         name, uuid = telescope_details.get('name'), telescope_details.get('uuid')
         click.echo(f" • Night Logs will be linked to telescope {name} ({uuid}).")
     else:
-        click.echo(f" • No designated telescope.")
+        click.echo(" • No designated telescope.")
 
-    click.echo(f" • Dates inside FITS/XISF files are assumed to be local dates.")
+    click.echo(" • Dates inside FITS/XISF files are assumed to be local dates.")
 
     if len(folders) == 1:
         click.echo(f" • Folder: {os.path.expanduser(os.path.realpath(folders[0]))}")
     else:
-        click.echo(f" • Folders:")
+        click.echo(" • Folders:")
         for folder in folders:
             click.echo(f"   - {os.path.expanduser(os.path.realpath(folder))}")
 

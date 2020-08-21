@@ -135,7 +135,8 @@ class FileUploader(object):
         try:
             error_body = json.loads(error)
         except Exception as err:
-            if self._identity.debug: print(str(err))
+            if self._identity.debug:
+                print(str(err))
             pass
         else:
             if 'detail' in error_body.keys():

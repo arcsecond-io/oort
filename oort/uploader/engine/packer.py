@@ -6,7 +6,7 @@ from enum import Enum, auto
 import dateparser
 from astropy.io import fits as pyfits
 
-from oort.shared.models import Calibration, Observation, Upload, DoesNotExist, Dataset
+from oort.shared.models import Calibration, Dataset, DoesNotExist, Observation, Upload
 
 CALIB_PREFIXES = ['bias', 'dark', 'flats', 'calib']
 
@@ -136,7 +136,6 @@ class UploadPack(object):
         return file_date
 
     def _find_xisf_filedate(self, path):
-        file_date = None
         header = b''
         with open(path, 'rb') as f:
             bytes = b''
@@ -154,18 +153,22 @@ class UploadPack(object):
                 elif len(header) > 0:
                     header += bytes
         if len(header) > 0:
-            try:
-                tree = ET.fromstring(header.decode('utf-8'))
-                tag = tree.find('.//{http://www.pixinsight.com/xisf}FITSKeyword[@name="DATE-OBS"]')
-                if tag is None:
-                    tag = tree.find('.//{http://www.pixinsight.com/xisf}FITSKeyword[@name="DATE"]')
-                if tag is not None:
-                    file_date = dateparser.parse(tag.get('value'))
-            except Exception as error:
-                print(str(error))
-                return None
-            else:
-                return file_date
+            return self._get_xisf_filedate(header)
+
+    def _get_xisf_filedate(self, header):
+        file_date = None
+        try:
+            tree = ET.fromstring(header.decode('utf-8'))
+            tag = tree.find('.//{http://www.pixinsight.com/xisf}FITSKeyword[@name="DATE-OBS"]')
+            if tag is None:
+                tag = tree.find('.//{http://www.pixinsight.com/xisf}FITSKeyword[@name="DATE"]')
+            if tag is not None:
+                file_date = dateparser.parse(tag.get('value'))
+        except Exception as error:
+            print(str(error))
+            return None
+        else:
+            return file_date
 
     def save(self, **kwargs):
         if 'dataset' in kwargs.keys():

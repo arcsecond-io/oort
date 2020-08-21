@@ -22,7 +22,7 @@ def check_organisation_telescope(org_subdomain: Optional[str],
     telescope_detail = None
 
     if org_subdomain and not telescope_uuid:
-        click.echo(f"Error: if an organisation is provided, you must specify a telescope UUID.")
+        click.echo("Error: if an organisation is provided, you must specify a telescope UUID.")
         click.echo(f"Here a list of existing telescopes for organisation {org_subdomain}:")
         telescope_list, error = ArcsecondAPI.telescopes(debug=debug, organisation=org_subdomain).list()
         for telescope in telescope_list:

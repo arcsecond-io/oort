@@ -3,7 +3,7 @@ import os
 import subprocess
 from configparser import ConfigParser
 
-from oort.shared.config import get_supervisor_conf_file_path, get_logger
+from oort.shared.config import get_logger, get_supervisor_conf_file_path
 
 SERVER_PROCESS = 'oort-server'
 UPLOADER_PROCESS = 'oort-uploader'
@@ -85,14 +85,16 @@ def start_supervisor_daemon(debug=False):
 def start_supervisor_processes(*args, debug=True):
     logger = get_logger(debug=debug)
     logger.debug('Starting Oort processes...')
-    if len(args) == 0: args = DEFAULT_PROCESSES
+    if len(args) == 0:
+        args = DEFAULT_PROCESSES
     subprocess.run(["supervisorctl", "start"] + list(args))
     logger.debug('Start done.')
 
 
 def stop_supervisor_processes(*args, debug=True):
     logger = get_logger(debug=debug)
-    if len(args) == 0: args = DEFAULT_PROCESSES
+    if len(args) == 0:
+        args = DEFAULT_PROCESSES
     logger.debug('Getting status of Oort processes...')
     subprocess.run(["supervisorctl", "stop"] + list(args))
     logger.debug('Stop done.')
@@ -100,7 +102,8 @@ def stop_supervisor_processes(*args, debug=True):
 
 def restart_supervisor_processes(*args, debug=True):
     logger = get_logger(debug=debug)
-    if len(args) == 0: args = DEFAULT_PROCESSES
+    if len(args) == 0:
+        args = DEFAULT_PROCESSES
     logger.debug('Restarting Oort processes...')
     subprocess.run(["supervisorctl", "restart"] + list(args))
     logger.debug('Restart done.')

@@ -36,6 +36,7 @@ def start(debug=False):
     logger.info(f'Starting Oort web server (http://{host}:{port}) ...')
     app.run(debug=debug, host=host, port=port)
 
+
 if __name__ == '__main__':
     debug = len(sys.argv) > 1 and sys.argv[1] in ['-d', '--debug']
     start(debug)
