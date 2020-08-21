@@ -154,10 +154,8 @@ def upload(state, folders, o=None, org=None, organisation=None, t=None, tel=None
     Indicate a folder (or multiple folders) that oort should monitor for files
     to upload.
 
-    Oort will walk through the folder tree and uploads file according to the
-    name of the subfolders.
-
-    If no folder is provided, the current one is selected.
+    Oort will walk through the folder tree and uploads files according to the
+    name of the subfolders (see main help).
     """
     telescope_uuid = t or tel or telescope or ''
     org_subdomain = o or org or organisation or ''
@@ -173,9 +171,9 @@ def upload(state, folders, o=None, org=None, organisation=None, t=None, tel=None
         click.echo(f" • Uploading in *personal* account.")
 
     if telescope_detail:
-        click.echo(f" • NightLogs will be linked to telescope {telescope_detail['name']} ({telescope_detail['uuid']}).")
+        click.echo(f" • Night Logs will be linked to telescope {telescope_detail['name']} ({telescope_detail['uuid']}).")
     else:
-        click.echo(" • No designated telescope.")
+        click.echo(f" • No designated telescope. Night Logs will follow OBS-DATE keyword found in files.")
 
     if len(folders) == 1:
         click.echo(f" • Folder: {os.path.expanduser(os.path.realpath(folders[0]))}")
