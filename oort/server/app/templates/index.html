@@ -266,8 +266,8 @@
                     <a v-else :href=`https://${upload.organisation}.arcsecond.io`
                        target="_blank">{{ upload.organisation }}</a>
                   </td>
-                  <td :title="`upload.filesize bytes`">
-                    {{ getFormattedSize(upload.filesize) }}
+                  <td :title="`upload.file_size bytes`">
+                    {{ getFormattedSize(upload.file_size) }}
                   </td>
                   <td>
                     {{ upload.status }}
@@ -319,8 +319,8 @@
                     <a v-else :href=`https://${upload.organisation}.arcsecond.io`
                        target="_blank">{{ upload.organisation }}</a>
                   </td>
-                  <td :title="`upload.filesize bytes`">
-                    {{ getFormattedSize(upload.filesize) }}
+                  <td :title="`upload.file_size bytes`">
+                    {{ getFormattedSize(upload.file_size) }}
                   </td>
                   <td>
                     {{ upload.status }}
