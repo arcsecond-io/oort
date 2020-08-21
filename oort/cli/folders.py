@@ -9,7 +9,6 @@ from oort.server.errors import (
     UnknownTelescopeOortCloudError, InvalidOrgMembershipOortCloudError
 )
 from oort.shared.identity import Identity
-from oort.shared.utils import look_for_telescope_uuid
 
 
 def check_organisation_telescope(org_subdomain, telescope_uuid, debug):
@@ -58,12 +57,12 @@ def save_upload_folders(folders, org_subdomain, org_role, telescope_uuid, debug)
         if os.path.isfile(upload_folder):
             upload_folder = os.path.dirname(upload_folder)
 
-        legacy_telescope_uuid = look_for_telescope_uuid(upload_folder)
+        # legacy_telescope_uuid = look_for_telescope_uuid(upload_folder)
+        #
+        # if telescope_uuid and legacy_telescope_uuid and telescope_uuid != legacy_telescope_uuid:
+        #     raise InvalidOrganisationTelescopeOortCloudError(legacy_telescope_uuid)
+        # final_telescope_uuid = telescope_uuid or legacy_telescope_uuid
 
-        if telescope_uuid and legacy_telescope_uuid and telescope_uuid != legacy_telescope_uuid:
-            raise InvalidOrganisationTelescopeOortCloudError(legacy_telescope_uuid)
-
-        final_telescope_uuid = telescope_uuid or legacy_telescope_uuid
 
         identity = Identity(username=ArcsecondAPI.username(debug=debug),
                             api_key=ArcsecondAPI.api_key(debug=debug),
