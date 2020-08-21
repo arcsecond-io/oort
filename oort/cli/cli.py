@@ -160,7 +160,7 @@ def upload(state, folders, o=None, org=None, organisation=None, t=None, tel=None
     telescope_uuid = t or tel or telescope or ''
     org_subdomain = o or org or organisation or ''
 
-    telescope_detail = check_organisation_telescope(org_subdomain, telescope_uuid, state.debug)
+    telescope_details = check_organisation_telescope(org_subdomain, telescope_uuid, state.debug)
     org_role = check_organisation_membership(org_subdomain, state.debug)
 
     click.echo(" --- Upload folder(s) summary --- ")
@@ -170,8 +170,9 @@ def upload(state, folders, o=None, org=None, organisation=None, t=None, tel=None
     else:
         click.echo(f" • Uploading in *personal* account.")
 
-    if telescope_detail:
-        click.echo(f" • Night Logs will be linked to telescope {telescope_detail['name']} ({telescope_detail['uuid']}).")
+    if telescope_details:
+        name, uuid = telescope_details.get('name'), telescope_details.get('uuid')
+        click.echo(f" • Night Logs will be linked to telescope {name} ({uuid}), and dates accordingly.")
     else:
         click.echo(f" • No designated telescope. Night Logs will follow OBS-DATE keyword found in files.")
 
