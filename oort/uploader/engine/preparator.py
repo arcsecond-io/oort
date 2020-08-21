@@ -171,15 +171,9 @@ class UploadPreparator(object):
         if not self._identity.telescope:
             return
 
-        self._logger.info(f'\nSyncing telescope {self._identity.telescope}...')
+        self._logger.info(f'{self.prefix} Reading telescope {self._identity.telescope}...')
         api = ArcsecondAPI.telescopes(**self.api_kwargs)
-
-        try:
-            # Telescope is supposed to exist already. Don't create new ones from here.
-            self._telescope = self._sync_local_resource(Telescope, api, uuid=self._identity.telescope)
-        except UploadPreparationAPIError as e:
-            # Raising a FATAL error: we can't continue without an unknown telescope
-            raise UploadPreparationFatalError(str(e))
+        self._telescope = self._sync_local_resource(Telescope, api, uuid=self._identity.telescope)
 
     # ------------------------------------------------------------------------------------------------------------------
 
