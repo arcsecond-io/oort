@@ -26,9 +26,10 @@ def check_organisation_telescope(org_subdomain: Optional[str],
         click.echo(f"Here a list of existing telescopes for organisation {org_subdomain}:")
         telescope_list, error = ArcsecondAPI.telescopes(debug=debug, organisation=org_subdomain).list()
         for telescope in telescope_list:
-            click.echo(f" • {telescope['name']} : {telescope['uuid']}")
+            click.echo(f" • {telescope['name']} ({telescope['uuid']})")
 
     elif org_subdomain and telescope_uuid:
+        click.echo("Fetching telescope details...")
         telescope_detail, error = ArcsecondAPI.telescopes(debug=debug, organisation=org_subdomain).read(telescope_uuid)
         if error:
             raise InvalidOrganisationTelescopeOortCloudError(str(error))
