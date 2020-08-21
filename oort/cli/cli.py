@@ -170,9 +170,11 @@ def upload(state, folders, o=None, org=None, organisation=None, t=None, tel=None
 
     if telescope_details:
         name, uuid = telescope_details.get('name'), telescope_details.get('uuid')
-        click.echo(f" • Night Logs will be linked to telescope {name} ({uuid}), and dates accordingly.")
+        click.echo(f" • Night Logs will be linked to telescope {name} ({uuid}).")
     else:
-        click.echo(f" • No designated telescope. Night Logs will follow OBS-DATE keyword found in files.")
+        click.echo(f" • No designated telescope.")
+
+    click.echo(f" • Dates inside FITS/XISF files are assumed to be local dates.")
 
     if len(folders) == 1:
         click.echo(f" • Folder: {os.path.expanduser(os.path.realpath(folders[0]))}")
