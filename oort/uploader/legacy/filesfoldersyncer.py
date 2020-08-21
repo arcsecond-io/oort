@@ -3,12 +3,11 @@ import os
 from datetime import datetime, timedelta
 
 from arcsecond import ArcsecondAPI
-from arcsecond.api.main import ArcsecondAPI
 
-from oort.uploader.utils import find_first_in_list, find_fits_filedate, find_xisf_filedate
+from oort.shared.utils import find_first_in_list, find_fits_filedate, find_xisf_filedate
 from oort.shared.constants import OORT_FILENAME
 from .filesfolder import FilesFolder
-from oort.uploader.legacy.fileuploader import FileUploader
+from .fileuploader import LegacyFileUploader as FileUploader
 
 MAX_SIMULTANEOUS_UPLOADS = 3
 
@@ -66,7 +65,7 @@ class FilesFolderSyncer(FilesFolder):
 
         # Getting singular of 'calibrations' or 'observations'
         resource_key = resources_key[:-1] if resources_key[-1] == 's' else resources_key
-        api_resources = getattr(Arcsecond, 'build_' + resources_key + '_api')(**self.api_kwargs)
+        api_resources = getattr(ArcsecondAPI, 'build_' + resources_key + '_api')(**self.api_kwargs)
 
         for filepath, filedate in self.files:
             # --- night log ---
