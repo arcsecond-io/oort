@@ -48,7 +48,7 @@ class DataFileHandler(FileSystemEventHandler):
         #     except:
         #         return True
 
-        pack = UploadPack(self._path, file_path)
+        pack = UploadPack(self._path, file_path, self._identity.longitude)
         preparator = UploadPreparator(pack=pack, identity=self._identity, debug=self._debug)
         scheduler.prepare_and_upload(preparator)
 
