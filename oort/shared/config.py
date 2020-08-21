@@ -34,15 +34,16 @@ def get_logger(debug=False):
     logger.setLevel(logging.DEBUG if debug else logging.INFO)
 
     if len(logger.handlers) == 0:
-        fh = logging.FileHandler(get_log_file_path())
-        fh.setLevel(logging.DEBUG if debug else logging.INFO)
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        fh.setFormatter(formatter)
-        logger.addHandler(fh)
+
+        file_handler = logging.FileHandler(get_log_file_path())
+        file_handler.setLevel(logging.DEBUG if debug else logging.INFO)
+        file_handler.setFormatter(formatter)
+        logger.addHandler(file_handler)
+
         console_handler = logging.StreamHandler()
         console_handler.setLevel(logging.DEBUG if debug else logging.INFO)
-        if debug is True:
-            console_handler.setLevel(logging.DEBUG)
+        console_handler.setFormatter(formatter)
         logger.addHandler(console_handler)
 
     return logger
