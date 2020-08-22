@@ -161,7 +161,8 @@ class UploadPreparator(object):
 
         fields = {k: v for k, v in kwargs.items() if k in db_class._meta.sorted_field_names and v is not None}
 
-        if self._identity.organisation and 'organisation' in db_class._meta.get_field_names():
+        get_field_names = getattr(db_class._meta, 'get_field_names', None)
+        if self._identity.organisation and get_field_names and 'organisation' in get_field_names():
             fields.update(organisation=self._identity.organisation)
 
         return db_class.smart_create(**fields)
