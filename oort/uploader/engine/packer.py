@@ -115,7 +115,7 @@ class UploadPack(object):
 
     @property
     def dataset_name(self):
-        return self._dataset_name
+        return self._dataset_name.strip()
 
     def _find_fits_filedate(self, path):
         file_date = None
