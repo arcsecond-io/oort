@@ -2,8 +2,15 @@ import importlib
 import os
 import subprocess
 from configparser import ConfigParser
+from datetime import datetime
 
-from oort.shared.config import get_logger, get_supervisor_conf_file_path
+from oort.shared.config import (
+    get_config_socket_file_path,
+    get_logger,
+    get_oort_config_file_path, get_supervisor_conf_file_path,
+    get_supervisord_log_file_path
+)
+from oort.shared.utils import get_username
 
 SERVER_PROCESS = 'oort-server'
 UPLOADER_PROCESS = 'oort-uploader'
@@ -24,6 +31,20 @@ def configure_supervisor(debug=False):
     conf = ConfigParser()
     conf.read(conf_file_path)
 
+    # section: unix_http_server
+    conf.set('unix_http_server', 'file', get_config_socket_file_path())
+    conf.set('unix_http_server', 'chmod', '0760')
+    conf.set('unix_http_server', 'user', get_username())
+
+    # section: supervisord:
+    conf.set('supervisord', 'logfile', get_supervisord_log_file_path())
+    conf.set('supervisord', 'user', get_username())
+
+    # section: supervisorctl
+    conf.set('supervisorctl', 'serverurl', 'unix://' + get_config_socket_file_path())
+    conf.set('supervisorctl', 'user', get_username())
+
+    # section: inet_http_server
     if 'inet_http_server' not in conf.sections():
         conf.add_section('inet_http_server')
     conf.set('inet_http_server', 'port', '127.0.0.1:9001')
@@ -42,11 +63,36 @@ def configure_supervisor(debug=False):
             command_path += ' --debug'
 
         conf.set(section_name, 'command', 'python3 ' + command_path)
+        conf.set(section_name, 'user', get_username())
+        conf.set(section_name, 'autostart', 'true')
+        conf.set(section_name, 'autorestart', 'true')
 
     with open(conf_file_path, 'w') as f:
         conf.write(f)
 
+    # Save details about config
+
+    conf = ConfigParser()
+    conf.read(get_oort_config_file_path())
+    if 'supervisor' not in conf.sections():
+        conf.add_section('supervisor')
+    version = subprocess.run(["oort", "--version"]) or ''
+    conf.set(section_name, 'config', version)
+    conf.set(section_name, 'date', datetime.now().isoformat())
+    with open(get_oort_config_file_path(), 'w') as f:
+        conf.write(f)
+
     logger.debug('Configuration done.')
+
+
+def check_config_version(debug=False):
+    current_version = subprocess.run(["oort", "--version"]) or ''
+    conf = ConfigParser()
+    conf.read(get_oort_config_file_path())
+    config_version = conf.get('supervisor', 'version')
+    if config_version != current_version:
+        logger = get_logger(debug=debug)
+        logger.warn(f'Config version {config_version} is obsolete (new: {current_version}). Run `oort reload`.')
 
 
 def start_supervisor_daemon(debug=False):
