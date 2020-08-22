@@ -48,13 +48,14 @@ class UploadScheduler(object):
             # if file_uploader.should_restart:
             #     await asyncio.sleep(5)
             #     self._queue.put_nowait(preparator)
+            self._logger.info(f'Async upload task done. {len(self._consumers)}')
             queue.task_done()
 
     async def _producer(self, preparator: UploadPreparator):
         await self._queue.put(preparator)
 
     def prepare_and_upload(self, preparator: UploadPreparator):
-        self._logger.info('Queuing upload...')
+        self._logger.info('Queuing async upload task...')
         self._loop.run_until_complete(self._producer(preparator))
 
 
