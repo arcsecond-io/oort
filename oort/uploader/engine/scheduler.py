@@ -27,6 +27,9 @@ class UploadScheduler(object):
         self._consumers = [asyncio.ensure_future(self._consumer(self._queue)) for _ in range(MAX_TASKS)]
 
     def __del__(self):
+        self._cleanup()
+
+    def _cleanup(self):
         for _consumer in self._consumers:
             _consumer.cancel()
         self._loop.stop()
@@ -35,8 +38,7 @@ class UploadScheduler(object):
     def signal_handler(self, signum, frame):
         print('Cleaning up consumer tasks before exiting...')
         signal.signal(signum, signal.SIG_IGN)  # ignore additional signals
-        for _consumer in self._consumers:
-            _consumer.cancel()
+        self._cleanup()
         sys.exit(0)
 
     async def _consumer(self, queue):
