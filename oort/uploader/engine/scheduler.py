@@ -45,11 +45,9 @@ class UploadScheduler(object):
         while True:
             preparator: UploadPreparator = await queue.get()
             await preparator.prepare()
-            file_uploader = FileUploader(preparator.pack, preparator.identity, preparator.dataset)
-            await file_uploader.upload()
-            # if file_uploader.should_restart:
-            #     await asyncio.sleep(5)
-            #     self._queue.put_nowait(preparator)
+            if preparator.dataset:
+                file_uploader = FileUploader(preparator.pack, preparator.identity, preparator.dataset)
+                await file_uploader.upload()
             self._logger.info(f'Async upload task done. {len(self._consumers)}')
             queue.task_done()
 
