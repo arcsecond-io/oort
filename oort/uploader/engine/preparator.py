@@ -203,6 +203,8 @@ class UploadPreparator(object):
         self._logger.info(f'{self.prefix} Syncing {self._pack.remote_resources_name}...')
         resources_api = getattr(ArcsecondAPI, self._pack.remote_resources_name)(**self.api_kwargs)
         kwargs = {'night_log': str(self._night_log.uuid), 'name': self._pack.dataset_name}
+        if self._pack.resource_type == 'observation':
+            kwargs.update(target_name=self._pack.dataset_name)
         self._obs_or_calib = self._sync_resource(self._pack.resource_db_class, resources_api, **kwargs)
 
     # ------------------------------------------------------------------------------------------------------------------
