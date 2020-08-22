@@ -70,17 +70,17 @@ class Context:
             if u.get('dataset', None) is not None:
                 ds = Dataset.get(Dataset.uuid == u['dataset']['uuid'])
                 if ds.observation is not None:
-                    u['observation'] = model_to_dict(ds.observation, max_depth=0)
+                    u['observation'] = model_to_dict(ds.observation, recurse=False)
                 if ds.calibration is not None:
-                    u['calibration'] = model_to_dict(ds.calibration, max_depth=0)
+                    u['calibration'] = model_to_dict(ds.calibration, recurse=False)
                 obs_or_calib = ds.observation or ds.calibration
-                u['night_log'] = model_to_dict(obs_or_calib.night_log, max_depth=1)
+                u['night_log'] = model_to_dict(obs_or_calib.night_log, recurse=False)
                 if obs_or_calib.night_log.organisation:
                     u['organisation'] = obs_or_calib.night_log.organisation.subdomain
                 else:
                     u['astronomer'] = self.username
                 if obs_or_calib.night_log.telescope:
-                    u['telescope'] = obs_or_calib.night_log.telescope
+                    u['telescope'] = model_to_dict(obs_or_calib.night_log.telescope, recurse=False)
                 else:
                     u['telescope'] = {}
             else:
