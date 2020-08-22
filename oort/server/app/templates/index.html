@@ -302,7 +302,7 @@
                 <thead>
                 <tr>
                   <th>Filename</th>
-                  <th>Owner</th>
+{#                  <th>Owner</th>#}
                   <th>Size</th>
                   <th>Status</th>
                 </tr>
@@ -310,15 +310,15 @@
                 <tbody>
                 <tr v-for="upload in pending_uploads">
                   <td>
-                    {{ upload.filename }}
-                    <div class="subtitle">Obs Date: {{ upload.filedate }}</div>
+                    {{ upload.file_path }}
+                    <div class="subtitle">Obs Date: {{ upload.file_date }}</div>
                   </td>
-                  <td>
-                    <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/@${upload.astronomer}`
-                       target="_blank">@{{ upload.astronomer }}</a>
-                    <a v-else :href=`https://${upload.organisation}.arcsecond.io`
-                       target="_blank">{{ upload.organisation }}</a>
-                  </td>
+{#                  <td>#}
+{#                    <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/@${upload.astronomer}`#}
+{#                       target="_blank">@{{ upload.astronomer }}</a>#}
+{#                    <a v-else-if="upload.organization" :href=`https://${upload.organisation}.arcsecond.io`#}
+{#                       target="_blank">{{ upload.organisation }}</a>#}
+{#                  </td>#}
                   <td :title="`upload.file_size bytes`">
                     {{ getFormattedSize(upload.file_size) }}
                   </td>
