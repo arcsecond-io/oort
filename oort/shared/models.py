@@ -111,6 +111,7 @@ class NightLog(BaseModel):
 class Observation(BaseModel):
     uuid = UUIDField(unique=True)
     name = CharField(default='')
+    target_name = CharField(default='')
     night_log = ForeignKeyField(NightLog, backref='observations', null=True)
 
 
