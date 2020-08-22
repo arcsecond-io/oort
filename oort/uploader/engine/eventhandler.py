@@ -53,8 +53,8 @@ class DataFileHandler(FileSystemEventHandler):
         scheduler.prepare_and_upload(preparator)
 
     def on_created(self, event):
-        self._logger.info(f'Created event for path : {event.src_path}')
-        if os.path.isfile(event.src_path) and not event.src_path.startswith('.'):
+        if os.path.isfile(event.src_path) and not os.path.basename(event.src_path).startswith('.'):
+            self._logger.info(f'Created event for path : {event.src_path}')
             self.upload_upon_complete(event.src_path)
 
     def on_moved(self, event):

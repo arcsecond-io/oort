@@ -7,6 +7,7 @@ import pytest
 from arcsecond.api.main import ArcsecondAPI
 
 from oort.shared.identity import Identity
+from oort.shared.models import Organisation
 from oort.uploader.engine.packer import UploadPack
 from oort.uploader.engine.preparator import UploadPreparator
 from tests.utils import use_test_database
@@ -19,17 +20,37 @@ fits_file_path = os.path.join(folder_path, 'very_simple.fits')
 
 @pytest.mark.asyncio
 @use_test_database
-async def test_preparator_init():
+async def test_preparator_init_no_org():
     pack = UploadPack(folder_path, fits_file_path)
     with patch.object(UploadPreparator, 'prepare') as mock_method:
-        up = UploadPreparator(pack, Identity('cedric', str(uuid.uuid4()), debug=True))
-        assert up is not None
-        assert up.preparation_succeeded is False
-        assert up.telescope is None
-        assert up.night_log is None
-        assert up.obs_or_calib is None
-        assert up.dataset is None
+        prep = UploadPreparator(pack, Identity('cedric', str(uuid.uuid4()), debug=True))
+        assert prep is not None
+        assert prep.preparation_succeeded is False
+        assert prep.telescope is None
+        assert prep.night_log is None
+        assert prep.obs_or_calib is None
+        assert prep.dataset is None
         assert mock_method.not_called()
+        assert Organisation.select().count() == 0
+
+
+@pytest.mark.asyncio
+@use_test_database
+async def test_preparator_init_with_org():
+    pack = UploadPack(folder_path, fits_file_path)
+    telescope_uuid = '44f5bee9-a557-4264-86d6-c877d5013788'
+    identity = Identity('cedric', str(uuid.uuid4()), 'saao', 'admin', telescope_uuid)
+    with patch.object(UploadPreparator, 'prepare') as mock_method:
+        assert Organisation.select().count() == 0
+        prep = UploadPreparator(pack, identity)
+        assert prep is not None
+        assert prep.preparation_succeeded is False
+        assert prep.telescope is None
+        assert prep.night_log is None
+        assert prep.obs_or_calib is None
+        assert prep.dataset is None
+        org = Organisation.select(Organisation.subdomain == 'saao').get()
+        assert org is not None
 
 
 @pytest.mark.asyncio
