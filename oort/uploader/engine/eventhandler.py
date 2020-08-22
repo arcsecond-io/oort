@@ -29,10 +29,12 @@ class DataFileHandler(FileSystemEventHandler):
         self._logger = get_logger(debug=self._debug)
 
     def run_initial_walk(self):
-        for file in os.listdir(self._path):
-            filename = os.path.join(self._path, file)
-            event = FileCreatedEvent(filename)
-            self.on_created(event)
+        self._logger.info(f'Running initial walk for {self._path}')
+        for root, _, filenames in os.walk(self._path):
+            for filename in filenames:
+                filepath = os.path.join(root, filename)
+                event = FileCreatedEvent(filepath)
+                self.on_created(event)
 
     def upload_upon_complete(self, file_path):
         file_size = -1
