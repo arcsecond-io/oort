@@ -68,14 +68,9 @@ class UploadPack(object):
         if len(self._dataset_name.strip()) == 0:
             self._dataset_name = f'(folder {os.path.basename(self._root_path)})'
 
-        try:
-            self._upload = Upload.get(file_path=self.file_path)
-        except DoesNotExist:
-            self._upload = Upload.create(file_path=self.file_path)
+        self._upload, created = Upload.get_or_create(file_path=self.file_path)
+        self._upload.smart_update(file_date=self.file_date, file_size=self.file_size)
 
-        self._upload.file_date = self.file_date
-        self._upload.file_size = self.file_size
-        self._upload.save()
 
     @property
     def file_path(self):
