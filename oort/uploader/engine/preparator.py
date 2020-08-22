@@ -105,10 +105,9 @@ class UploadPreparator(object):
                 raise UploadPreparationError('cant create resource')
 
             common_keys = kwargs.keys() & remote_resource.keys()
-            has_wrong_values = any([kwargs.get(k) != remote_resource.get(k) for k in common_keys if
-                                    kwargs.get(k) and remote_resource.get(k)])
-            if has_wrong_values:
-                msg = f'Mismatch between remote and local for {db_class} resource: {common_keys}'
+            common_values = [(k, kwargs.get(k), remote_resource.get(k)) for k in common_keys]
+            if any([(k, v1, v2) for k, v1, v2 in common_values if v1 != v2]):
+                msg = f'Mismatch between remote and local for {db_class} resource: {common_values}'
                 raise UploadPreparationError(msg)
 
             resource = self._create_local_resource(db_class, **remote_resource)
