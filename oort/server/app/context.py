@@ -69,18 +69,29 @@ class Context:
 
         def _ff(u):
             # fill and flatten
-            ds = Dataset.get(Dataset.uuid == u['dataset']['uuid'])
-            if ds.observation is not None:
-                u['observation'] = model_to_dict(ds.observation, max_depth=0)
-            if ds.calibration is not None:
-                u['calibration'] = model_to_dict(ds.calibration, max_depth=0)
-            obs_or_calib = ds.observation or ds.calibration
-            u['night_log'] = model_to_dict(obs_or_calib.night_log, max_depth=1)
-            if obs_or_calib.night_log.organisation:
-                u['organisation'] = obs_or_calib.night_log.organisation.subdomain
+            if u.get('dataset', None) is not None:
+                ds = Dataset.get(Dataset.uuid == u['dataset']['uuid'])
+                if ds.observation is not None:
+                    u['observation'] = model_to_dict(ds.observation, max_depth=0)
+                if ds.calibration is not None:
+                    u['calibration'] = model_to_dict(ds.calibration, max_depth=0)
+                obs_or_calib = ds.observation or ds.calibration
+                u['night_log'] = model_to_dict(obs_or_calib.night_log, max_depth=1)
+                if obs_or_calib.night_log.organisation:
+                    u['organisation'] = obs_or_calib.night_log.organisation.subdomain
+                else:
+                    u['astronomer'] = self.username
+                if obs_or_calib.night_log.telescope:
+                    u['telescope'] = obs_or_calib.night_log.telescope
+                else:
+                    u['telescope'] = {}
             else:
-                u['astronomer'] = self.username
-            u['telescope'] = {}
+                u['observation'] = {}
+                u['calibration'] = {}
+                u['night_log'] = {}
+                u['organisation'] = None
+                u['astronomer'] = None
+                u['telescope'] = None
             return u
 
         data = {
