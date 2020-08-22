@@ -87,7 +87,7 @@ class FileUploader(object):
                 raise UploadRemoteFileCheckError(str(error))
         else:
             _remote_resource_exists = True
-            _remote_resource_has_file = 'amazonaws.com' in response.get('file', '')
+            _remote_resource_has_file = 's3.amazonaws.com' in response.get('file', '')
 
         self._prepare_file_uploader(_remote_resource_exists)
         return _remote_resource_has_file
