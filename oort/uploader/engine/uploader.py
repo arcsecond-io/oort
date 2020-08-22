@@ -55,7 +55,6 @@ class FileUploader(object):
 
     def _prepare_file_uploader(self, remote_resource_exists):
         def update_upload_progress(event, progress_percent):
-            print(progress_percent)
             if progress_percent > self._upload.progress + 0.1 or progress_percent > 99:
                 self._upload.smart_update(status=STATUS_OK,
                                           substatus=SUBSTATUS_UPLOADING,
