@@ -77,7 +77,7 @@ class FileUploader(object):
             if 'not found' in error.lower():
                 self._exists_remotely = False
             else:
-                self._logger.info(f'{self.prefix} {str(error)}')
+                self._logger.info(f'{self.prefix} Check remote file: {str(error)}')
                 raise UploadRemoteFileCheckError(str(error))
         else:
             self._exists_remotely = 'amazonaws.com' in response.get('file', '')
