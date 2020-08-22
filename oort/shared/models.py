@@ -140,6 +140,7 @@ SUBSTATUS_ERROR = ''
 SUBSTATUS_REMOTE_CHECK_ERROR = 'remote check failed'
 SUBSTATUS_ALREADY_SYNCED = 'already synced'
 SUBSTATUS_DONE = 'done'
+SUBSTATUS_SKIPPED = 'skipped'
 SUBSTATUS_WILL_RESTART = 'will restart'
 
 

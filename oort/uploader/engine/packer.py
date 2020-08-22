@@ -6,8 +6,8 @@ from enum import Enum, auto
 import dateparser
 from astropy.io import fits as pyfits
 
-from oort.shared.models import Calibration, Dataset, DoesNotExist, Observation, Upload
 from oort.shared.config import get_logger
+from oort.shared.models import Calibration, Dataset, DoesNotExist, Observation, STATUS_OK, SUBSTATUS_SKIPPED, Upload
 
 CALIB_PREFIXES = ['bias', 'dark', 'flats', 'calib']
 
@@ -71,6 +71,8 @@ class UploadPack(object):
         self._upload, created = Upload.get_or_create(file_path=self.file_path)
         self._upload.smart_update(file_date=self.file_date, file_size=self.file_size)
 
+    def archive(self):
+        self._upload.smart_update(status=STATUS_OK, substatus=SUBSTATUS_SKIPPED)
 
     @property
     def file_path(self):

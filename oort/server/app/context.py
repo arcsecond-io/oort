@@ -15,6 +15,7 @@ from oort.shared.models import (
     STATUS_OK,
     SUBSTATUS_ALREADY_SYNCED,
     SUBSTATUS_DONE,
+    SUBSTATUS_SKIPPED,
     SUBSTATUS_STARTING,
     SUBSTATUS_UPLOADING,
     Upload
