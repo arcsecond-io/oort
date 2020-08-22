@@ -104,9 +104,7 @@ class UploadPreparator(object):
             if remote_resource is None:
                 raise UploadPreparationError('cant create resource')
 
-            self._logger.info(f'{self.prefix} Remote resource created.')
             resource = self._create_local_resource(db_class, **remote_resource)
-            self._logger.info(f'{self.prefix} Local resource created and synced.')
 
         else:
             self._logger.info(f'{self.prefix} Local resource exists already.')
@@ -133,7 +131,7 @@ class UploadPreparator(object):
         # The resource exists. Do nothing.
         elif len(response_list) == 1:
             new_resource = response_list[0]
-            # new_resource = self._check_resource_name(api, response_list[0], kwargs_name)
+            self._logger.info(f'{self.prefix} Remote resource exists, using it.')
 
         # Multiple resources found ??? Filter is not good, or something fishy is happening.
         else:
@@ -153,6 +151,7 @@ class UploadPreparator(object):
             msg = f'Failed to create resource in {api} endpoint. Retry is automatic.'
             raise UploadPreparationError(msg)
         else:
+            self._logger.info(f'{self.prefix} Remote resource created.')
             return remote_resource
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -162,11 +161,14 @@ class UploadPreparator(object):
 
         fields = {k: v for k, v in kwargs.items() if k in db_class._meta.sorted_field_names and v is not None}
 
-        get_field_names = getattr(db_class._meta, 'get_field_names', None)
-        if self._identity.organisation and get_field_names and 'organisation' in get_field_names():
+        if self._identity.organisation and 'organisation' in db_class._meta.sorted_field_names:
             fields.update(organisation=self._identity.organisation)
 
-        return db_class.smart_create(**fields)
+        print(db_class, kwargs, fields)
+        instance = db_class.smart_create(**fields)
+        self._logger.info(f'{self.prefix} Local resource created {instance}.')
+
+        return instance
 
     # ------ CHECKS ----------------------------------------------------------------------------------------------------
 
