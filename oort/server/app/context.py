@@ -15,7 +15,6 @@ from oort.shared.models import (
     STATUS_OK,
     SUBSTATUS_ALREADY_SYNCED,
     SUBSTATUS_DONE,
-    SUBSTATUS_FINISHING,
     SUBSTATUS_STARTING,
     SUBSTATUS_UPLOADING,
     Upload
@@ -56,8 +55,7 @@ class Context:
         pending_query = Upload.select().where((Upload.status == STATUS_NEW) | (Upload.status == STATUS_CHECKING))
         current_query = Upload.select().where(Upload.status == STATUS_OK).where(
             (Upload.substatus == SUBSTATUS_STARTING) |
-            (Upload.substatus == SUBSTATUS_UPLOADING) |
-            (Upload.substatus == SUBSTATUS_FINISHING)
+            (Upload.substatus == SUBSTATUS_UPLOADING)
         )
         error_query = Upload.select().where(Upload.status == STATUS_ERROR)
 
