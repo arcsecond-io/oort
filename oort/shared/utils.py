@@ -72,3 +72,9 @@ def tail(f, lines=10, _buffer=4098):
         block_counter -= 1
 
     return lines_found[-lines:]
+
+
+def get_username():
+    import pwd
+
+    return pwd.getpwuid(os.getuid())[0]

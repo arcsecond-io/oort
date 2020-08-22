@@ -1,4 +1,3 @@
-include oort/*.py
 include oort/server/app/static/css/*.css
 include oort/server/app/static/fonts/*.svg
 include oort/server/app/static/fonts/*.ttf

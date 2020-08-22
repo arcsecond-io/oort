@@ -11,8 +11,16 @@ def get_directory_path():
     return d
 
 
-def get_config_file_path():
+def get_oort_config_file_path():
     return os.path.join(get_directory_path(), 'config.ini')
+
+
+def get_config_socket_file_path():
+    return os.path.join(get_directory_path(), 'supervisor.sock')
+
+
+def get_supervisord_log_file_path():
+    return os.path.join(get_directory_path(), 'supervisord.log')
 
 
 def get_log_file_path():
@@ -50,7 +58,7 @@ def get_logger(debug=False):
 
 
 def write_config_value(section: str, key: str, value):
-    conf_file_path = get_config_file_path()
+    conf_file_path = get_oort_config_file_path()
     config = ConfigParser()
     if os.path.exists(conf_file_path):
         config.read(conf_file_path)
@@ -67,7 +75,7 @@ def write_config_section_values(section: str, **kwargs):
 
 
 def get_config_value(section: str, key: str):
-    conf_file_path = get_config_file_path()
+    conf_file_path = get_oort_config_file_path()
     config = ConfigParser()
     if os.path.exists(conf_file_path):
         config.read(conf_file_path)
@@ -79,7 +87,7 @@ def get_config_value(section: str, key: str):
 
 
 def get_config_upload_folder_sections():
-    conf_file_path = get_config_file_path()
+    conf_file_path = get_oort_config_file_path()
     if not os.path.exists(conf_file_path):
         return []
     config = ConfigParser()

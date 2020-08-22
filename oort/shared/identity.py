@@ -60,4 +60,4 @@ class Identity(object):
                                     role=self.role or '',
                                     path=upload_folder,
                                     telescope=self.telescope or '',
-                                    debug=self.debug)
+                                    debug=str(self.debug))
