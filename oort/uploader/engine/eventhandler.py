@@ -56,6 +56,7 @@ class DataFileHandler(FileSystemEventHandler):
             scheduler.prepare_and_upload(preparator)
         else:
             self._logger.info(f'{file_path} not a FITS or XISF. Skipping.')
+            pack.archive()
 
     def on_created(self, event):
         if os.path.isfile(event.src_path) and not os.path.basename(event.src_path).startswith('.'):
