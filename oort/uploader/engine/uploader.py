@@ -39,20 +39,7 @@ class FileUploader(object):
                                   dataset=dataset)
 
         self._stalled_progress = 0
-        self._api = None
 
-    @property
-    def prefix(self) -> str:
-        return '[' + '/'.join(self._pack.file_path.split(os.sep)[-2:]) + ']'
-
-    def _update_upload_progress(self, event, progress_percent):
-        if progress_percent > self._upload.progress + 0.1 or progress_percent > 99:
-            self._upload.smart_update(status=STATUS_OK,
-                                      substatus=SUBSTATUS_UPLOADING,
-                                      progress=progress_percent,
-                                      duration=(datetime.now() - self._upload.started).total_seconds())
-
-    def _prepare_file_uploader(self, remote_resource_exists):
         if self._identity.organisation is None or len(self._identity.organisation) == 0:
             self._api = ArcsecondAPI.datafiles(dataset=str(self._dataset.uuid),
                                                debug=self._identity.debug,
@@ -62,14 +49,27 @@ class FileUploader(object):
                                                debug=self._identity.debug,
                                                organisation=self._identity.organisation)
 
+    @property
+    def prefix(self) -> str:
+        return '[' + '/'.join(self._pack.file_path.split(os.sep)[-2:]) + ']'
+
+    def _prepare_file_uploader(self, remote_resource_exists):
+        def update_upload_progress(event, progress_percent):
+            print(progress_percent)
+            if progress_percent > self._upload.progress + 0.1 or progress_percent > 99:
+                self._upload.smart_update(status=STATUS_OK,
+                                          substatus=SUBSTATUS_UPLOADING,
+                                          progress=progress_percent,
+                                          duration=(datetime.now() - self._upload.started).total_seconds())
+
         self._async_file_uploader: AsyncFileUploader
         if remote_resource_exists:
             self._async_file_uploader, _ = self._api.update(os.path.basename(self._pack.file_path),
                                                             {'file': self._pack.file_path},
-                                                            callback=self._update_upload_progress)
+                                                            callback=update_upload_progress)
         else:
             self._async_file_uploader, _ = self._api.create({'file': self._pack.file_path},
-                                                            callback=self._update_upload_progress)
+                                                            callback=update_upload_progress)
 
     def _check_remote_resource_and_file(self):
         _remote_resource_exists = False
@@ -91,38 +91,55 @@ class FileUploader(object):
         self._prepare_file_uploader(_remote_resource_exists)
         return _remote_resource_has_file
 
-    def _start(self):
+    def _check(self):
         if self._upload.started is not None:
             self._logger.info(f'{self.prefix} {self._upload.status} {self._upload.substatus}')
-            return
+            return False
 
+        _should_perform = False
         self._upload.smart_update(started=datetime.now())
 
         try:
             self._upload.smart_update(status=STATUS_CHECKING, substatus=SUBSTATUS_CHECKING)
             exists_remotely = self._check_remote_resource_and_file()
+
         except UploadRemoteFileCheckError as error:
-            self._finish()
-            self._upload.smart_update(status=STATUS_ERROR, substatus=SUBSTATUS_REMOTE_CHECK_ERROR, error=str(error))
             self._logger.info(f'{self.prefix} {str(error)}')
+            self._upload.smart_update(status=STATUS_ERROR,
+                                      substatus=SUBSTATUS_REMOTE_CHECK_ERROR,
+                                      error=str(error),
+                                      ended=datetime.now(),
+                                      progress=0,
+                                      duration=0)
+
         except Exception as error:
-            self._finish()
-            self._upload.smart_update(status=STATUS_ERROR, substatus=SUBSTATUS_ERROR, error=str(error))
             self._logger.info(f'{self.prefix} {str(error)}')
+            self._upload.smart_update(status=STATUS_ERROR,
+                                      substatus=SUBSTATUS_ERROR,
+                                      error=str(error),
+                                      ended=datetime.now(),
+                                      progress=0,
+                                      duration=0)
+
         else:
             if exists_remotely:
-                self._finish()
-                self._upload.smart_update(status=STATUS_OK, substatus=SUBSTATUS_ALREADY_SYNCED, error='')
                 self._logger.info(f'{self.prefix} Already synced.')
+                self._upload.smart_update(status=STATUS_OK,
+                                          substatus=SUBSTATUS_ALREADY_SYNCED,
+                                          error='',
+                                          ended=datetime.now(),
+                                          progress=0,
+                                          duration=0)
             else:
-                self._upload.smart_update(status=STATUS_OK, substatus=SUBSTATUS_STARTING, error='')
-                self._logger.info(f'{self.prefix} Starting upload.')
-                self._async_file_uploader.start()
+                _should_perform = True
 
-    def _finish(self):
-        if self._upload.ended is not None:
-            return
+        return _should_perform
 
+    def _perform(self):
+        self._upload.smart_update(status=STATUS_OK, substatus=SUBSTATUS_STARTING, error='')
+        self._logger.info(f'{self.prefix} Starting upload.')
+
+        self._async_file_uploader.start()
         _, upload_error = self._async_file_uploader.finish()
 
         ended = datetime.now()
@@ -155,8 +172,8 @@ class FileUploader(object):
 
     async def upload(self):
         self._logger.info(f'{self.prefix} Starting async file upload....')
-        self._start()
-        self._finish()
+        if self._check():
+            self._perform()
         self._logger.info(f'{self.prefix} Closing async file upload.')
 
     @property
