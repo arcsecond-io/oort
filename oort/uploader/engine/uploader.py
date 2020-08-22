@@ -137,6 +137,9 @@ class FileUploader(object):
         return _should_perform
 
     def _perform(self):
+        if not self._check():
+            return
+
         self._upload.smart_update(status=STATUS_OK, substatus=SUBSTATUS_STARTING, error='')
         self._logger.info(f'{self.prefix} Starting upload.')
 
@@ -171,8 +174,7 @@ class FileUploader(object):
 
     async def upload(self):
         self._logger.info(f'{self.prefix} Starting async file upload....')
-        if self._check():
-            self._perform()
+        self._perform()
         self._logger.info(f'{self.prefix} Closing async file upload.')
 
     @property
