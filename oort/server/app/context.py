@@ -63,7 +63,8 @@ class Context:
         one_day_back = datetime.datetime.now() - datetime.timedelta(days=1)
         finished_query = Upload.select().where(Upload.status == STATUS_OK).where(
             (Upload.substatus == SUBSTATUS_DONE) |
-            (Upload.substatus == SUBSTATUS_ALREADY_SYNCED)
+            (Upload.substatus == SUBSTATUS_ALREADY_SYNCED) |
+            (Upload.substatus == SUBSTATUS_SKIPPED)
         ).where(Upload.ended >= one_day_back)
 
         def _ff(u):
