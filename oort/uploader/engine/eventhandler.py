@@ -40,7 +40,7 @@ class DataFileHandler(FileSystemEventHandler):
         file_size = -1
         while file_size != os.path.getsize(file_path):
             file_size = os.path.getsize(file_path)
-            time.sleep(1)
+            time.sleep(0.1)
 
         # file_done = False
         # while not file_done:
