@@ -171,7 +171,6 @@ class UploadPreparator(object):
         if self._identity.organisation and 'organisation' in db_class._meta.sorted_field_names:
             fields.update(organisation=self._identity.organisation)
 
-        print(db_class, kwargs, fields)
         instance = db_class.smart_create(**fields)
         self._logger.info(f'{self.prefix} Local resource created {instance}.')
 
