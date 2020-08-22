@@ -18,7 +18,7 @@ class UploadScheduler(object):
         self._loop = asyncio.get_event_loop()
 
         # Creating a single async Queue
-        self._queue = asyncio.Queue(0)
+        self._queue = asyncio.Queue(0, loop=self._loop)
 
         # Creating a limited number of consumers to avoid too many simultaneous call to api.arcsecond.io
         # Somehow, one must use asyncio.ensure_future instead of create_task, despite documentation.
