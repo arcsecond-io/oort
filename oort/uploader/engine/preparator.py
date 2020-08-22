@@ -155,7 +155,7 @@ class UploadPreparator(object):
         remote_resource, error = api.create(kwargs)
 
         if error is not None:
-            msg = f'Failed to create resource in {api} endpoint. Retry is automatic.'
+            msg = f'Failed to create resource in {api} endpoint: {str(error)}'
             raise UploadPreparationError(msg)
         else:
             self._logger.info(f'{self.prefix} Remote resource created.')
