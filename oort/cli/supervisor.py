@@ -76,9 +76,9 @@ def configure_supervisor(debug=False):
     conf.read(get_oort_config_file_path())
     if 'supervisor' not in conf.sections():
         conf.add_section('supervisor')
-    version = subprocess.run(["oort", "--version"]) or ''
-    conf.set(section_name, 'config', version)
-    conf.set(section_name, 'date', datetime.now().isoformat())
+    version = subprocess.check_output(["oort", "--version"]) or ''
+    conf.set('supervisor', 'config', version.decode('utf8').strip())
+    conf.set('supervisor', 'date', datetime.now().isoformat())
     with open(get_oort_config_file_path(), 'w') as f:
         conf.write(f)
 
@@ -86,7 +86,8 @@ def configure_supervisor(debug=False):
 
 
 def check_config_version(debug=False):
-    current_version = subprocess.run(["oort", "--version"]) or ''
+    raw_current_version = subprocess.check_output(["oort", "--version"]) or ''
+    current_version = raw_current_version.decode('utf8').strip()
     conf = ConfigParser()
     conf.read(get_oort_config_file_path())
     config_version = conf.get('supervisor', 'version')
