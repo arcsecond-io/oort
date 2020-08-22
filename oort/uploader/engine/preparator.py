@@ -104,8 +104,9 @@ class UploadPreparator(object):
             if remote_resource is None:
                 raise UploadPreparationError('cant create resource')
 
-            self._logger.info(f'{self.prefix} Remote resource ok.')
+            self._logger.info(f'{self.prefix} Remote resource created.')
             resource = self._create_local_resource(db_class, **remote_resource)
+            self._logger.info(f'{self.prefix} Local resource created and synced.')
 
         else:
             self._logger.info(f'{self.prefix} Local resource exists already.')
@@ -157,7 +158,7 @@ class UploadPreparator(object):
     # ------------------------------------------------------------------------------------------------------------------
 
     def _create_local_resource(self, db_class: Type[BaseModel], **kwargs):
-        self._logger.info('Creating local resource.')
+        self._logger.info(f'{self.prefix} Creating local resource.')
 
         fields = {k: v for k, v in kwargs.items() if k in db_class._meta.sorted_field_names and v is not None}
 
@@ -180,7 +181,7 @@ class UploadPreparator(object):
     # ------------------------------------------------------------------------------------------------------------------
 
     def _sync_night_log(self):
-        self._logger.info(f'{self.prefix} Syncing nightlog {self._pack.night_log_date_string}...')
+        self._logger.info(f'{self.prefix} Syncing night log {self._pack.night_log_date_string}...')
 
         kwargs = {'date': self._pack.night_log_date_string}
         if self._identity.telescope:
