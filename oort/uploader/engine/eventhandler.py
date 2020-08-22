@@ -49,8 +49,11 @@ class DataFileHandler(FileSystemEventHandler):
         #         return True
 
         pack = UploadPack(self._path, file_path, self._identity.longitude)
-        preparator = UploadPreparator(pack=pack, identity=self._identity, debug=self._debug)
-        scheduler.prepare_and_upload(preparator)
+        if pack.is_fits_or_xisf:
+            preparator = UploadPreparator(pack=pack, identity=self._identity, debug=self._debug)
+            scheduler.prepare_and_upload(preparator)
+        else:
+            self._logger.info(f'{file_path} not a FITS or XISF. Skipping.')
 
     def on_created(self, event):
         if os.path.isfile(event.src_path) and not os.path.basename(event.src_path).startswith('.'):
