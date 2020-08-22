@@ -116,7 +116,6 @@ class FileUploader(object):
         if self._upload.ended is not None:
             return
 
-        self._upload.smart_update(status=STATUS_OK, substatus=SUBSTATUS_FINISHING)
         _, upload_error = self._async_file_uploader.finish()
 
         ended = datetime.now()
