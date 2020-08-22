@@ -32,7 +32,7 @@ class UploadPreparator(object):
 
         if self._identity.organisation:
             api = ArcsecondAPI.organisations(debug=self._identity.debug)
-            self._sync_local_resource(Organisation, api, subdomain=self._identity.organisation)
+            self._sync_local_resource(Organisation, api, self._identity.organisation)
 
     # ------ PROPERTIES ------------------------------------------------------------------------------------------------
 
@@ -79,15 +79,15 @@ class UploadPreparator(object):
 
     # ------ SYNC ------------------------------------------------------------------------------------------------------
 
-    def _sync_local_resource(self, db_class: Type[BaseModel], api: ArcsecondAPI, **kwargs) -> BaseModel:
-        remote_resource, error = api.read(kwargs)
+    def _sync_local_resource(self, db_class: Type[BaseModel], api: ArcsecondAPI, id_value) -> BaseModel:
+        remote_resource, error = api.read(id_value)
         if error:
             raise UploadPreparationAPIError(str(error))
 
         try:
-            resource = db_class.smart_get(**kwargs)
+            resource = db_class.smart_get(**{db_class._primary_field: id_value})
         except DoesNotExist:
-            resource = self._create_local_resource(db_class, **kwargs)
+            resource = self._create_local_resource(db_class, **{db_class._primary_field: id_value})
 
         return resource
 
@@ -174,7 +174,7 @@ class UploadPreparator(object):
 
         self._logger.info(f'{self.prefix} Reading telescope {self._identity.telescope}...')
         api = ArcsecondAPI.telescopes(**self.api_kwargs)
-        self._telescope = self._sync_local_resource(Telescope, api, uuid=self._identity.telescope)
+        self._telescope = self._sync_local_resource(Telescope, api, self._identity.telescope)
 
     # ------------------------------------------------------------------------------------------------------------------
 
