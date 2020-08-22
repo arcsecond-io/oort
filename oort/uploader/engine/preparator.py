@@ -98,7 +98,7 @@ class UploadPreparator(object):
             resource = db_class.smart_get(**kwargs)
 
         except DoesNotExist:
-            self._logger.info(f'{self.prefix} Local resource does not exists. Find or create remote one.')
+            self._logger.info(f'{self.prefix} Local resource does not exist. Find or create remote one.')
 
             remote_resource = self._find_or_create_remote_resource(api, **kwargs)
             if remote_resource is None:
@@ -172,7 +172,7 @@ class UploadPreparator(object):
             fields.update(organisation=self._identity.organisation)
 
         instance = db_class.smart_create(**fields)
-        self._logger.info(f'{self.prefix} Local resource created {instance}.')
+        self._logger.info(f'{self.prefix} Local resource created.')
 
         return instance
 

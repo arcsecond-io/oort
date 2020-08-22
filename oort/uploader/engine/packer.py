@@ -7,6 +7,7 @@ import dateparser
 from astropy.io import fits as pyfits
 
 from oort.shared.models import Calibration, Dataset, DoesNotExist, Observation, Upload
+from oort.shared.config import get_logger
 
 CALIB_PREFIXES = ['bias', 'dark', 'flats', 'calib']
 
@@ -39,6 +40,7 @@ class UploadPack(object):
         self._file_path = file_path
         self._longitude = longitude
         self._upload = None
+        self._logger = get_logger(debug=True)
         self._pack()
 
     def _pack(self):
@@ -123,7 +125,7 @@ class UploadPack(object):
         try:
             hdulist = pyfits.open(path)
         except Exception as error:
-            print(str(error))
+            self._logger.debug(str(error))
         else:
             for hdu in hdulist:
                 date_header = hdu.header.get('DATE') or hdu.header.get('DATE-OBS') or hdu.header.get('DATE_OBS')
@@ -165,7 +167,7 @@ class UploadPack(object):
             if tag is not None:
                 file_date = dateparser.parse(tag.get('value'))
         except Exception as error:
-            print(str(error))
+            self._logger.debug(str(error))
             return None
         else:
             return file_date
