@@ -74,6 +74,19 @@ class UploadPack(object):
     def archive(self):
         self._upload.smart_update(status=STATUS_OK, substatus=SUBSTATUS_SKIPPED)
 
+    def save(self, **kwargs):
+        if 'dataset' in kwargs.keys():
+            dataset_uuid = kwargs.pop('dataset')
+            try:
+                dataset = Dataset.get(uuid=dataset_uuid)
+            except DoesNotExist:
+                # really?
+                pass
+            else:
+                kwargs.update(dataset=dataset)
+
+        self._upload.smart_update(**kwargs)
+
     @property
     def file_path(self):
         return self._file_path
@@ -168,19 +181,3 @@ class UploadPack(object):
             return None
         else:
             return file_date
-
-    def save(self, **kwargs):
-        if 'dataset' in kwargs.keys():
-            dataset_uuid = kwargs.pop('dataset')
-            try:
-                dataset = Dataset.get(uuid=dataset_uuid)
-            except DoesNotExist:
-                # really?
-                pass
-            else:
-                self._upload.dataset = dataset
-
-        for k, v in kwargs.items():
-            setattr(self._upload, k, v)
-
-        self._upload.save()
