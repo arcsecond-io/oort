@@ -1,8 +1,7 @@
 import os
 import time
 
-from watchdog.events import FileCreatedEvent
-from watchdog.events import FileSystemEventHandler
+from watchdog.events import FileCreatedEvent, FileSystemEventHandler
 
 from oort.shared.config import get_logger
 from oort.shared.identity import Identity
