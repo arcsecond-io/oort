@@ -160,6 +160,10 @@ class Upload(BaseModel):
     error = CharField(default='')
 
     dataset = ForeignKeyField(Dataset, null=True, backref='uploads')
+    telescope = ForeignKeyField(Telescope, null=True, backref='uploads')
+
+    astronomer = CharField(default='')
+    organisation = ForeignKeyField(Organisation, backref='uploads', null=True)
 
 
 db.connect()
