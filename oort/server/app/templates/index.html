@@ -239,14 +239,14 @@
                     <div class="subtitle">{{ upload.dataset.uuid }}</div>
                   </td>
                   <td>
-                    <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/nightlogs/${upload.night_log.uuid}`
-                       target="_blank">
-                      {{ upload.night_log.date }}
-                    </a>
-                    <a v-else
+                    <a v-if="upload.organisation"
                        :href=`https://${upload.organisation}.arcsecond.io/nights/${upload.night_log.date}`
                        target="_blank"
                     >
+                      {{ upload.night_log.date }}
+                    </a>
+                    <a v-else-if="upload.astronomer" :href=`https://www.arcsecond.io/nightlogs/${upload.night_log.uuid}`
+                       target="_blank">
                       {{ upload.night_log.date }}
                     </a>
                     <div class="subtitle">{{ upload.night_log.uuid }}</div>
@@ -261,10 +261,10 @@
                     </div>
                   </td>
                   <td>
-                    <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/@${upload.astronomer}`
+                    <a v-if="upload.organisation" :href=`https://${upload.organisation}.arcsecond.io`
+                       target="_blank">{{ upload.organisation.subdomain }}</a>
+                    <a v-else :href=`https://www.arcsecond.io/@${upload.astronomer}`
                        target="_blank">@{{ upload.astronomer }}</a>
-                    <a v-else :href=`https://${upload.organisation}.arcsecond.io`
-                       target="_blank">{{ upload.organisation }}</a>
                   </td>
                   <td :title="`upload.file_size bytes`">
                     {{ getFormattedSize(upload.file_size) }}
@@ -297,12 +297,20 @@
             </div>
 
             <div class="table-block">
+              <div class="table-title">Failed Uploads ({{ error_uploads.length }})</div>
+              <errors-table v-bind:uploads="error_uploads"></errors-table>
+              <div v-else>
+                <span class="label-centered">There are no failed uploads.</span>
+              </div>
+            </div>
+
+            <div class="table-block">
               <div class="table-title">Pending Uploads ({{ pending_uploads.length }})</div>
               <table class="table table-striped text-small" v-if="pending_uploads.length > 0">
                 <thead>
                 <tr>
                   <th>Filename</th>
-{#                  <th>Owner</th>#}
+                  {#                  <th>Owner</th>#}
                   <th>Size</th>
                   <th>Status</th>
                 </tr>
@@ -313,12 +321,12 @@
                     {{ upload.file_path }}
                     <div class="subtitle">Obs Date: {{ upload.file_date }}</div>
                   </td>
-{#                  <td>#}
-{#                    <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/@${upload.astronomer}`#}
-{#                       target="_blank">@{{ upload.astronomer }}</a>#}
-{#                    <a v-else-if="upload.organization" :href=`https://${upload.organisation}.arcsecond.io`#}
-{#                       target="_blank">{{ upload.organisation }}</a>#}
-{#                  </td>#}
+                  {#                  <td>#}
+                  {#                    <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/@${upload.astronomer}`#}
+                  {#                       target="_blank">@{{ upload.astronomer }}</a>#}
+                  {#                    <a v-else-if="upload.organisation" :href=`https://${upload.organisation}.arcsecond.io`#}
+                  {#                       target="_blank">{{ upload.organisation }}</a>#}
+                  {#                  </td>#}
                   <td :title="`upload.file_size bytes`">
                     {{ getFormattedSize(upload.file_size) }}
                   </td>
@@ -372,20 +380,21 @@
                     <div class="subtitle">{{ upload.dataset.uuid }}</div>
                   </td>
                   <td>
-                    <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/nightlogs/${upload.night_log.uuid}`
-                       target="_blank">
-                      {{ upload.night_log.date }}
-                    </a>
-                    <a v-else
+                    <a v-if="upload.organisation"
                        :href=`https://${upload.organisation}.arcsecond.io/nights/${upload.night_log.date}`
                        target="_blank"
                     >
                       {{ upload.night_log.date }}
                     </a>
+                    <a v-else
+                       :href=`https://www.arcsecond.io/nightlogs/${upload.night_log.uuid}`
+                       target="_blank">
+                      {{ upload.night_log.date }}
+                    </a>
                     <div class="subtitle">{{ upload.night_log.uuid }}</div>
                   </td>
                   <td>
-                    <div v-if="upload.telescope.name">
+                    <div v-if="upload.telescope">
                       {{ upload.telescope.name }}
                       <div class="subtitle">{{ upload.telescope.uuid }}</div>
                     </div>
@@ -394,10 +403,10 @@
                     </div>
                   </td>
                   <td>
-                    <a v-if="upload.astronomer" :href=`https://www.arcsecond.io/@${upload.astronomer}`
+                    <a v-if="upload.organisation" :href=`https://${upload.organisation}.arcsecond.io`
+                       target="_blank">{{ upload.organisation.subdomain }}</a>
+                    <a v-else :href=`https://www.arcsecond.io/@${upload.astronomer}`
                        target="_blank">@{{ upload.astronomer }}</a>
-                    <a v-else :href=`https://${upload.organisation}.arcsecond.io`
-                       target="_blank">{{ upload.organisation }}</a>
                   </td>
                   <td :title="`upload.file_size bytes`">
                     {{ getFormattedSize(upload.file_size) }}
@@ -428,7 +437,8 @@
 
   {% endif %}
 
-  <script src="{$ url_for('static', filename='js/uploads.js') $}"></script>
+  <script src="{$ url_for('static', filename='js/errors-table.js') $}"></script>
+  <script src="{$ url_for('static', filename='js/main-app.js') $}"></script>
 
 </div>
 </body>

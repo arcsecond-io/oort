@@ -37,7 +37,7 @@ var app = new Vue({
       self.pending_uploads = json_data.pending
       self.current_uploads = json_data.current
       self.finished_uploads = json_data.finished
-      self.error_uploads = json_data.error
+      self.error_uploads = json_data.errors
 
       const bars = document.getElementsByClassName('progress-bar')
       self.current_uploads.forEach((upload, index) => {
