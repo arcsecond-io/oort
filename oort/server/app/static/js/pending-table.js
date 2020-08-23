@@ -1,13 +1,13 @@
-Vue.component('errors-table', {
+Vue.component('pending-table', {
   template: `
 <table class="table table-striped text-small">
   <thead>
-    <tr>
-      <th>Filename</th>
-      <th>Owner</th>
-      <th>Size</th>
-      <th>Status</th>
-    </tr>
+  <tr>
+    <th>Filename</th>
+    <th>Owner</th>
+    <th>Size</th>
+    <th>Status</th>
+  </tr>
   </thead>
   <tbody>
   <tr v-for="upload in uploads">
@@ -23,7 +23,8 @@ Vue.component('errors-table', {
       {{ getFormattedSize(upload.file_size) }}
     </td>
     <td>
-      {{ upload.error }}
+      {{ upload.status }}
+      <div class="subtitle">{{ upload.substatus }}</div>
     </td>
   </tr>
   </tbody>
