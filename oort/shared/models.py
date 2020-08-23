@@ -129,12 +129,17 @@ class Dataset(BaseModel):
 
 
 STATUS_NEW = 'New'
-STATUS_CHECKING = 'Checking'
+STATUS_PREPARING = 'Preparing'
 STATUS_OK = 'OK'
 STATUS_ERROR = 'Error'
 
 SUBSTATUS_PENDING = 'pending'
-SUBSTATUS_CHECKING = 'asking arcsecond.io...'
+SUBSTATUS_SYNC_TELESCOPE = 'syncing telescope...'
+SUBSTATUS_SYNC_NIGHTLOG = 'syncing night log...'
+SUBSTATUS_SYNC_OBS_OR_CALIB = 'syncing obs or calib...'
+SUBSTATUS_SYNC_DATASET = 'syncing dataset...'
+SUBSTATUS_CHECKING = 'checking remote file...'
+SUBSTATUS_READY = 'ready'
 SUBSTATUS_STARTING = 'starting...'
 SUBSTATUS_UPLOADING = 'uploading...'
 SUBSTATUS_ERROR = ''
@@ -142,7 +147,6 @@ SUBSTATUS_REMOTE_CHECK_ERROR = 'remote check failed'
 SUBSTATUS_ALREADY_SYNCED = 'already synced'
 SUBSTATUS_DONE = 'done'
 SUBSTATUS_SKIPPED = 'skipped'
-SUBSTATUS_WILL_RESTART = 'will restart'
 
 
 class Upload(BaseModel):
