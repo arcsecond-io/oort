@@ -23,6 +23,7 @@ class UploadPreparator(object):
         self._preparation_succeeded = False
         self._preparation_can_be_restarted = False
 
+        self._organisation = None
         self._telescope = None
         self._night_log = None
         self._obs_or_calib = None
@@ -30,9 +31,11 @@ class UploadPreparator(object):
 
         # Do NOT mix debug and self._identity.debug
 
+        self._pack.upload.smart_update(astronomer=self._identity.username)
         if self._identity.organisation:
             api = ArcsecondAPI.organisations(debug=self._identity.debug)
-            self._sync_local_resource(Organisation, api, self._identity.organisation)
+            self._organisation = self._sync_local_resource(Organisation, api, self._identity.organisation)
+            self._pack.upload.smart_update(organisation=self._organisation)
 
     # ------ PROPERTIES ------------------------------------------------------------------------------------------------
 
