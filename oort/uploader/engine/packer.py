@@ -7,7 +7,7 @@ import dateparser
 from astropy.io import fits as pyfits
 
 from oort.shared.config import get_logger
-from oort.shared.models import Calibration, Dataset, DoesNotExist, Observation, STATUS_OK, SUBSTATUS_SKIPPED, Upload
+from oort.shared.models import Calibration, Observation, STATUS_OK, SUBSTATUS_SKIPPED, Upload
 
 CALIB_PREFIXES = ['bias', 'dark', 'flats', 'calib']
 
@@ -59,11 +59,11 @@ class UploadPack(object):
                 if i == 1:
                     self._dataset_name = self._segments[-i]
                 else:  # i = 2
-                    self._dataset_name = f'{self._segments[-i]} {self._segments[-1]}'
+                    self._dataset_name = f'{self._segments[-i]}{os.sep}{self._segments[-1]}'
                 break
 
         if self._type == ResourceType.OBSERVATION:
-            self._dataset_name = ' '.join(self._segments)
+            self._dataset_name = os.sep.join(self._segments)
 
         if len(self._dataset_name.strip()) == 0:
             self._dataset_name = f'(folder {os.path.basename(self._root_path)})'
@@ -73,6 +73,10 @@ class UploadPack(object):
 
     def archive(self):
         self._upload.smart_update(status=STATUS_OK, substatus=SUBSTATUS_SKIPPED)
+
+    @property
+    def upload(self):
+        return self._upload
 
     @property
     def file_path(self):
@@ -156,11 +160,14 @@ class UploadPack(object):
 
     def _get_xisf_filedate(self, header):
         file_date = None
+        prefix = './/{http://www.pixinsight.com/xisf}FITSKeyword'
         try:
             tree = ET.fromstring(header.decode('utf-8'))
-            tag = tree.find('.//{http://www.pixinsight.com/xisf}FITSKeyword[@name="DATE-OBS"]')
+            tag = tree.find(prefix + '[@name="DATE-OBS"]')
             if tag is None:
-                tag = tree.find('.//{http://www.pixinsight.com/xisf}FITSKeyword[@name="DATE"]')
+                tag = tree.find(prefix + '[@name="DATE_OBS"]')
+            if tag is None:
+                tag = tree.find(prefix + '[@name="DATE"]')
             if tag is not None:
                 file_date = dateparser.parse(tag.get('value'))
         except Exception as error:
@@ -168,19 +175,3 @@ class UploadPack(object):
             return None
         else:
             return file_date
-
-    def save(self, **kwargs):
-        if 'dataset' in kwargs.keys():
-            dataset_uuid = kwargs.pop('dataset')
-            try:
-                dataset = Dataset.get(uuid=dataset_uuid)
-            except DoesNotExist:
-                # really?
-                pass
-            else:
-                self._upload.dataset = dataset
-
-        for k, v in kwargs.items():
-            setattr(self._upload, k, v)
-
-        self._upload.save()

@@ -6,7 +6,20 @@ from peewee import DoesNotExist
 
 from oort.shared.config import get_logger
 from oort.shared.identity import Identity
-from oort.shared.models import BaseModel, Dataset, NightLog, Organisation, Telescope
+from oort.shared.models import (
+    BaseModel,
+    Dataset,
+    NightLog,
+    Organisation,
+    STATUS_OK,
+    STATUS_PREPARING,
+    SUBSTATUS_READY,
+    SUBSTATUS_SYNC_DATASET,
+    SUBSTATUS_SYNC_NIGHTLOG,
+    SUBSTATUS_SYNC_OBS_OR_CALIB,
+    SUBSTATUS_SYNC_TELESCOPE,
+    Telescope
+)
 from .errors import UploadPreparationAPIError, UploadPreparationError, UploadPreparationFatalError
 from .packer import UploadPack
 
@@ -23,6 +36,7 @@ class UploadPreparator(object):
         self._preparation_succeeded = False
         self._preparation_can_be_restarted = False
 
+        self._organisation = None
         self._telescope = None
         self._night_log = None
         self._obs_or_calib = None
@@ -30,9 +44,11 @@ class UploadPreparator(object):
 
         # Do NOT mix debug and self._identity.debug
 
+        self._pack.upload.smart_update(astronomer=self._identity.username)
         if self._identity.organisation:
             api = ArcsecondAPI.organisations(debug=self._identity.debug)
-            self._sync_local_resource(Organisation, api, self._identity.organisation)
+            self._organisation = self._sync_local_resource(Organisation, api, self._identity.organisation)
+            self._pack.upload.smart_update(organisation=self._organisation)
 
     # ------ PROPERTIES ------------------------------------------------------------------------------------------------
 
@@ -200,11 +216,11 @@ class UploadPreparator(object):
     # ------------------------------------------------------------------------------------------------------------------
 
     def _sync_observation_or_calibration(self):
-        self._logger.info(f'{self.prefix} Syncing {self._pack.remote_resources_name}...')
         resources_api = getattr(ArcsecondAPI, self._pack.remote_resources_name)(**self.api_kwargs)
         kwargs = {'night_log': str(self._night_log.uuid), 'name': self._pack.dataset_name}
         if self._pack.resource_type == 'observation':
             kwargs.update(target_name=self._pack.dataset_name)
+        self._logger.info(f'{self.prefix} Syncing {self._pack.remote_resources_name}: {kwargs}...')
         self._obs_or_calib = self._sync_resource(self._pack.resource_db_class, resources_api, **kwargs)
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -220,24 +236,35 @@ class UploadPreparator(object):
     async def prepare(self):
         self._logger.info(f'Preparation started for {self._pack.file_path}')
         try:
-            self._pack.save(status='Preparing', substatus='Syncing Telescope...')
+            self._pack.upload.smart_update(status=STATUS_PREPARING, substatus=SUBSTATUS_SYNC_TELESCOPE)
             self._sync_telescope()
-            self._pack.save(status='Preparing', substatus='Syncing Night Log...')
+
+            if self._telescope:
+                self._pack.upload.smart_update(telescope=self._telescope)
+
+            self._pack.upload.smart_update(substatus=SUBSTATUS_SYNC_NIGHTLOG)
             self._sync_night_log()
-            self._pack.save(status='Preparing', substatus='Syncing Observation/Calibration...')
+
+            self._pack.upload.smart_update(substatus=SUBSTATUS_SYNC_OBS_OR_CALIB)
             self._sync_observation_or_calibration()  # observation or calibration
-            self._pack.save(status='Preparing', substatus='Syncing Dataset...')
+
+            self._pack.upload.smart_update(substatus=SUBSTATUS_SYNC_DATASET)
             self._sync_dataset()
-            self._pack.save(dataset=self.dataset)
+
+            if self._dataset:
+                self._pack.upload.smart_update(dataset=self.dataset)
+
         except UploadPreparationFatalError as e:
             self._logger.info(f'Preparation failed for {self._pack.file_path} with error: {str(e)}')
             self._preparation_succeeded = False
             self._preparation_can_be_restarted = False
+
         except UploadPreparationError as e:
             self._logger.info(f'Preparation failed for {self._pack.file_path} with error: {str(e)}')
             self._preparation_succeeded = False
             self._preparation_can_be_restarted = True
+
         else:
             self._logger.info(f'Preparation succeeded for {self._pack.file_path}')
-            self._pack.save(status='Ready', substatus='')
+            self._pack.upload.smart_update(status=STATUS_OK, substatus=SUBSTATUS_READY)
             self._preparation_succeeded = True

@@ -7,19 +7,9 @@ from arcsecond import ArcsecondAPI
 from playhouse.shortcuts import model_to_dict
 
 from oort.shared.config import get_config_upload_folder_sections
-from oort.shared.models import (
-    Dataset,
-    STATUS_CHECKING,
-    STATUS_ERROR,
-    STATUS_NEW,
-    STATUS_OK,
-    SUBSTATUS_ALREADY_SYNCED,
-    SUBSTATUS_DONE,
-    SUBSTATUS_SKIPPED,
-    SUBSTATUS_STARTING,
-    SUBSTATUS_UPLOADING,
-    Upload
-)
+from oort.shared.models import (Dataset, STATUS_ERROR, STATUS_NEW, STATUS_OK, STATUS_PREPARING,
+                                SUBSTATUS_ALREADY_SYNCED, SUBSTATUS_DONE, SUBSTATUS_READY, SUBSTATUS_SKIPPED,
+                                SUBSTATUS_STARTING, SUBSTATUS_UPLOADING, Upload)
 
 
 class BoostedJSONEncoder(JSONEncoder):
@@ -53,8 +43,9 @@ class Context:
         }
 
     def get_yield_string(self):
-        pending_query = Upload.select().where((Upload.status == STATUS_NEW) | (Upload.status == STATUS_CHECKING))
+        pending_query = Upload.select().where((Upload.status == STATUS_NEW) | (Upload.status == STATUS_PREPARING))
         current_query = Upload.select().where(Upload.status == STATUS_OK).where(
+            (Upload.substatus == SUBSTATUS_READY) |
             (Upload.substatus == SUBSTATUS_STARTING) |
             (Upload.substatus == SUBSTATUS_UPLOADING)
         )
@@ -77,21 +68,12 @@ class Context:
                     u['calibration'] = model_to_dict(ds.calibration, recurse=False)
                 obs_or_calib = ds.observation or ds.calibration
                 u['night_log'] = model_to_dict(obs_or_calib.night_log, recurse=False)
-                if obs_or_calib.night_log.organisation:
-                    u['organisation'] = obs_or_calib.night_log.organisation.subdomain
-                else:
-                    u['astronomer'] = self.username
-                if obs_or_calib.night_log.telescope:
-                    u['telescope'] = model_to_dict(obs_or_calib.night_log.telescope, recurse=False)
-                else:
-                    u['telescope'] = {}
             else:
                 u['observation'] = {}
                 u['calibration'] = {}
                 u['night_log'] = {}
-                u['organisation'] = None
-                u['astronomer'] = None
-                u['telescope'] = None
+            if u.get('telescope') is None:
+                u['telescope'] = {}
             return u
 
         data = {

@@ -9,7 +9,7 @@ from oort.shared.config import get_logger
 from oort.shared.identity import Identity
 from oort.shared.models import (
     Dataset,
-    STATUS_CHECKING,
+    STATUS_PREPARING,
     STATUS_ERROR,
     STATUS_OK,
     SUBSTATUS_ALREADY_SYNCED,
@@ -19,7 +19,6 @@ from oort.shared.models import (
     SUBSTATUS_REMOTE_CHECK_ERROR,
     SUBSTATUS_STARTING,
     SUBSTATUS_UPLOADING,
-    SUBSTATUS_WILL_RESTART,
     Upload
 )
 from .errors import UploadRemoteFileCheckError
@@ -101,7 +100,7 @@ class FileUploader(object):
         self._upload.smart_update(started=datetime.now())
 
         try:
-            self._upload.smart_update(status=STATUS_CHECKING, substatus=SUBSTATUS_CHECKING)
+            self._upload.smart_update(status=STATUS_PREPARING, substatus=SUBSTATUS_CHECKING)
             exists_remotely = self._check_remote_resource_and_file()
 
         except UploadRemoteFileCheckError as error:
@@ -184,10 +183,6 @@ class FileUploader(object):
     @property
     def is_finished(self):
         return self._upload.started is not None and self._upload.ended is not None
-
-    @property
-    def should_restart(self):
-        return self._upload.substatus == SUBSTATUS_WILL_RESTART
 
     @property
     def state(self):
