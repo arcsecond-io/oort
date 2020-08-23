@@ -48,6 +48,8 @@ class UploadScheduler(object):
             if preparator.dataset:
                 file_uploader = FileUploader(preparator.pack, preparator.identity, preparator.dataset)
                 await file_uploader.upload()
+            else:
+                self._logger.info(f'Missing dataset, upload skipped for {preparator.pack.file_path}')
             self._logger.info(f'Async upload task done. {len(self._consumers)}')
             queue.task_done()
 
