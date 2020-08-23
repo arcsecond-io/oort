@@ -7,7 +7,7 @@ import dateparser
 from astropy.io import fits as pyfits
 
 from oort.shared.config import get_logger
-from oort.shared.models import Calibration, Dataset, DoesNotExist, Observation, STATUS_OK, SUBSTATUS_SKIPPED, Upload
+from oort.shared.models import Calibration, Observation, STATUS_OK, SUBSTATUS_SKIPPED, Upload
 
 CALIB_PREFIXES = ['bias', 'dark', 'flats', 'calib']
 
