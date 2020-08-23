@@ -6,7 +6,8 @@ from enum import Enum, auto
 import dateparser
 from astropy.io import fits as pyfits
 
-from oort.shared.models import Calibration, Dataset, DoesNotExist, Observation, Upload
+from oort.shared.config import get_logger
+from oort.shared.models import Calibration, Dataset, DoesNotExist, Observation, STATUS_OK, SUBSTATUS_SKIPPED, Upload
 
 CALIB_PREFIXES = ['bias', 'dark', 'flats', 'calib']
 
@@ -39,6 +40,7 @@ class UploadPack(object):
         self._file_path = file_path
         self._longitude = longitude
         self._upload = None
+        self._logger = get_logger(debug=True)
         self._pack()
 
     def _pack(self):
@@ -66,14 +68,11 @@ class UploadPack(object):
         if len(self._dataset_name.strip()) == 0:
             self._dataset_name = f'(folder {os.path.basename(self._root_path)})'
 
-        try:
-            self._upload = Upload.get(file_path=self.file_path)
-        except DoesNotExist:
-            self._upload = Upload.create(file_path=self.file_path)
+        self._upload, created = Upload.get_or_create(file_path=self.file_path)
+        self._upload.smart_update(file_date=self.file_date, file_size=self.file_size)
 
-        self._upload.file_date = self.file_date
-        self._upload.file_size = self.file_size
-        self._upload.save()
+    def archive(self):
+        self._upload.smart_update(status=STATUS_OK, substatus=SUBSTATUS_SKIPPED)
 
     @property
     def file_path(self):
@@ -116,14 +115,14 @@ class UploadPack(object):
 
     @property
     def dataset_name(self):
-        return self._dataset_name
+        return self._dataset_name.strip()
 
     def _find_fits_filedate(self, path):
         file_date = None
         try:
             hdulist = pyfits.open(path)
         except Exception as error:
-            print(str(error))
+            self._logger.debug(str(error))
         else:
             for hdu in hdulist:
                 date_header = hdu.header.get('DATE') or hdu.header.get('DATE-OBS') or hdu.header.get('DATE_OBS')
@@ -165,7 +164,7 @@ class UploadPack(object):
             if tag is not None:
                 file_date = dateparser.parse(tag.get('value'))
         except Exception as error:
-            print(str(error))
+            self._logger.debug(str(error))
             return None
         else:
             return file_date

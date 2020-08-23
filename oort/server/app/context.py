@@ -15,7 +15,7 @@ from oort.shared.models import (
     STATUS_OK,
     SUBSTATUS_ALREADY_SYNCED,
     SUBSTATUS_DONE,
-    SUBSTATUS_FINISHING,
+    SUBSTATUS_SKIPPED,
     SUBSTATUS_STARTING,
     SUBSTATUS_UPLOADING,
     Upload
@@ -56,31 +56,42 @@ class Context:
         pending_query = Upload.select().where((Upload.status == STATUS_NEW) | (Upload.status == STATUS_CHECKING))
         current_query = Upload.select().where(Upload.status == STATUS_OK).where(
             (Upload.substatus == SUBSTATUS_STARTING) |
-            (Upload.substatus == SUBSTATUS_UPLOADING) |
-            (Upload.substatus == SUBSTATUS_FINISHING)
+            (Upload.substatus == SUBSTATUS_UPLOADING)
         )
         error_query = Upload.select().where(Upload.status == STATUS_ERROR)
 
         one_day_back = datetime.datetime.now() - datetime.timedelta(days=1)
         finished_query = Upload.select().where(Upload.status == STATUS_OK).where(
             (Upload.substatus == SUBSTATUS_DONE) |
-            (Upload.substatus == SUBSTATUS_ALREADY_SYNCED)
+            (Upload.substatus == SUBSTATUS_ALREADY_SYNCED) |
+            (Upload.substatus == SUBSTATUS_SKIPPED)
         ).where(Upload.ended >= one_day_back)
 
         def _ff(u):
             # fill and flatten
-            ds = Dataset.get(Dataset.uuid == u['dataset']['uuid'])
-            if ds.observation is not None:
-                u['observation'] = model_to_dict(ds.observation, max_depth=0)
-            if ds.calibration is not None:
-                u['calibration'] = model_to_dict(ds.calibration, max_depth=0)
-            obs_or_calib = ds.observation or ds.calibration
-            u['night_log'] = model_to_dict(obs_or_calib.night_log, max_depth=1)
-            if obs_or_calib.night_log.organisation:
-                u['organisation'] = obs_or_calib.night_log.organisation.subdomain
+            if u.get('dataset', None) is not None:
+                ds = Dataset.get(Dataset.uuid == u['dataset']['uuid'])
+                if ds.observation is not None:
+                    u['observation'] = model_to_dict(ds.observation, recurse=False)
+                if ds.calibration is not None:
+                    u['calibration'] = model_to_dict(ds.calibration, recurse=False)
+                obs_or_calib = ds.observation or ds.calibration
+                u['night_log'] = model_to_dict(obs_or_calib.night_log, recurse=False)
+                if obs_or_calib.night_log.organisation:
+                    u['organisation'] = obs_or_calib.night_log.organisation.subdomain
+                else:
+                    u['astronomer'] = self.username
+                if obs_or_calib.night_log.telescope:
+                    u['telescope'] = model_to_dict(obs_or_calib.night_log.telescope, recurse=False)
+                else:
+                    u['telescope'] = {}
             else:
-                u['astronomer'] = self.username
-            u['telescope'] = {}
+                u['observation'] = {}
+                u['calibration'] = {}
+                u['night_log'] = {}
+                u['organisation'] = None
+                u['astronomer'] = None
+                u['telescope'] = None
             return u
 
         data = {

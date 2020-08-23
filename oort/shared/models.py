@@ -71,20 +71,23 @@ class BaseModel(Model):
         for foreign_key_name in foreign_items.keys():
             kwargs.pop(foreign_key_name)
 
-        instance = cls.create(**kwargs)
+        with db.atomic('IMMEDIATE'):
+            instance = cls.create(**kwargs)
 
         for foreign_key_name, foreign_value in foreign_items.items():
             foreign_model = cls.get_field(foreign_key_name).rel_model
             foreign_instance = foreign_model.get(foreign_model.get_primary_field() == foreign_value)
-            setattr(instance, foreign_key_name, foreign_instance)
-            instance.save()
+            with db.atomic('IMMEDIATE'):
+                setattr(instance, foreign_key_name, foreign_instance)
+                instance.save()
 
         return instance
 
     def smart_update(self, **kwargs):
-        for k, v in kwargs.items():
-            setattr(self, k, v)
-        self.save()
+        with db.atomic('IMMEDIATE'):
+            for k, v in kwargs.items():
+                setattr(self, k, v)
+            self.save()
 
 
 class Organisation(BaseModel):
@@ -108,6 +111,7 @@ class NightLog(BaseModel):
 class Observation(BaseModel):
     uuid = UUIDField(unique=True)
     name = CharField(default='')
+    target_name = CharField(default='')
     night_log = ForeignKeyField(NightLog, backref='observations', null=True)
 
 
@@ -133,11 +137,11 @@ SUBSTATUS_PENDING = 'pending'
 SUBSTATUS_CHECKING = 'asking arcsecond.io...'
 SUBSTATUS_STARTING = 'starting...'
 SUBSTATUS_UPLOADING = 'uploading...'
-SUBSTATUS_FINISHING = 'finishing...'
 SUBSTATUS_ERROR = ''
 SUBSTATUS_REMOTE_CHECK_ERROR = 'remote check failed'
 SUBSTATUS_ALREADY_SYNCED = 'already synced'
 SUBSTATUS_DONE = 'done'
+SUBSTATUS_SKIPPED = 'skipped'
 SUBSTATUS_WILL_RESTART = 'will restart'
 
 

@@ -98,13 +98,18 @@ class UploadPreparator(object):
             resource = db_class.smart_get(**kwargs)
 
         except DoesNotExist:
-            self._logger.info(f'{self.prefix} Local resource does not exists. Find or create remote one.')
+            self._logger.info(f'{self.prefix} Local resource does not exist. Find or create remote one.')
 
             remote_resource = self._find_or_create_remote_resource(api, **kwargs)
             if remote_resource is None:
                 raise UploadPreparationError('cant create resource')
 
-            self._logger.info(f'{self.prefix} Remote resource ok.')
+            common_keys = kwargs.keys() & remote_resource.keys()
+            common_values = [(k, kwargs.get(k), remote_resource.get(k)) for k in common_keys]
+            if any([(k, v1, v2) for k, v1, v2 in common_values if v1 != v2]):
+                msg = f'Mismatch between remote and local for {db_class} resource: {common_values}'
+                raise UploadPreparationError(msg)
+
             resource = self._create_local_resource(db_class, **remote_resource)
 
         else:
@@ -132,7 +137,7 @@ class UploadPreparator(object):
         # The resource exists. Do nothing.
         elif len(response_list) == 1:
             new_resource = response_list[0]
-            # new_resource = self._check_resource_name(api, response_list[0], kwargs_name)
+            self._logger.info(f'{self.prefix} Remote resource exists, using it.')
 
         # Multiple resources found ??? Filter is not good, or something fishy is happening.
         else:
@@ -149,23 +154,26 @@ class UploadPreparator(object):
         remote_resource, error = api.create(kwargs)
 
         if error is not None:
-            msg = f'Failed to create resource in {api} endpoint. Retry is automatic.'
+            msg = f'Failed to create resource in {api} endpoint: {str(error)}'
             raise UploadPreparationError(msg)
         else:
+            self._logger.info(f'{self.prefix} Remote resource created.')
             return remote_resource
 
     # ------------------------------------------------------------------------------------------------------------------
 
     def _create_local_resource(self, db_class: Type[BaseModel], **kwargs):
-        self._logger.info('Creating local resource.')
+        self._logger.info(f'{self.prefix} Creating local resource.')
 
         fields = {k: v for k, v in kwargs.items() if k in db_class._meta.sorted_field_names and v is not None}
 
-        get_field_names = getattr(db_class._meta, 'get_field_names', None)
-        if self._identity.organisation and get_field_names and 'organisation' in get_field_names():
+        if self._identity.organisation and 'organisation' in db_class._meta.sorted_field_names:
             fields.update(organisation=self._identity.organisation)
 
-        return db_class.smart_create(**fields)
+        instance = db_class.smart_create(**fields)
+        self._logger.info(f'{self.prefix} Local resource created.')
+
+        return instance
 
     # ------ CHECKS ----------------------------------------------------------------------------------------------------
 
@@ -180,7 +188,7 @@ class UploadPreparator(object):
     # ------------------------------------------------------------------------------------------------------------------
 
     def _sync_night_log(self):
-        self._logger.info(f'{self.prefix} Syncing nightlog {self._pack.night_log_date_string}...')
+        self._logger.info(f'{self.prefix} Syncing night log {self._pack.night_log_date_string}...')
 
         kwargs = {'date': self._pack.night_log_date_string}
         if self._identity.telescope:
@@ -195,6 +203,8 @@ class UploadPreparator(object):
         self._logger.info(f'{self.prefix} Syncing {self._pack.remote_resources_name}...')
         resources_api = getattr(ArcsecondAPI, self._pack.remote_resources_name)(**self.api_kwargs)
         kwargs = {'night_log': str(self._night_log.uuid), 'name': self._pack.dataset_name}
+        if self._pack.resource_type == 'observation':
+            kwargs.update(target_name=self._pack.dataset_name)
         self._obs_or_calib = self._sync_resource(self._pack.resource_db_class, resources_api, **kwargs)
 
     # ------------------------------------------------------------------------------------------------------------------
