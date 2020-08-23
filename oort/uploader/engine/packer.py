@@ -169,11 +169,14 @@ class UploadPack(object):
 
     def _get_xisf_filedate(self, header):
         file_date = None
+        prefix = './/{http://www.pixinsight.com/xisf}FITSKeyword'
         try:
             tree = ET.fromstring(header.decode('utf-8'))
-            tag = tree.find('.//{http://www.pixinsight.com/xisf}FITSKeyword[@name="DATE-OBS"]')
+            tag = tree.find(prefix + '[@name="DATE-OBS"]')
             if tag is None:
-                tag = tree.find('.//{http://www.pixinsight.com/xisf}FITSKeyword[@name="DATE"]')
+                tag = tree.find(prefix + '[@name="DATE_OBS"]')
+            if tag is None:
+                tag = tree.find(prefix + '[@name="DATE"]')
             if tag is not None:
                 file_date = dateparser.parse(tag.get('value'))
         except Exception as error:
