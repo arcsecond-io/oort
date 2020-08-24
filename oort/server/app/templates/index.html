@@ -141,7 +141,7 @@
               <div class="table-title">Finished Uploads ({{ finished_uploads.length }})</div>
               <finished-table v-if="finished_uploads.length > 0" v-bind:uploads="finished_uploads"></finished-table>
               <div class="center-block text-center">
-                <span class="subtitle">Uploads older than 24h are now shown.</span>
+                <span class="subtitle">Uploads older than 24h are not shown.</span>
               </div>
               <div v-else>
                 <span class="label-centered">There are no inactive / past uploads.</span>
