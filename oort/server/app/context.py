@@ -43,19 +43,10 @@ class Context:
 
     def get_yield_string(self):
         pending_query = Upload.select().where((Upload.status == STATUS_NEW) | (Upload.status == STATUS_PREPARING))
-        current_query = Upload.select().where(Upload.status == STATUS_OK).where(
-            (Upload.substatus == SUBSTATUS_READY) |
-            (Upload.substatus == SUBSTATUS_STARTING) |
-            (Upload.substatus == SUBSTATUS_UPLOADING)
-        )
+        current_query = Upload.select().where(Upload.status == SUBSTATUS_UPLOADING)
         error_query = Upload.select().where(Upload.status == STATUS_ERROR)
-
         one_day_back = datetime.datetime.now() - datetime.timedelta(days=1)
-        finished_query = Upload.select().where(Upload.status == STATUS_OK).where(
-            (Upload.substatus == SUBSTATUS_DONE) |
-            (Upload.substatus == SUBSTATUS_ALREADY_SYNCED) |
-            (Upload.substatus == SUBSTATUS_SKIPPED)
-        ).where(Upload.ended >= one_day_back)
+        finished_query = Upload.select().where(Upload.status == SUBSTATUS_DONE).where(Upload.ended >= one_day_back)
 
         def _ff(u):
             # fill and flatten
