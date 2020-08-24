@@ -7,7 +7,7 @@ import dateparser
 from astropy.io import fits as pyfits
 
 from oort.shared.config import get_logger
-from oort.shared.models import Calibration, Observation, STATUS_OK, SUBSTATUS_SKIPPED, Upload
+from oort.shared.models import Calibration, Observation, Status, Substatus, Upload
 
 CALIB_PREFIXES = ['bias', 'dark', 'flats', 'calib']
 
@@ -72,7 +72,7 @@ class UploadPack(object):
         self._upload.smart_update(file_date=self.file_date, file_size=self.file_size)
 
     def archive(self):
-        self._upload.smart_update(status=STATUS_OK, substatus=SUBSTATUS_SKIPPED)
+        self._upload.smart_update(status=Status.OK.value, substatus=Substatus.SKIPPED.value)
 
     @property
     def upload(self):

@@ -1,3 +1,5 @@
+from enum import Enum
+
 from peewee import (
     CharField,
     DateTimeField,
@@ -128,25 +130,28 @@ class Dataset(BaseModel):
     calibration = ForeignKeyField(Calibration, unique=True, null=True)
 
 
-STATUS_NEW = 'New'
-STATUS_PREPARING = 'Preparing'
-STATUS_OK = 'OK'
-STATUS_ERROR = 'Error'
+class Status(Enum):
+    NEW = 'New'
+    PREPARING = 'Preparing'
+    UPLOADING = 'Uploading'
+    OK = 'OK'
+    ERROR = 'Error'
 
-SUBSTATUS_PENDING = 'pending'
-SUBSTATUS_SYNC_TELESCOPE = 'syncing telescope...'
-SUBSTATUS_SYNC_NIGHTLOG = 'syncing night log...'
-SUBSTATUS_SYNC_OBS_OR_CALIB = 'syncing obs or calib...'
-SUBSTATUS_SYNC_DATASET = 'syncing dataset...'
-SUBSTATUS_CHECKING = 'checking remote file...'
-SUBSTATUS_READY = 'ready'
-SUBSTATUS_STARTING = 'starting...'
-SUBSTATUS_UPLOADING = 'uploading...'
-SUBSTATUS_ERROR = ''
-SUBSTATUS_REMOTE_CHECK_ERROR = 'remote check failed'
-SUBSTATUS_ALREADY_SYNCED = 'already synced'
-SUBSTATUS_DONE = 'done'
-SUBSTATUS_SKIPPED = 'skipped'
+
+class Substatus(Enum):
+    PENDING = 'pending'
+    SYNC_TELESCOPE = 'syncing telescope...'
+    SYNC_NIGHTLOG = 'syncing night log...'
+    SYNC_OBS_OR_CALIB = 'syncing obs or calib...'
+    SYNC_DATASET = 'syncing dataset...'
+    CHECKING = 'checking remote file...'
+    READY = 'ready'
+    STARTING = 'starting...'
+    UPLOADING = 'uploading...'
+    ERROR = ''
+    ALREADY_SYNCED = 'already synced'
+    DONE = 'done'
+    SKIPPED = 'skipped'
 
 
 class Upload(BaseModel):
@@ -154,8 +159,8 @@ class Upload(BaseModel):
     file_date = DateTimeField(null=True)
     file_size = IntegerField(default=0)
 
-    status = CharField(default=STATUS_NEW)
-    substatus = CharField(default=SUBSTATUS_PENDING)
+    status = CharField(default=Status.NEW.value)
+    substatus = CharField(default=Substatus.PENDING.value)
     progress = FloatField(default=0)
 
     started = DateTimeField(null=True)

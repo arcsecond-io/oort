@@ -28,8 +28,7 @@ class Context:
         self.login_error = config.get('login_error')
         self.username = ArcsecondAPI.username(debug=self.debug)
         self.is_authenticated = ArcsecondAPI.is_logged_in(debug=self.debug)
-        raw_memberships = ArcsecondAPI.memberships(debug=self.debug)
-        self.memberships = {m: raw_memberships[m] for m in raw_memberships}
+        self.memberships = ArcsecondAPI.memberships(debug=self.debug)
 
     def to_dict(self):
         return {
@@ -44,19 +43,10 @@ class Context:
 
     def get_yield_string(self):
         pending_query = Upload.select().where((Upload.status == STATUS_NEW) | (Upload.status == STATUS_PREPARING))
-        current_query = Upload.select().where(Upload.status == STATUS_OK).where(
-            (Upload.substatus == SUBSTATUS_READY) |
-            (Upload.substatus == SUBSTATUS_STARTING) |
-            (Upload.substatus == SUBSTATUS_UPLOADING)
-        )
+        current_query = Upload.select().where(Upload.status == SUBSTATUS_UPLOADING)
         error_query = Upload.select().where(Upload.status == STATUS_ERROR)
-
         one_day_back = datetime.datetime.now() - datetime.timedelta(days=1)
-        finished_query = Upload.select().where(Upload.status == STATUS_OK).where(
-            (Upload.substatus == SUBSTATUS_DONE) |
-            (Upload.substatus == SUBSTATUS_ALREADY_SYNCED) |
-            (Upload.substatus == SUBSTATUS_SKIPPED)
-        ).where(Upload.ended >= one_day_back)
+        finished_query = Upload.select().where(Upload.status == SUBSTATUS_DONE).where(Upload.ended >= one_day_back)
 
         def _ff(u):
             # fill and flatten
