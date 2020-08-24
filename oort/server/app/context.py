@@ -61,11 +61,7 @@ class Context:
                 obs_or_calib = ds.observation or ds.calibration
                 u['night_log'] = model_to_dict(obs_or_calib.night_log, recurse=False)
             else:
-                u['observation'] = {}
-                u['calibration'] = {}
                 u['night_log'] = {}
-            if u.get('telescope') is None:
-                u['telescope'] = {}
             return u
 
         data = {
