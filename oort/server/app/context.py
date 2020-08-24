@@ -7,9 +7,7 @@ from arcsecond import ArcsecondAPI
 from playhouse.shortcuts import model_to_dict
 
 from oort.shared.config import get_config_upload_folder_sections
-from oort.shared.models import (Dataset, STATUS_ERROR, STATUS_NEW, STATUS_OK, STATUS_PREPARING,
-                                SUBSTATUS_ALREADY_SYNCED, SUBSTATUS_DONE, SUBSTATUS_READY, SUBSTATUS_SKIPPED,
-                                SUBSTATUS_STARTING, SUBSTATUS_UPLOADING, Upload)
+from oort.shared.models import (Dataset, Status, Substatus, Upload)
 
 
 class BoostedJSONEncoder(JSONEncoder):
@@ -42,11 +40,15 @@ class Context:
         }
 
     def get_yield_string(self):
-        pending_query = Upload.select().where((Upload.status == STATUS_NEW) | (Upload.status == STATUS_PREPARING))
-        current_query = Upload.select().where(Upload.status == SUBSTATUS_UPLOADING)
-        error_query = Upload.select().where(Upload.status == STATUS_ERROR)
+        pending_query = Upload.select().where(
+            (Upload.status == Status.NEW.value) |
+            (Upload.status == Status.PREPARING.value)
+        )
+        current_query = Upload.select().where(Upload.status == Status.UPLOADING.value)
+        error_query = Upload.select().where(Upload.status == Status.ERROR.value)
+
         one_day_back = datetime.datetime.now() - datetime.timedelta(days=1)
-        finished_query = Upload.select().where(Upload.status == SUBSTATUS_DONE).where(Upload.ended >= one_day_back)
+        finished_query = Upload.select().where(Upload.status == Status.OK.value).where(Upload.ended >= one_day_back)
 
         def _ff(u):
             # fill and flatten
