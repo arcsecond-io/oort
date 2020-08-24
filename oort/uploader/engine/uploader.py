@@ -79,10 +79,6 @@ class FileUploader(object):
         return _remote_resource_has_file
 
     def _check(self):
-        if self._upload.started is not None:
-            self._logger.info(f'{self.prefix} {self._upload.status} {self._upload.substatus}')
-            return False
-
         _should_perform = False
         self._upload.smart_update(started=datetime.now())
 
