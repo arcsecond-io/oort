@@ -22,6 +22,7 @@ if __name__ == "__main__":
             organisation=folder_section['organisation'],
             role=folder_section['role'],
             telescope=folder_section['telescope'],
+            longitude=folder_section['longitude'],
             debug=debug
         )
         paths_observer.observe_folder(folder_section['path'], identity)
