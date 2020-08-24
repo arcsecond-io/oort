@@ -155,9 +155,9 @@ class FileUploader(object):
         self._upload.smart_update(status=status, substatus=substatus, error=error)
 
     def upload(self):
-        self._logger.info(f'{self.prefix} Starting async file upload....')
+        self._logger.info(f'{self.prefix} Starting file upload....')
         self._perform()
-        self._logger.info(f'{self.prefix} Closing async file upload.')
+        self._logger.info(f'{self.prefix} Closing file upload.')
 
     @property
     def is_started(self):
