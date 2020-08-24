@@ -17,12 +17,12 @@ if __name__ == "__main__":
 
     for folder_section in get_config_upload_folder_sections():
         identity = Identity(
-            username=folder_section['username'],
-            api_key=folder_section['api_key'],
-            organisation=folder_section['organisation'],
-            role=folder_section['role'],
-            telescope=folder_section['telescope'],
-            longitude=folder_section['longitude'],
+            username=folder_section.get('username'),
+            api_key=folder_section.get('api_key'),
+            organisation=folder_section.get('organisation'),
+            role=folder_section.get('role'),
+            telescope=folder_section.get('telescope'),
+            longitude=folder_section.get('longitude'),
             debug=debug
         )
         paths_observer.observe_folder(folder_section['path'], identity)
