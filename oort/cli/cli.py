@@ -147,7 +147,7 @@ def logs(state, n):
               help="The UUID of the telescope acquiring data (in the case of organisation uploads).")
 @basic_options
 @pass_state
-def upload(state, folders, o=None, org=None, organisation=None, t=None, tel=None, telescope=None):
+def watch(state, folders, o=None, org=None, organisation=None, t=None, tel=None, telescope=None):
     """
     Indicate a folder (or multiple folders) that oort should monitor for files
     to upload.
