@@ -251,11 +251,13 @@ class UploadPreparator(object):
 
         except UploadPreparationFatalError as e:
             self._logger.info(f'Preparation failed for {self._pack.file_path} with error: {str(e)}')
+            self._pack.upload.smart_update(status=Status.ERROR.value, substatus=Substatus.ERROR.value, error=str(e))
             self._preparation_succeeded = False
             self._preparation_can_be_restarted = False
 
         except UploadPreparationError as e:
             self._logger.info(f'Preparation failed for {self._pack.file_path} with error: {str(e)}')
+            self._pack.upload.smart_update(status=Status.ERROR.value, substatus=Substatus.ERROR.value, error=str(e))
             self._preparation_succeeded = False
             self._preparation_can_be_restarted = True
 
