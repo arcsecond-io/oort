@@ -59,11 +59,11 @@ class UploadPack(object):
                 if i == 1:
                     self._dataset_name = self._segments[-i]
                 else:  # i = 2
-                    self._dataset_name = f'{self._segments[-i]} {self._segments[-1]}'
+                    self._dataset_name = f'{self._segments[-i]}/{self._segments[-1]}'
                 break
 
         if self._type == ResourceType.OBSERVATION:
-            self._dataset_name = ' '.join(self._segments)
+            self._dataset_name = '/'.join(self._segments)
 
         if len(self._dataset_name.strip()) == 0:
             self._dataset_name = f'(folder {os.path.basename(self._root_path)})'
