@@ -158,7 +158,7 @@ class FileUploader(object):
 
         self._upload.smart_update(status=status, substatus=substatus, error=error)
 
-    async def upload(self):
+    def upload(self):
         self._logger.info(f'{self.prefix} Starting async file upload....')
         self._perform()
         self._logger.info(f'{self.prefix} Closing async file upload.')
@@ -181,10 +181,10 @@ class FileUploader(object):
             return 'finished'
 
 
-async def test_upload():
+def test_upload():
     root = '/Users/onekiloparsec/code/onekiloparsec/arcsecond-oort/data/test_folder/'
     dataset = Dataset.get(Dataset.uuid == '4968f81d-77cc-4f16-b83a-5a0587235a56')
     identity = Identity('cedric', '764837d11cf32dda5f71df24d4a017a4', None, None, None, True)
     pack = UploadPack(root, os.path.join(root, 'jup999.fits'))
     uploader = FileUploader(pack=pack, identity=identity, dataset=dataset)
-    await uploader.upload()
+    uploader.upload()
