@@ -92,4 +92,4 @@ def get_config_upload_folder_sections():
         return []
     config = ConfigParser()
     config.read(conf_file_path)
-    return [dict(config[section]) for section in config.sections() if section.startswith('upload-folder-')]
+    return [dict(config[section]) for section in config.sections() if section.startswith('watch-folder-')]
