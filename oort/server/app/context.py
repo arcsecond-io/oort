@@ -28,8 +28,7 @@ class Context:
         self.login_error = config.get('login_error')
         self.username = ArcsecondAPI.username(debug=self.debug)
         self.is_authenticated = ArcsecondAPI.is_logged_in(debug=self.debug)
-        raw_memberships = ArcsecondAPI.memberships(debug=self.debug)
-        self.memberships = {m: raw_memberships[m] for m in raw_memberships}
+        self.memberships = ArcsecondAPI.memberships(debug=self.debug)
 
     def to_dict(self):
         return {
