@@ -228,7 +228,7 @@ class UploadPreparator(object):
 
     # ------------------------------------------------------------------------------------------------------------------
 
-    async def prepare(self):
+    def prepare(self):
         self._logger.info(f'Preparation started for {self._pack.file_path}')
         try:
             self._pack.upload.smart_update(status=Status.PREPARING.value, substatus=Substatus.SYNC_TELESCOPE.value)
