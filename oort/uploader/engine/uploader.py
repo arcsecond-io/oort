@@ -7,20 +7,7 @@ from arcsecond.api.endpoints import AsyncFileUploader
 
 from oort.shared.config import get_logger
 from oort.shared.identity import Identity
-from oort.shared.models import (
-    Dataset,
-    STATUS_PREPARING,
-    STATUS_ERROR,
-    STATUS_OK,
-    SUBSTATUS_ALREADY_SYNCED,
-    SUBSTATUS_CHECKING,
-    SUBSTATUS_DONE,
-    SUBSTATUS_ERROR,
-    SUBSTATUS_REMOTE_CHECK_ERROR,
-    SUBSTATUS_STARTING,
-    SUBSTATUS_UPLOADING,
-    Upload
-)
+from oort.shared.models import Dataset, Status, Substatus, Upload
 from .errors import UploadRemoteFileCheckError
 from .packer import UploadPack
 
@@ -55,8 +42,8 @@ class FileUploader(object):
     def _prepare_file_uploader(self, remote_resource_exists):
         def update_upload_progress(event, progress_percent):
             if progress_percent > self._upload.progress + 0.1 or progress_percent > 99:
-                self._upload.smart_update(status=STATUS_OK,
-                                          substatus=SUBSTATUS_UPLOADING,
+                self._upload.smart_update(status=Status.UPLOADING.value,
+                                          substatus=Substatus.UPLOADING.value,
                                           progress=progress_percent,
                                           duration=(datetime.now() - self._upload.started).total_seconds())
 
@@ -100,13 +87,13 @@ class FileUploader(object):
         self._upload.smart_update(started=datetime.now())
 
         try:
-            self._upload.smart_update(status=STATUS_PREPARING, substatus=SUBSTATUS_CHECKING)
+            self._upload.smart_update(status=Status.UPLOADING.value, substatus=Substatus.CHECKING.value)
             exists_remotely = self._check_remote_resource_and_file()
 
         except UploadRemoteFileCheckError as error:
             self._logger.info(f'{self.prefix} {str(error)}')
-            self._upload.smart_update(status=STATUS_ERROR,
-                                      substatus=SUBSTATUS_REMOTE_CHECK_ERROR,
+            self._upload.smart_update(status=Status.ERROR.value,
+                                      substatus=Substatus.ERROR.value,
                                       error=str(error),
                                       ended=datetime.now(),
                                       progress=0,
@@ -114,8 +101,8 @@ class FileUploader(object):
 
         except Exception as error:
             self._logger.info(f'{self.prefix} {str(error)}')
-            self._upload.smart_update(status=STATUS_ERROR,
-                                      substatus=SUBSTATUS_ERROR,
+            self._upload.smart_update(status=Status.ERROR.value,
+                                      substatus=Substatus.ERROR.value,
                                       error=str(error),
                                       ended=datetime.now(),
                                       progress=0,
@@ -124,8 +111,8 @@ class FileUploader(object):
         else:
             if exists_remotely:
                 self._logger.info(f'{self.prefix} Already synced.')
-                self._upload.smart_update(status=STATUS_OK,
-                                          substatus=SUBSTATUS_ALREADY_SYNCED,
+                self._upload.smart_update(status=Status.OK.value,
+                                          substatus=Substatus.ALREADY_SYNCED.value,
                                           error='',
                                           ended=datetime.now(),
                                           progress=0,
@@ -139,7 +126,7 @@ class FileUploader(object):
         if not self._check():
             return
 
-        self._upload.smart_update(status=STATUS_OK, substatus=SUBSTATUS_STARTING, error='')
+        self._upload.smart_update(status=Status.OK.value, substatus=Substatus.STARTING.value, error='')
         self._logger.info(f'{self.prefix} Starting upload.')
 
         self._async_file_uploader.start()
@@ -153,10 +140,10 @@ class FileUploader(object):
             self._process_error(upload_error)
         else:
             self._logger.info(f'{self.prefix} successfully uploaded in {self._upload.duration} seconds.')
-            self._upload.smart_update(status=STATUS_OK, substatus=SUBSTATUS_DONE, error='')
+            self._upload.smart_update(status=Status.OK.value, substatus=Substatus.DONE.value, error='')
 
     def _process_error(self, error):
-        status, substatus, error = STATUS_ERROR, SUBSTATUS_ERROR, str(error)
+        status, substatus, error = Status.ERROR.value, Substatus.ERROR.value, str(error)
 
         try:
             error_body = json.loads(error)
@@ -167,7 +154,7 @@ class FileUploader(object):
                 detail = error_body['detail']
                 error_content = detail[0] if isinstance(detail, list) and len(detail) > 0 else detail
                 if 'already exists in dataset' in error_content:
-                    status, substatus, error = STATUS_OK, SUBSTATUS_ALREADY_SYNCED, ''
+                    status, substatus, error = Status.OK.value, Substatus.ALREADY_SYNCED.value, ''
 
         self._upload.smart_update(status=status, substatus=substatus, error=error)
 

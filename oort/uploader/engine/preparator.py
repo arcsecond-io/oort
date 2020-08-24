@@ -11,13 +11,8 @@ from oort.shared.models import (
     Dataset,
     NightLog,
     Organisation,
-    STATUS_OK,
-    STATUS_PREPARING,
-    SUBSTATUS_READY,
-    SUBSTATUS_SYNC_DATASET,
-    SUBSTATUS_SYNC_NIGHTLOG,
-    SUBSTATUS_SYNC_OBS_OR_CALIB,
-    SUBSTATUS_SYNC_TELESCOPE,
+    Status,
+    Substatus,
     Telescope
 )
 from .errors import UploadPreparationAPIError, UploadPreparationError, UploadPreparationFatalError
@@ -236,19 +231,19 @@ class UploadPreparator(object):
     async def prepare(self):
         self._logger.info(f'Preparation started for {self._pack.file_path}')
         try:
-            self._pack.upload.smart_update(status=STATUS_PREPARING, substatus=SUBSTATUS_SYNC_TELESCOPE)
+            self._pack.upload.smart_update(status=Status.PREPARING.value, substatus=Substatus.SYNC_TELESCOPE.value)
             self._sync_telescope()
 
             if self._telescope:
                 self._pack.upload.smart_update(telescope=self._telescope)
 
-            self._pack.upload.smart_update(substatus=SUBSTATUS_SYNC_NIGHTLOG)
+            self._pack.upload.smart_update(substatus=Substatus.SYNC_NIGHTLOG.value)
             self._sync_night_log()
 
-            self._pack.upload.smart_update(substatus=SUBSTATUS_SYNC_OBS_OR_CALIB)
+            self._pack.upload.smart_update(substatus=Substatus.SYNC_OBS_OR_CALIB.value)
             self._sync_observation_or_calibration()  # observation or calibration
 
-            self._pack.upload.smart_update(substatus=SUBSTATUS_SYNC_DATASET)
+            self._pack.upload.smart_update(substatus=Substatus.SYNC_DATASET.value)
             self._sync_dataset()
 
             if self._dataset:
@@ -266,5 +261,5 @@ class UploadPreparator(object):
 
         else:
             self._logger.info(f'Preparation succeeded for {self._pack.file_path}')
-            self._pack.upload.smart_update(status=STATUS_OK, substatus=SUBSTATUS_READY)
+            self._pack.upload.smart_update(status=Status.UPLOADING.value, substatus=Substatus.READY.value)
             self._preparation_succeeded = True
