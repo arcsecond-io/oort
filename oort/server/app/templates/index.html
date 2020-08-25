@@ -88,7 +88,7 @@
       <div class="row row-select" v-if="state">
         <div class="h3">
           {{ state.folders.length }}
-          Upload Folder<span v-if="state.folders.length > 1">s</span>
+          Watched Folder<span v-if="state.folders.length > 1">s</span>
         </div>
         <v-select
           v-if="state.folders.length"
@@ -99,10 +99,10 @@
         >
         </v-select>
         <div v-else>
-          There is no folder to upload.
+          There is no folder to watch.
         </div>
         <div class="instruction">
-          To upload a folder, add it with the terminal command <code>oort upload &lt;folder path&gt;</code>.
+          To watch a folder, add it with the terminal command <code>oort watch [options] &lt;folder path&gt;</code>.
         </div>
       </div>
 
@@ -141,7 +141,7 @@
               <div class="table-title">Finished Uploads ({{ finished_uploads.length }})</div>
               <finished-table v-if="finished_uploads.length > 0" v-bind:uploads="finished_uploads"></finished-table>
               <div class="center-block text-center">
-                <span class="subtitle">Uploads older than 24h are now shown.</span>
+                <span class="subtitle">Uploads older than 24h are not shown.</span>
               </div>
               <div v-else>
                 <span class="label-centered">There are no inactive / past uploads.</span>

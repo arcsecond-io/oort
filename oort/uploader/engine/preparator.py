@@ -2,8 +2,6 @@ import os
 from typing import Optional, Type
 
 from arcsecond import ArcsecondAPI
-from peewee import DoesNotExist
-
 from oort.shared.config import get_logger
 from oort.shared.identity import Identity
 from oort.shared.models import (
@@ -15,6 +13,8 @@ from oort.shared.models import (
     Substatus,
     Telescope
 )
+from peewee import DoesNotExist
+
 from .errors import UploadPreparationAPIError, UploadPreparationError, UploadPreparationFatalError
 from .packer import UploadPack
 
@@ -228,7 +228,7 @@ class UploadPreparator(object):
 
     # ------------------------------------------------------------------------------------------------------------------
 
-    async def prepare(self):
+    def prepare(self):
         self._logger.info(f'Preparation started for {self._pack.file_path}')
         try:
             self._pack.upload.smart_update(status=Status.PREPARING.value, substatus=Substatus.SYNC_TELESCOPE.value)
@@ -251,11 +251,13 @@ class UploadPreparator(object):
 
         except UploadPreparationFatalError as e:
             self._logger.info(f'Preparation failed for {self._pack.file_path} with error: {str(e)}')
+            self._pack.upload.smart_update(status=Status.ERROR.value, substatus=Substatus.ERROR.value, error=str(e))
             self._preparation_succeeded = False
             self._preparation_can_be_restarted = False
 
         except UploadPreparationError as e:
             self._logger.info(f'Preparation failed for {self._pack.file_path} with error: {str(e)}')
+            self._pack.upload.smart_update(status=Status.ERROR.value, substatus=Substatus.ERROR.value, error=str(e))
             self._preparation_succeeded = False
             self._preparation_can_be_restarted = True
 

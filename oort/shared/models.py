@@ -1,3 +1,4 @@
+from datetime import datetime
 from enum import Enum
 
 from peewee import (
@@ -155,6 +156,8 @@ class Substatus(Enum):
 
 
 class Upload(BaseModel):
+    created = DateTimeField(default=datetime.now)
+
     file_path = CharField(unique=True)
     file_date = DateTimeField(null=True)
     file_size = IntegerField(default=0)

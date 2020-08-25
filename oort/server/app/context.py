@@ -61,16 +61,12 @@ class Context:
                 obs_or_calib = ds.observation or ds.calibration
                 u['night_log'] = model_to_dict(obs_or_calib.night_log, recurse=False)
             else:
-                u['observation'] = {}
-                u['calibration'] = {}
                 u['night_log'] = {}
-            if u.get('telescope') is None:
-                u['telescope'] = {}
             return u
 
         data = {
             'state': self.to_dict(),
-            'pending': [_ff(model_to_dict(u, max_depth=1)) for u in pending_query],
+            'pending': [_ff(model_to_dict(u, max_depth=1)) for u in pending_query.order_by(-Upload.created)],
             'current': [_ff(model_to_dict(u, max_depth=1)) for u in current_query],
             'finished': [_ff(model_to_dict(u, max_depth=1)) for u in finished_query.order_by(-Upload.ended)],
             'errors': [_ff(model_to_dict(u, max_depth=1)) for u in error_query]
