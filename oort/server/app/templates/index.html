@@ -114,37 +114,59 @@
               <div class="table-title">
                 Active Uploads ({{ current_uploads.length }})
                 <i class="fa fa-spin fa-spinner"></i>
+                <label for="toggle-current">Show</label>
+                <input id="toggle-current" type="checkbox" v-model="show_tables.current" class="">
               </div>
-              <active-table v-if="current_uploads.length > 0" v-bind:uploads="current_uploads"></active-table>
-              <div v-else>
-                <span class="label-centered">There are no active uploads.</span>
-              </div>
-            </div>
-
-            <div class="table-block">
-              <div class="table-title">Failed Uploads ({{ error_uploads.length }})</div>
-              <errors-table v-if="error_uploads.length > 0" v-bind:uploads="error_uploads"></errors-table>
-              <div v-else>
-                <span class="label-centered">There are no failed uploads.</span>
+              <div v-if="show_tables.current">
+                <active-table v-if="current_uploads.length > 0" v-bind:uploads="current_uploads"></active-table>
+                <div v-else>
+                  <span class="label-centered">There are no active uploads.</span>
+                </div>
               </div>
             </div>
 
             <div class="table-block">
-              <div class="table-title">Pending Uploads ({{ pending_uploads.length }})</div>
-              <pending-table v-if="pending_uploads.length > 0" v-bind:uploads="pending_uploads"></pending-table>
-              <div v-else>
-                <span class="label-centered">There are no pending uploads.</span>
+              <div class="table-title">
+                Failed Uploads ({{ error_uploads.length }})
+                <label for="toggle-error">Show</label>
+                <input id="toggle-error" type="checkbox" v-model="show_tables.error" class="">
+              </div>
+              <div v-if="show_tables.error">
+                <errors-table v-if="error_uploads.length > 0" v-bind:uploads="error_uploads"></errors-table>
+                <div v-else>
+                  <span class="label-centered">There are no failed uploads.</span>
+                </div>
               </div>
             </div>
 
             <div class="table-block">
-              <div class="table-title">Finished Uploads ({{ finished_uploads.length }})</div>
-              <finished-table v-if="finished_uploads.length > 0" v-bind:uploads="finished_uploads"></finished-table>
-              <div class="center-block text-center">
-                <span class="subtitle">Uploads older than 24h are not shown.</span>
+              <div class="table-title">
+                Pending Uploads ({{ pending_uploads.length }})
+                <label for="toggle-pending">Show</label>
+                <input id="toggle-pending" type="checkbox" v-model="show_tables.pending" class="">
               </div>
-              <div v-else>
-                <span class="label-centered">There are no inactive / past uploads.</span>
+              <div v-if="show_tables.pending">
+                <pending-table v-if="pending_uploads.length > 0" v-bind:uploads="pending_uploads"></pending-table>
+                <div v-else>
+                  <span class="label-centered">There are no pending uploads.</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="table-block">
+              <div class="table-title">
+                Finished Uploads ({{ finished_uploads.length }})
+                <label for="toggle-finished">Show</label>
+                <input id="toggle-finished" type="checkbox" v-model="show_tables.finished" class="">
+              </div>
+              <div v-if="show_tables.finished">
+                <finished-table v-if="finished_uploads.length > 0" v-bind:uploads="finished_uploads"></finished-table>
+                <div class="center-block text-center">
+                  <span class="subtitle">Uploads older than 24h are not shown.</span>
+                </div>
+                <div v-else>
+                  <span class="label-centered">There are no inactive / past uploads.</span>
+                </div>
               </div>
             </div>
 

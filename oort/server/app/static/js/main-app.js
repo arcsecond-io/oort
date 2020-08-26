@@ -11,9 +11,12 @@ var app = new Vue({
     finished_uploads: [],
     error_uploads: [],
     progresses: [],
-    messages: {},
-    telescopes: [],
-    night_logs: []
+    show_tables: {
+      pending: true,
+      current: true,
+      finished: true,
+      error: true
+    }
   },
   computed: {
     selectButtonTitle () {
