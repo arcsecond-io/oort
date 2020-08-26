@@ -149,7 +149,7 @@ class Substatus(Enum):
     READY = 'ready'
     STARTING = 'starting...'
     UPLOADING = 'uploading...'
-    ERROR = ''
+    ERROR = 'error'
     ALREADY_SYNCED = 'already synced'
     DONE = 'done'
     SKIPPED = 'skipped'
