@@ -138,18 +138,18 @@ def logs(state, n):
 
 @main.command()
 @click.argument('folders', required=True, nargs=-1)
-@click.option('-o', '--org', '--organisation',
+@click.option('-o', '--organisation',
               required=False,
               nargs=1,
               help="The Organisation subdomain, if uploading to an organisation.")
-@click.option('-t', '--tel', '--telescope',
+@click.option('-t', '--telescope',
               required=False,
               nargs=1,
               type=click.UUID,
               help="The UUID of the telescope acquiring data (in the case of organisation uploads).")
 @basic_options
 @pass_state
-def watch(state, folders, o=None, org=None, organisation=None, t=None, tel=None, telescope=None):
+def watch(state, folders, o=None, organisation=None, t=None, telescope=None):
     """
     Indicate a folder (or multiple folders) that oort should monitor for files
     to upload.
@@ -157,8 +157,8 @@ def watch(state, folders, o=None, org=None, organisation=None, t=None, tel=None,
     Oort will walk through the folder tree and uploads files according to the
     name of the subfolders (see main help).
     """
-    telescope_uuid = t or tel or telescope or ''
-    org_subdomain = o or org or organisation or ''
+    telescope_uuid = t or telescope or ''
+    org_subdomain = o or organisation or ''
 
     telescope_details = check_organisation_telescope(org_subdomain, telescope_uuid, state.debug)
     org_role = check_organisation_membership(org_subdomain, state.debug)
