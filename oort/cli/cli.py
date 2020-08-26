@@ -9,7 +9,7 @@ from oort import __version__
 from oort.cli.folders import save_upload_folders, check_organisation_telescope, check_organisation_membership
 from oort.cli.options import State, basic_options
 from oort.cli.supervisor import (configure_supervisor, get_supervisor_processes_status, restart_supervisor_processes,
-                                 start_supervisor_daemon, start_supervisor_processes, stop_supervisor_processes)
+                                 start_supervisor_daemon)
 from oort.shared.config import get_config_value, get_log_file_path
 from oort.shared.utils import tail
 from oort.uploader.main import paths_observer
@@ -80,26 +80,27 @@ def login(state, username, password):
     ArcsecondAPI.login(username, password, None, debug=state.debug)
 
 
-@main.command(help='Start Oort processes.')
-@basic_options
-@pass_state
-def start(state):
-    start_supervisor_processes(debug=state.debug)
-
-
-@main.command(help='Stop Oort processes.')
-@basic_options
-@pass_state
-def stop(state):
-    stop_supervisor_processes(debug=state.debug)
-
-
-@main.command(help='Restart Oort processes.')
-@basic_options
-@pass_state
-def restart(state):
-    restart_supervisor_processes(debug=state.debug)
-
+#
+# @main.command(help='Start Oort processes.')
+# @basic_options
+# @pass_state
+# def start(state):
+#     start_supervisor_processes(debug=state.debug)
+#
+#
+# @main.command(help='Stop Oort processes.')
+# @basic_options
+# @pass_state
+# def stop(state):
+#     stop_supervisor_processes(debug=state.debug)
+#
+#
+# @main.command(help='Restart Oort processes.')
+# @basic_options
+# @pass_state
+# def restart(state):
+#     restart_supervisor_processes(debug=state.debug)
+#
 
 @main.command(help='Get Oort processes status.')
 @basic_options
