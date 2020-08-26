@@ -109,12 +109,13 @@ def status(state):
     get_supervisor_processes_status(debug=state.debug)
 
 
-@main.command(help='Reload Oort configuration (for enabling/disabling debug).')
+@main.command(help='Reload and restart Oort.')
 @basic_options
 @pass_state
 def reload(state):
     configure_supervisor(debug=state.debug)
     start_supervisor_daemon(debug=state.debug)
+    restart_supervisor_processes(debug=state.debug)
 
 
 @main.command(help='Open web server in default browser')
