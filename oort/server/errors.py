@@ -6,6 +6,12 @@ class NotLoggedInOortCloudError(OortCloudError):
         super().__init__('You must login first: `arcsecond login`')
 
 
+class UnknownOrganisationOortCloudError(OortCloudError):
+    def __init__(self, subdomain, error_string):
+        msg = f'Invalid / unknown organisation with subdomain {subdomain}: {error_string}'
+        super().__init__(msg)
+
+
 class UnknownTelescopeOortCloudError(OortCloudError):
     def __init__(self, telescope_uuid):
         msg = f'Invalid / unknown telescopw with UUID {telescope_uuid}'
