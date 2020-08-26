@@ -14,13 +14,13 @@ class UnknownOrganisationOortCloudError(OortCloudError):
 
 class UnknownTelescopeOortCloudError(OortCloudError):
     def __init__(self, telescope_uuid):
-        msg = f'Invalid / unknown telescopw with UUID {telescope_uuid}'
+        msg = f'Invalid / unknown telescope with UUID {telescope_uuid}'
         super().__init__(msg)
 
 
 class InvalidOrgMembershipOortCloudError(OortCloudError):
-    def __init__(self, organisation):
-        msg = f'Invalid / unknown membership for {organisation}. Login again: `arcsecond login --organisation {organisation}`'
+    def __init__(self, subdomain):
+        msg = f'Invalid / unknown membership for {subdomain}. Login again: `arcsecond login --organisation {subdomain}`'
         super().__init__(msg)
 
 
