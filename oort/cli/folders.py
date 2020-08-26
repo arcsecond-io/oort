@@ -4,13 +4,24 @@ from typing import Optional, Union
 import click
 from arcsecond import ArcsecondAPI
 from click import UUID
+from peewee import DoesNotExist
 
-from oort.server.errors import (
-    InvalidOrganisationTelescopeOortCloudError,
-    NotLoggedInOortCloudError,
-    UnknownTelescopeOortCloudError, InvalidOrgMembershipOortCloudError
-)
+from oort.server.errors import (InvalidOrgMembershipOortCloudError, InvalidOrganisationTelescopeOortCloudError,
+                                NotLoggedInOortCloudError, UnknownOrganisationOortCloudError,
+                                UnknownTelescopeOortCloudError)
 from oort.shared.identity import Identity
+from oort.shared.models import Organisation
+
+
+def check_organisation(org_subdomain: str, debug: bool):
+    try:
+        Organisation.get(subdomain=org_subdomain)
+    except DoesNotExist:
+        org_resource, error = ArcsecondAPI.organisations(debug=debug).read(org_subdomain)
+        if error:
+            raise UnknownOrganisationOortCloudError(org_subdomain, str(error))
+        else:
+            Organisation.smart_create(subdomain=org_subdomain)
 
 
 def check_organisation_telescope(org_subdomain: Optional[str],
