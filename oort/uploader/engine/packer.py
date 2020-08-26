@@ -1,13 +1,21 @@
 import os
+import warnings
 import xml.etree.ElementTree as ET
 from datetime import timedelta
 from enum import Enum, auto
 
 import dateparser
 from astropy.io import fits as pyfits
+from astropy.io.fits.verify import VerifyWarning
+from astropy.io.votable.exceptions import VOTableSpecWarning
+from astropy.utils.exceptions import AstropyWarning
 
 from oort.shared.config import get_logger
 from oort.shared.models import Calibration, Observation, Status, Substatus, Upload
+
+warnings.simplefilter('ignore', category=AstropyWarning)
+warnings.simplefilter('ignore', category=VOTableSpecWarning)
+warnings.simplefilter('ignore', category=VerifyWarning)
 
 CALIB_PREFIXES = ['bias', 'dark', 'flats', 'calib']
 
@@ -44,7 +52,7 @@ class UploadPack(object):
         self._pack()
 
     def _pack(self):
-        self._file_date = self._find_fits_filedate(self._file_path) or self._find_xisf_filedate(self._file_path)
+        self._file_date = self._find_date(self._file_path)
         self._file_size = os.path.getsize(self._file_path)
 
         self._segments = self._file_path[len(self._root_path):].split(os.sep)
@@ -121,21 +129,26 @@ class UploadPack(object):
     def dataset_name(self):
         return self._dataset_name.strip()
 
+    def _find_date(self, path):
+        _, extension = os.path.splitext(path)
+        if extension.lower() == '.xisf':
+            return self._find_xisf_filedate(path)
+        else:
+            return self._find_fits_filedate(path)
+
     def _find_fits_filedate(self, path):
         file_date = None
         try:
-            hdulist = pyfits.open(path)
+            with pyfits.open(path) as hdulist:
+                for hdu in hdulist:
+                    date_header = hdu.header.get('DATE') or hdu.header.get('DATE-OBS') or hdu.header.get('DATE_OBS')
+                    if not date_header:
+                        continue
+                    file_date = dateparser.parse(date_header)
+                    if file_date:
+                        break
         except Exception as error:
             self._logger.debug(str(error))
-        else:
-            for hdu in hdulist:
-                date_header = hdu.header.get('DATE') or hdu.header.get('DATE-OBS') or hdu.header.get('DATE_OBS')
-                if not date_header:
-                    continue
-                file_date = dateparser.parse(date_header)
-                if file_date:
-                    break
-            hdulist.close()
         return file_date
 
     def _find_xisf_filedate(self, path):
