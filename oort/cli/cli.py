@@ -6,7 +6,8 @@ import click
 from arcsecond import ArcsecondAPI
 
 from oort import __version__
-from oort.cli.folders import save_upload_folders, check_organisation_telescope, check_organisation_membership
+from oort.cli.folders import (check_organisation, check_organisation_membership, check_organisation_telescope,
+                              save_upload_folders)
 from oort.cli.options import State, basic_options
 from oort.cli.supervisor import (configure_supervisor, get_supervisor_processes_status, restart_supervisor_processes,
                                  start_supervisor_daemon)
@@ -159,6 +160,9 @@ def watch(state, folders, o=None, organisation=None, t=None, telescope=None):
     """
     telescope_uuid = t or telescope or ''
     org_subdomain = o or organisation or ''
+
+    if org_subdomain:
+        check_organisation(org_subdomain, state.debug)
 
     telescope_details = check_organisation_telescope(org_subdomain, telescope_uuid, state.debug)
     org_role = check_organisation_membership(org_subdomain, state.debug)
