@@ -155,6 +155,16 @@ class Substatus(Enum):
     SKIPPED = 'skipped'
 
 
+FINISHED_SUBSTATUSES = [Substatus.DONE.value,
+                        Substatus.ERROR.value,
+                        Substatus.SKIPPED.value,
+                        Substatus.ALREADY_SYNCED.value]
+
+PREPARATION_DONE_SUBSTATUSES = [Substatus.CHECKING.value,
+                                Substatus.READY.value,
+                                Substatus.STARTING.value] + FINISHED_SUBSTATUSES
+
+
 class Upload(BaseModel):
     created = DateTimeField(default=datetime.now)
 
