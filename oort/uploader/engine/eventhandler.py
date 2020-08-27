@@ -53,7 +53,7 @@ class DataFileHandler(FileSystemEventHandler):
             for filename in filenames:
                 file_path = os.path.join(root, filename)
                 if os.path.isfile(file_path) and not os.path.basename(file_path).startswith('.'):
-                    self._initial_packs.append(UploadPack(self._root_path, file_path, self._identity.longitude))
+                    self._initial_packs.append(UploadPack(self._root_path, file_path, self._identity))
 
     def _dispatch_valid_packs(self):
         for pack in self._initial_packs:
@@ -81,7 +81,7 @@ class DataFileHandler(FileSystemEventHandler):
                 file_size = os.path.getsize(event.src_path)
                 time.sleep(0.1)
 
-            pack = UploadPack(self._root_path, event.src_path, self._identity.longitude)
+            pack = UploadPack(self._root_path, event.src_path, self._identity)
             self._perform_upload(pack)
 
     def on_moved(self, event):

@@ -11,6 +11,7 @@ from astropy.io.votable.exceptions import VOTableSpecWarning
 from astropy.utils.exceptions import AstropyWarning
 
 from oort.shared.config import get_logger
+from oort.shared.identity import Identity
 from oort.shared.models import (Calibration, FINISHED_SUBSTATUSES, Observation, PREPARATION_DONE_SUBSTATUSES, Status,
                                 Substatus, Upload)
 
@@ -44,12 +45,14 @@ class CalibrationType(Enum):
 class UploadPack(object):
     """Logic to determine dataset, night_log and observations/calibrations from filepath."""
 
-    def __init__(self, root_path, file_path, longitude=None):
+    def __init__(self, root_path, file_path, identity: Identity):
         self._logger = get_logger(debug=True)
 
         self._root_path = root_path
         self._file_path = file_path
-        self._longitude = longitude
+
+        self._identity = identity
+        self._upload = None
 
         self._parse()
 
