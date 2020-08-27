@@ -1,8 +1,10 @@
 import os
+import threading
 import time
 
 from watchdog.events import FileSystemEventHandler
 
+from oort.cli.folders import check_organisation
 from oort.shared.config import get_logger
 from oort.shared.identity import Identity
 from .packer import UploadPack
@@ -18,6 +20,7 @@ class DataFileHandler(FileSystemEventHandler):
         self._debug = debug
         self._logger = get_logger(debug=self._debug)
         self._initial_packs = []
+        self._thread = None
 
     @property
     def debug(self):
@@ -29,10 +32,21 @@ class DataFileHandler(FileSystemEventHandler):
         self._logger = get_logger(debug=self._debug)
 
     def run_initial_walk(self):
+        if self._thread is None:
+            self._thread = threading.Thread(target=self._perform_initial_walk)
+        if self._thread.is_alive() is False:
+            self._thread.start()
+
+    def _perform_initial_walk(self):
         self._logger.info(f'Running initial walk for {self._path}')
+        time.sleep(0.5)
+        if self._identity.organisation:
+            check_organisation(self._identity.organisation, self._identity.debug)
+        time.sleep(0.5)
         self._prepare_initial_packs()
         time.sleep(0.5)
         self._dispatch_valid_packs()
+        self._logger.info(f'Finished initial walk for {self._path}')
 
     def _prepare_initial_packs(self):
         for root, _, filenames in os.walk(self._path):
