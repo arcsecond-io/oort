@@ -11,7 +11,8 @@ from astropy.io.votable.exceptions import VOTableSpecWarning
 from astropy.utils.exceptions import AstropyWarning
 
 from oort.shared.config import get_logger
-from oort.shared.models import Calibration, Observation, Status, Substatus, Upload
+from oort.shared.models import (Calibration, FINISHED_SUBSTATUSES, Observation, PREPARATION_DONE_SUBSTATUSES, Status,
+                                Substatus, Upload)
 
 warnings.simplefilter('ignore', category=AstropyWarning)
 warnings.simplefilter('ignore', category=VOTableSpecWarning)
@@ -44,17 +45,22 @@ class UploadPack(object):
     """Logic to determine dataset, night_log and observations/calibrations from filepath."""
 
     def __init__(self, root_path, file_path, longitude=None):
+        self._logger = get_logger(debug=True)
+
         self._root_path = root_path
         self._file_path = file_path
         self._longitude = longitude
-        self._upload = None
-        self._logger = get_logger(debug=True)
-        self._pack()
 
-    def _pack(self):
-        self._file_date = self._find_date(self._file_path)
-        self._file_size = os.path.getsize(self._file_path)
+        self._parse()
 
+        self._upload, created = Upload.get_or_create(file_path=self.file_path)
+        if created:
+            self._find_date_and_size()
+        else:
+            self._file_date = self._upload.file_date
+            self._file_size = self._upload.file_size
+
+    def _parse(self):
         self._segments = self._file_path[len(self._root_path):].split(os.sep)
         self._filename = self._segments.pop()
 
@@ -76,7 +82,11 @@ class UploadPack(object):
         if len(self._dataset_name.strip()) == 0:
             self._dataset_name = f'(folder {os.path.basename(self._root_path)})'
 
-        self._upload, created = Upload.get_or_create(file_path=self.file_path)
+        # What happens when rules change: dataset will change -> new upload...
+
+    def _find_date_and_size(self):
+        self._file_date = self._find_date(self._file_path)
+        self._file_size = os.path.getsize(self._file_path)
         self._upload.smart_update(file_date=self.file_date, file_size=self.file_size)
 
     def archive(self):
@@ -128,6 +138,14 @@ class UploadPack(object):
     @property
     def dataset_name(self):
         return self._dataset_name.strip()
+
+    @property
+    def should_prepare(self):
+        return self._upload.substatus not in PREPARATION_DONE_SUBSTATUSES
+
+    @property
+    def is_already_finished(self):
+        return self._upload.substatus in FINISHED_SUBSTATUSES
 
     def _find_date(self, path):
         _, extension = os.path.splitext(path)
