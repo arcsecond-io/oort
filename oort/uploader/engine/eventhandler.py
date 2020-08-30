@@ -45,7 +45,7 @@ class DataFileHandler(FileSystemEventHandler):
         time.sleep(0.5)
         self._prepare_initial_packs()
         time.sleep(0.5)
-        self._dispatch_valid_packs()
+        self._dispatch_fits_xisf_packs_only()
         self._logger.info(f'Finished initial walk for {self._root_path}')
 
     def _prepare_initial_packs(self):
@@ -55,7 +55,7 @@ class DataFileHandler(FileSystemEventHandler):
                 if os.path.isfile(file_path) and not os.path.basename(file_path).startswith('.'):
                     self._initial_packs.append(UploadPack(self._root_path, file_path, self._identity))
 
-    def _dispatch_valid_packs(self):
+    def _dispatch_fits_xisf_packs_only(self):
         for pack in self._initial_packs:
             if pack.is_fits_or_xisf:
                 self._perform_upload(pack)
