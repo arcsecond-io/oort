@@ -16,10 +16,13 @@ spec = importlib.util.find_spec('oort')
 folder_path = os.path.join(os.path.dirname(spec.origin), '..', 'tests', 'fixtures')
 fits_file_path = os.path.join(folder_path, 'very_simple.fits')
 
+telescope_uuid = '44f5bee9-a557-4264-86d6-c877d5013788'
+identity = Identity('cedric', str(uuid.uuid4()), 'saao', 'admin', telescope_uuid)
+
 
 @use_test_database
-    pack = UploadPack(folder_path, fits_file_path)
 def test_preparator_init_no_org():
+    pack = UploadPack(folder_path, fits_file_path, identity)
     with patch.object(UploadPreparator, 'prepare') as mock_method:
         prep = UploadPreparator(pack, Identity('cedric', str(uuid.uuid4()), debug=True))
         assert prep is not None
@@ -33,10 +36,8 @@ def test_preparator_init_no_org():
 
 
 @use_test_database
-    pack = UploadPack(folder_path, fits_file_path)
-    telescope_uuid = '44f5bee9-a557-4264-86d6-c877d5013788'
-    identity = Identity('cedric', str(uuid.uuid4()), 'saao', 'admin', telescope_uuid)
 def test_preparator_init_with_org():
+    pack = UploadPack(folder_path, fits_file_path, identity)
     with patch.object(UploadPreparator, 'prepare') as mock_method:
         assert Organisation.select().count() == 0
         prep = UploadPreparator(pack, identity)
@@ -51,9 +52,9 @@ def test_preparator_init_with_org():
 
 
 @use_test_database
-    pack = UploadPack(folder_path, fits_file_path)
 def test_preparator_prepare_no_org_no_telescope():
     identity = Identity('cedric', str(uuid.uuid4()), debug=True)
+    pack = UploadPack(folder_path, fits_file_path, identity)
     assert len(pack.night_log_date_string) > 0
     assert identity.telescope is None
 
