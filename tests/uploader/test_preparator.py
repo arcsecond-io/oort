@@ -3,7 +3,6 @@ import os
 import uuid
 from unittest.mock import patch
 
-import pytest
 from arcsecond.api.main import ArcsecondAPI
 
 from oort.shared.identity import Identity
@@ -18,10 +17,9 @@ folder_path = os.path.join(os.path.dirname(spec.origin), '..', 'tests', 'fixture
 fits_file_path = os.path.join(folder_path, 'very_simple.fits')
 
 
-@pytest.mark.asyncio
 @use_test_database
-async def test_preparator_init_no_org():
     pack = UploadPack(folder_path, fits_file_path)
+def test_preparator_init_no_org():
     with patch.object(UploadPreparator, 'prepare') as mock_method:
         prep = UploadPreparator(pack, Identity('cedric', str(uuid.uuid4()), debug=True))
         assert prep is not None
@@ -34,12 +32,11 @@ async def test_preparator_init_no_org():
         assert Organisation.select().count() == 0
 
 
-@pytest.mark.asyncio
 @use_test_database
-async def test_preparator_init_with_org():
     pack = UploadPack(folder_path, fits_file_path)
     telescope_uuid = '44f5bee9-a557-4264-86d6-c877d5013788'
     identity = Identity('cedric', str(uuid.uuid4()), 'saao', 'admin', telescope_uuid)
+def test_preparator_init_with_org():
     with patch.object(UploadPreparator, 'prepare') as mock_method:
         assert Organisation.select().count() == 0
         prep = UploadPreparator(pack, identity)
@@ -53,10 +50,9 @@ async def test_preparator_init_with_org():
         assert org is not None
 
 
-@pytest.mark.asyncio
 @use_test_database
-async def test_preparator_prepare_no_org_no_telescope():
     pack = UploadPack(folder_path, fits_file_path)
+def test_preparator_prepare_no_org_no_telescope():
     identity = Identity('cedric', str(uuid.uuid4()), debug=True)
     assert len(pack.night_log_date_string) > 0
     assert identity.telescope is None
@@ -70,7 +66,7 @@ async def test_preparator_prepare_no_org_no_telescope():
         mock_method_create.side_effect = [(nl, None), (obs, None), (ds, None)]
 
         up = UploadPreparator(pack, identity)
-        await up.prepare()
+        up.prepare()
         assert mock_method_list.called_once_with(date=pack.night_log_date_string)
         assert mock_method_create.called_with(**nl)
         assert up.night_log.uuid == nl['uuid']
