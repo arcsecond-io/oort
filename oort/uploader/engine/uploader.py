@@ -18,14 +18,14 @@ class FileUploader(object):
 
         self._stalled_progress = 0
 
-        if pack.identity.organisation is None or len(pack.identity.organisation) == 0:
+        if pack.identity.subdomain is None or len(pack.identity.subdomain) == 0:
             self._api = ArcsecondAPI.datafiles(dataset=str(self._upload.dataset.uuid),
                                                debug=pack.identity.debug,
                                                api_key=pack.identity.api_key)
         else:
             self._api = ArcsecondAPI.datafiles(dataset=str(self._upload.dataset.uuid),
                                                debug=pack.identity.debug,
-                                               organisation=pack.identity.organisation)
+                                               organisation=pack.identity.subdomain)
 
     @property
     def prefix(self) -> str:

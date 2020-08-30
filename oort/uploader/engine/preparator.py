@@ -40,9 +40,9 @@ class UploadPreparator(object):
         # Do NOT mix debug and self._identity.debug
 
         self._pack.upload.smart_update(astronomer=self._identity.username)
-        if self._identity.organisation:
+        if self._identity.subdomain:
             api = ArcsecondAPI.organisations(debug=self._identity.debug)
-            self._organisation = self._sync_local_resource(Organisation, api, self._identity.organisation)
+            self._organisation = self._sync_local_resource(Organisation, api, self._identity.subdomain)
             self._pack.upload.smart_update(organisation=self._organisation)
 
     # ------ PROPERTIES ------------------------------------------------------------------------------------------------
@@ -54,8 +54,8 @@ class UploadPreparator(object):
     @property
     def api_kwargs(self) -> dict:
         kwargs = {'debug': self._identity.debug}
-        if self._identity.organisation is not None and len(self._identity.organisation) > 0:
-            kwargs.update(organisation=self._identity.organisation)
+        if self._identity.subdomain is not None and len(self._identity.subdomain) > 0:
+            kwargs.update(organisation=self._identity.subdomain)
         else:
             kwargs.update(api_key=self._identity.api_key)
         return kwargs
@@ -170,8 +170,8 @@ class UploadPreparator(object):
 
         fields = {k: v for k, v in kwargs.items() if k in db_class._meta.sorted_field_names and v is not None}
 
-        if self._identity.organisation and 'organisation' in db_class._meta.sorted_field_names:
-            fields.update(organisation=self._identity.organisation)
+        if self._identity.subdomain and 'organisation' in db_class._meta.sorted_field_names:
+            fields.update(organisation=self._identity.subdomain)
 
         instance = db_class.smart_create(**fields)
         self._logger.info(f'{self.prefix} Local resource created.')

@@ -10,14 +10,14 @@ class Identity(object):
     def __init__(self,
                  username: str,
                  api_key: str,
-                 organisation: Optional[str] = None,
+                 subdomain: Optional[str] = None,
                  role: Optional[str] = None,
                  telescope: Optional[str] = None,
                  longitude: Optional[float] = None,
                  debug: bool = False):
         self._username = username
         self._api_key = api_key
-        self._organisation = organisation
+        self._subdomain = subdomain
         self._role = role
         self._telescope = telescope
         self._longitude = longitude
@@ -32,8 +32,8 @@ class Identity(object):
         return self._api_key
 
     @property
-    def organisation(self) -> Optional[str]:
-        return self._organisation
+    def subdomain(self) -> Optional[str]:
+        return self._subdomain
 
     @property
     def role(self) -> Optional[str]:
@@ -56,7 +56,7 @@ class Identity(object):
         write_config_section_values(f'watch-folder-{folder_hash}',
                                     username=ArcsecondAPI.username(),
                                     api_key=ArcsecondAPI.api_key(debug=self.debug),
-                                    organisation=self.organisation or '',
+                                    organisation=self.subdomain or '',
                                     role=self.role or '',
                                     path=upload_folder,
                                     telescope=self.telescope or '',
