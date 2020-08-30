@@ -167,7 +167,7 @@ def watch(state, folders, o=None, organisation=None, t=None, telescope=None):
     telescope_details = check_organisation_telescope(org_subdomain, telescope_uuid, state.debug)
     org_role = check_organisation_membership(org_subdomain, state.debug)
 
-    click.echo(" --- Upload folder(s) summary --- ")
+    click.echo(" --- Folder(s) watch summary --- ")
     click.echo(f" • Account username: @{ArcsecondAPI.username(debug=state.debug)}")
     if org_subdomain:
         click.echo(f" • Uploading for organisation: {org_subdomain} (role: {org_role})")
@@ -176,7 +176,7 @@ def watch(state, folders, o=None, organisation=None, t=None, telescope=None):
 
     if telescope_details:
         name, uuid = telescope_details.get('name'), telescope_details.get('uuid')
-        click.echo(f" • Night Logs will be linked to telescope {name} ({uuid}).")
+        click.echo(f" • Night Logs will be linked to telescope '{name}' ({uuid}).")
     else:
         click.echo(" • No designated telescope.")
 
