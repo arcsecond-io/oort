@@ -56,7 +56,7 @@ class Identity(object):
         write_config_section_values(f'watch-folder-{folder_hash}',
                                     username=ArcsecondAPI.username(),
                                     api_key=ArcsecondAPI.api_key(debug=self.debug),
-                                    organisation=self.subdomain or '',
+                                    subdomain=self.subdomain or '',
                                     role=self.role or '',
                                     path=upload_folder,
                                     telescope=self.telescope or '',
