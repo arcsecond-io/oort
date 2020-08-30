@@ -40,8 +40,8 @@ def test_preparator_init_no_org():
 def test_preparator_init_with_org():
     identity = Identity('cedric', str(uuid.uuid4()), 'saao', 'admin', telescope_uuid)
     pack = UploadPack(folder_path, fits_file_path, identity)
-    with patch.object(UploadPreparator, 'prepare') as mock_method, \
-            patch.object(ArcsecondAPI, 'read', return_value=({'subdomain': 'saao'}, None)) as mock_method_read:
+    with patch.object(UploadPreparator, 'prepare'), \
+         patch.object(ArcsecondAPI, 'read', return_value=({'subdomain': 'saao'}, None)) as mock_method_read:
         assert Organisation.select().count() == 0
         prep = UploadPreparator(pack, identity)
 

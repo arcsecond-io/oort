@@ -7,7 +7,7 @@ from arcsecond import ArcsecondAPI
 from playhouse.shortcuts import model_to_dict
 
 from oort.shared.config import get_config_upload_folder_sections
-from oort.shared.models import (Dataset, Status, Substatus, Upload)
+from oort.shared.models import (Dataset, Status, Upload)
 
 
 class BoostedJSONEncoder(JSONEncoder):

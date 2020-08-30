@@ -3,8 +3,6 @@ import uuid
 from datetime import datetime
 from unittest.mock import patch
 
-import pytest
-
 from oort.shared.identity import Identity
 from oort.shared.utils import get_random_string
 from oort.uploader.engine.packer import UploadPack
@@ -14,6 +12,7 @@ root_path = '/Users/onekiloparsec/data/'
 
 telescope_uuid = '44f5bee9-a557-4264-86d6-c877d5013788'
 identity = Identity('cedric', str(uuid.uuid4()), 'saao', 'admin', telescope_uuid)
+
 
 @use_test_database
 def test_packer_calib_bias():
