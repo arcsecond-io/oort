@@ -22,9 +22,9 @@ from .packer import UploadPack
 class UploadPreparator(object):
     """Sync remote Telescope, Night Log, Observation or Calibration and Dataset."""
 
-    def __init__(self, pack: UploadPack, identity: Identity, debug=False):
+    def __init__(self, pack: UploadPack, debug=False):
         self._pack = pack
-        self._identity = identity
+        self._identity = self._pack.identity
         self._debug = debug
         self._logger = get_logger(debug=self._debug)
 
@@ -46,14 +46,6 @@ class UploadPreparator(object):
             self._pack.upload.smart_update(organisation=self._organisation)
 
     # ------ PROPERTIES ------------------------------------------------------------------------------------------------
-
-    @property
-    def pack(self) -> UploadPack:
-        return self._pack
-
-    @property
-    def identity(self) -> Identity:
-        return self._identity
 
     @property
     def preparation_succeeded(self) -> bool:
