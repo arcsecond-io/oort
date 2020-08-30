@@ -4,13 +4,24 @@ from typing import Optional, Union
 import click
 from arcsecond import ArcsecondAPI
 from click import UUID
+from peewee import DoesNotExist
 
-from oort.server.errors import (
-    InvalidOrganisationTelescopeOortCloudError,
-    NotLoggedInOortCloudError,
-    UnknownTelescopeOortCloudError, InvalidOrgMembershipOortCloudError
-)
+from oort.server.errors import (InvalidOrgMembershipOortCloudError, InvalidOrganisationTelescopeOortCloudError,
+                                NotLoggedInOortCloudError, UnknownOrganisationOortCloudError,
+                                UnknownTelescopeOortCloudError)
 from oort.shared.identity import Identity
+from oort.shared.models import Organisation
+
+
+def check_organisation(org_subdomain: str, debug: bool):
+    try:
+        Organisation.get(subdomain=org_subdomain)
+    except DoesNotExist:
+        org_resource, error = ArcsecondAPI.organisations(debug=debug).read(org_subdomain)
+        if error:
+            raise UnknownOrganisationOortCloudError(org_subdomain, str(error))
+        else:
+            Organisation.smart_create(subdomain=org_subdomain)
 
 
 def check_organisation_telescope(org_subdomain: Optional[str],
@@ -44,7 +55,6 @@ def check_organisation_telescope(org_subdomain: Optional[str],
     if telescope_detail is not None and telescope_detail.get('coordinates', None) is None:
         site_uuid = telescope_detail.get('observing_site', None)
         site_detail, error = ArcsecondAPI.observingsites(debug=debug).read(site_uuid)
-        print(site_uuid, site_detail, error)
         telescope_detail['coordinates'] = site_detail.get('coordinates')
 
     return telescope_detail
@@ -82,7 +92,7 @@ def save_upload_folders(folders: list,
 
         identity = Identity(username=ArcsecondAPI.username(debug=debug),
                             api_key=ArcsecondAPI.api_key(debug=debug),
-                            organisation=org_subdomain or '',
+                            subdomain=org_subdomain or '',
                             role=org_role or '',
                             telescope=telescope_uuid,
                             longitude=longitude,

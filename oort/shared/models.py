@@ -149,10 +149,22 @@ class Substatus(Enum):
     READY = 'ready'
     STARTING = 'starting...'
     UPLOADING = 'uploading...'
-    ERROR = ''
+    ERROR = 'error'
     ALREADY_SYNCED = 'already synced'
     DONE = 'done'
-    SKIPPED = 'skipped'
+    SKIPPED_NOT_FITS_OR_XISF = 'skipped (not fits or xisf)'
+    SKIPPED_NO_DATASET = 'skipped (no dataset)'
+
+
+FINISHED_SUBSTATUSES = [Substatus.DONE.value,
+                        Substatus.ERROR.value,
+                        Substatus.SKIPPED_NOT_FITS_OR_XISF.value,
+                        Substatus.SKIPPED_NO_DATASET.value,
+                        Substatus.ALREADY_SYNCED.value]
+
+PREPARATION_DONE_SUBSTATUSES = [Substatus.CHECKING.value,
+                                Substatus.READY.value,
+                                Substatus.STARTING.value] + FINISHED_SUBSTATUSES
 
 
 class Upload(BaseModel):

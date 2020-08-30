@@ -68,13 +68,13 @@ Vue.component('active-table', {
              aria-valuenow="0"
              aria-valuemin="0"
              aria-valuemax="100">
-          <span class="progress-bar-label">{{ Math.round(upload.progress) }}%</span>
+          <span class="progress-bar-label">{{ upload.progress.toFixed(2) }}%</span>
         </div>
       </div>
     </td>
     <td>{{ upload.started }}</td>
     <td>{{ upload.ended }}</td>
-    <td>{{ upload.duration }} s</td>
+    <td>{{ upload.duration.toFixed(1) }} s</td>
     <td>{{ upload.error }}</td>
   </tr>
   </tbody>

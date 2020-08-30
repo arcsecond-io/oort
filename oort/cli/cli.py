@@ -6,10 +6,11 @@ import click
 from arcsecond import ArcsecondAPI
 
 from oort import __version__
-from oort.cli.folders import save_upload_folders, check_organisation_telescope, check_organisation_membership
+from oort.cli.folders import (check_organisation, check_organisation_membership, check_organisation_telescope,
+                              save_upload_folders)
 from oort.cli.options import State, basic_options
 from oort.cli.supervisor import (configure_supervisor, get_supervisor_processes_status, restart_supervisor_processes,
-                                 start_supervisor_daemon, start_supervisor_processes, stop_supervisor_processes)
+                                 start_supervisor_daemon)
 from oort.shared.config import get_config_value, get_log_file_path
 from oort.shared.utils import tail
 from oort.uploader.main import paths_observer
@@ -80,26 +81,27 @@ def login(state, username, password):
     ArcsecondAPI.login(username, password, None, debug=state.debug)
 
 
-@main.command(help='Start Oort processes.')
-@basic_options
-@pass_state
-def start(state):
-    start_supervisor_processes(debug=state.debug)
-
-
-@main.command(help='Stop Oort processes.')
-@basic_options
-@pass_state
-def stop(state):
-    stop_supervisor_processes(debug=state.debug)
-
-
-@main.command(help='Restart Oort processes.')
-@basic_options
-@pass_state
-def restart(state):
-    restart_supervisor_processes(debug=state.debug)
-
+#
+# @main.command(help='Start Oort processes.')
+# @basic_options
+# @pass_state
+# def start(state):
+#     start_supervisor_processes(debug=state.debug)
+#
+#
+# @main.command(help='Stop Oort processes.')
+# @basic_options
+# @pass_state
+# def stop(state):
+#     stop_supervisor_processes(debug=state.debug)
+#
+#
+# @main.command(help='Restart Oort processes.')
+# @basic_options
+# @pass_state
+# def restart(state):
+#     restart_supervisor_processes(debug=state.debug)
+#
 
 @main.command(help='Get Oort processes status.')
 @basic_options
@@ -108,12 +110,13 @@ def status(state):
     get_supervisor_processes_status(debug=state.debug)
 
 
-@main.command(help='Reload Oort configuration (for enabling/disabling debug).')
+@main.command(help='Reload and restart Oort.')
 @basic_options
 @pass_state
 def reload(state):
     configure_supervisor(debug=state.debug)
     start_supervisor_daemon(debug=state.debug)
+    restart_supervisor_processes(debug=state.debug)
 
 
 @main.command(help='Open web server in default browser')
@@ -136,18 +139,18 @@ def logs(state, n):
 
 @main.command()
 @click.argument('folders', required=True, nargs=-1)
-@click.option('-o', '--org', '--organisation',
+@click.option('-o', '--organisation',
               required=False,
               nargs=1,
               help="The Organisation subdomain, if uploading to an organisation.")
-@click.option('-t', '--tel', '--telescope',
+@click.option('-t', '--telescope',
               required=False,
               nargs=1,
               type=click.UUID,
               help="The UUID of the telescope acquiring data (in the case of organisation uploads).")
 @basic_options
 @pass_state
-def watch(state, folders, o=None, org=None, organisation=None, t=None, tel=None, telescope=None):
+def watch(state, folders, o=None, organisation=None, t=None, telescope=None):
     """
     Indicate a folder (or multiple folders) that oort should monitor for files
     to upload.
@@ -155,13 +158,16 @@ def watch(state, folders, o=None, org=None, organisation=None, t=None, tel=None,
     Oort will walk through the folder tree and uploads files according to the
     name of the subfolders (see main help).
     """
-    telescope_uuid = t or tel or telescope or ''
-    org_subdomain = o or org or organisation or ''
+    telescope_uuid = t or telescope or ''
+    org_subdomain = o or organisation or ''
+
+    if org_subdomain:
+        check_organisation(org_subdomain, state.debug)
 
     telescope_details = check_organisation_telescope(org_subdomain, telescope_uuid, state.debug)
     org_role = check_organisation_membership(org_subdomain, state.debug)
 
-    click.echo(" --- Upload folder(s) summary --- ")
+    click.echo(" --- Folder(s) watch summary --- ")
     click.echo(f" • Account username: @{ArcsecondAPI.username(debug=state.debug)}")
     if org_subdomain:
         click.echo(f" • Uploading for organisation: {org_subdomain} (role: {org_role})")
@@ -170,7 +176,7 @@ def watch(state, folders, o=None, org=None, organisation=None, t=None, tel=None,
 
     if telescope_details:
         name, uuid = telescope_details.get('name'), telescope_details.get('uuid')
-        click.echo(f" • Night Logs will be linked to telescope {name} ({uuid}).")
+        click.echo(f" • Night Logs will be linked to telescope '{name}' ({uuid}).")
     else:
         click.echo(" • No designated telescope.")
 

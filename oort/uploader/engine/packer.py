@@ -1,8 +1,9 @@
 import os
 import warnings
 import xml.etree.ElementTree as ET
-from datetime import timedelta
+from datetime import datetime, timedelta
 from enum import Enum, auto
+from typing import Optional
 
 import dateparser
 from astropy.io import fits as pyfits
@@ -11,7 +12,11 @@ from astropy.io.votable.exceptions import VOTableSpecWarning
 from astropy.utils.exceptions import AstropyWarning
 
 from oort.shared.config import get_logger
-from oort.shared.models import Calibration, Observation, Status, Substatus, Upload
+from oort.shared.identity import Identity
+from oort.shared.models import (Calibration, FINISHED_SUBSTATUSES, Observation, PREPARATION_DONE_SUBSTATUSES, Status,
+                                Substatus, Upload)
+from . import preparator
+from . import uploader
 
 warnings.simplefilter('ignore', category=AstropyWarning)
 warnings.simplefilter('ignore', category=VOTableSpecWarning)
@@ -43,19 +48,26 @@ class CalibrationType(Enum):
 class UploadPack(object):
     """Logic to determine dataset, night_log and observations/calibrations from filepath."""
 
-    def __init__(self, root_path, file_path, longitude=None):
+    def __init__(self, root_path, file_path, identity: Identity):
+        self._logger = get_logger(debug=True)
+
         self._root_path = root_path
         self._file_path = file_path
-        self._longitude = longitude
+
+        self._identity = identity
         self._upload = None
-        self._logger = get_logger(debug=True)
-        self._pack()
 
-    def _pack(self):
-        self._file_date = self._find_date(self._file_path)
-        self._file_size = os.path.getsize(self._file_path)
+        self._parse()
 
-        self._segments = self._file_path[len(self._root_path):].split(os.sep)
+        self._upload, created = Upload.get_or_create(file_path=self.file_path)
+        if created:
+            self._find_date_and_size()
+        else:
+            self._file_date = self._upload.file_date
+            self._file_size = self._upload.file_size
+
+    def _parse(self):
+        self._segments = [s for s in self._file_path[len(self._root_path):].split(os.sep) if s != '']
         self._filename = self._segments.pop()
 
         self._type = ResourceType.OBSERVATION
@@ -76,30 +88,61 @@ class UploadPack(object):
         if len(self._dataset_name.strip()) == 0:
             self._dataset_name = f'(folder {os.path.basename(self._root_path)})'
 
-        self._upload, created = Upload.get_or_create(file_path=self.file_path)
+        # What happens when rules change: dataset will change -> new upload...
+
+    def _find_date_and_size(self):
+        self._file_date = self._find_date(self._file_path)
+        self._file_size = os.path.getsize(self._file_path)
         self._upload.smart_update(file_date=self.file_date, file_size=self.file_size)
 
-    def archive(self):
-        self._upload.smart_update(status=Status.OK.value, substatus=Substatus.SKIPPED.value)
+    def do_upload(self):
+        if not self.is_fits_or_xisf:
+            self._logger.info(f'{self.file_path} not a FITS or XISF. Upload skipped.')
+            self._archive(Substatus.SKIPPED_NOT_FITS_OR_XISF.value)
+            return
+
+        if self.should_prepare:
+            upload_preparator = preparator.UploadPreparator(self, debug=self._identity.debug)
+            upload_preparator.prepare()
+        else:
+            self._logger.info(f'Preparation already done for {self.file_path}.')
+
+        if self.is_already_finished:
+            self._logger.info(f'Upload already finished for {self.file_path}.')
+        elif self._upload.dataset is not None:
+            file_uploader = uploader.FileUploader(self)
+            file_uploader.upload()
+        else:
+            logger = get_logger(debug=self._identity.debug)
+            logger.info(f'Missing dataset, upload skipped for {self.file_path}.')
+            self._archive(Substatus.SKIPPED_NO_DATASET.value)
+
+    def _archive(self, substatus):
+        assert substatus is not None
+        self._upload.smart_update(status=Status.OK.value, substatus=substatus)
 
     @property
-    def upload(self):
+    def identity(self) -> Identity:
+        return self._identity
+
+    @property
+    def upload(self) -> Optional[Upload]:
         return self._upload
 
     @property
-    def file_path(self):
+    def file_path(self) -> str:
         return self._file_path
 
     @property
-    def file_date(self):
+    def file_date(self) -> Optional[datetime]:
         return self._file_date
 
     @property
-    def file_name(self):
+    def file_name(self) -> str:
         return os.sep.join(self._segments)
 
     @property
-    def file_size(self):
+    def file_size(self) -> int:
         return self._file_size
 
     @property
@@ -114,7 +157,7 @@ class UploadPack(object):
         return (self._file_date - timedelta(days=x)).date().isoformat()
 
     @property
-    def resource_type(self):
+    def resource_type(self) -> str:
         return self._type.name.lower()
 
     @property
@@ -122,12 +165,20 @@ class UploadPack(object):
         return Observation if self._type == ResourceType.OBSERVATION else Calibration
 
     @property
-    def remote_resources_name(self):
+    def remote_resources_name(self) -> str:
         return self._type.name.lower() + 's'
 
     @property
-    def dataset_name(self):
+    def dataset_name(self) -> str:
         return self._dataset_name.strip()
+
+    @property
+    def should_prepare(self) -> bool:
+        return self._upload.substatus not in PREPARATION_DONE_SUBSTATUSES
+
+    @property
+    def is_already_finished(self) -> bool:
+        return self._upload.substatus in FINISHED_SUBSTATUSES
 
     def _find_date(self, path):
         _, extension = os.path.splitext(path)

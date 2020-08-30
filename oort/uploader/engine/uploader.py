@@ -6,38 +6,29 @@ from arcsecond import ArcsecondAPI
 from arcsecond.api.endpoints import AsyncFileUploader
 
 from oort.shared.config import get_logger
-from oort.shared.identity import Identity
-from oort.shared.models import Dataset, Status, Substatus, Upload
-from .errors import UploadRemoteFileCheckError
-from .packer import UploadPack
+from oort.shared.models import Status, Substatus
+from . import errors
 
 
 class FileUploader(object):
-    def __init__(self, pack: UploadPack, identity: Identity, dataset: Dataset):
-        self._pack = pack
-        self._identity = identity
-        self._dataset = dataset
+    def __init__(self, pack):
         self._logger = get_logger(debug=True)
-
-        self._upload, _ = Upload.get_or_create(file_path=self._pack.file_path)
-        self._upload.smart_update(file_date=self._pack.file_date,
-                                  file_size=self._pack.file_size,
-                                  dataset=dataset)
+        self._upload = pack.upload
 
         self._stalled_progress = 0
 
-        if self._identity.organisation is None or len(self._identity.organisation) == 0:
-            self._api = ArcsecondAPI.datafiles(dataset=str(self._dataset.uuid),
-                                               debug=self._identity.debug,
-                                               api_key=self._identity.api_key)
+        if pack.identity.subdomain is None or len(pack.identity.subdomain) == 0:
+            self._api = ArcsecondAPI.datafiles(dataset=str(self._upload.dataset.uuid),
+                                               debug=pack.identity.debug,
+                                               api_key=pack.identity.api_key)
         else:
-            self._api = ArcsecondAPI.datafiles(dataset=str(self._dataset.uuid),
-                                               debug=self._identity.debug,
-                                               organisation=self._identity.organisation)
+            self._api = ArcsecondAPI.datafiles(dataset=str(self._upload.dataset.uuid),
+                                               debug=pack.identity.debug,
+                                               organisation=pack.identity.subdomain)
 
     @property
     def prefix(self) -> str:
-        return '[' + '/'.join(self._pack.file_path.split(os.sep)[-2:]) + ']'
+        return '[FileUploader: ' + '/'.join(self._upload.file_path.split(os.sep)[-2:]) + ']'
 
     def _prepare_file_uploader(self, remote_resource_exists):
         def update_upload_progress(event, progress_percent):
@@ -50,19 +41,19 @@ class FileUploader(object):
         self._async_file_uploader: AsyncFileUploader
         if remote_resource_exists:
             self._logger.info(f"{self.prefix} Remote resource exists. Preparing 'Update' APIs.")
-            self._async_file_uploader, _ = self._api.update(os.path.basename(self._pack.file_path),
-                                                            {'file': self._pack.file_path},
+            self._async_file_uploader, _ = self._api.update(os.path.basename(self._upload.file_path),
+                                                            {'file': self._upload.file_path},
                                                             callback=update_upload_progress)
         else:
             self._logger.info(f"{self.prefix} Remote resource does not exist. Preparing 'Create' APIs.")
-            self._async_file_uploader, _ = self._api.create({'file': self._pack.file_path},
+            self._async_file_uploader, _ = self._api.create({'file': self._upload.file_path},
                                                             callback=update_upload_progress)
 
     def _check_remote_resource_and_file(self):
         _remote_resource_exists = False
         _remote_resource_has_file = False
 
-        response, error = self._api.read(os.path.basename(self._pack.file_path))
+        response, error = self._api.read(os.path.basename(self._upload.file_path))
 
         if error:
             if 'not found' in error.lower():
@@ -70,7 +61,7 @@ class FileUploader(object):
                 _remote_resource_exists = False
             else:
                 self._logger.info(f'{self.prefix} Check remote file: {str(error)}')
-                raise UploadRemoteFileCheckError(str(error))
+                raise errors.UploadRemoteFileCheckError(str(error))
         else:
             _remote_resource_exists = True
             _remote_resource_has_file = 's3.amazonaws.com' in response.get('file', '')
@@ -86,7 +77,7 @@ class FileUploader(object):
             self._upload.smart_update(status=Status.UPLOADING.value, substatus=Substatus.CHECKING.value)
             exists_remotely = self._check_remote_resource_and_file()
 
-        except UploadRemoteFileCheckError as error:
+        except errors.UploadRemoteFileCheckError as error:
             self._logger.info(f'{self.prefix} {str(error)}')
             self._upload.smart_update(status=Status.ERROR.value,
                                       substatus=Substatus.ERROR.value,
@@ -176,11 +167,9 @@ class FileUploader(object):
         elif self.is_finished():
             return 'finished'
 
-
-def test_upload():
-    root = '/Users/onekiloparsec/code/onekiloparsec/arcsecond-oort/data/test_folder/'
-    dataset = Dataset.get(Dataset.uuid == '4968f81d-77cc-4f16-b83a-5a0587235a56')
-    identity = Identity('cedric', '764837d11cf32dda5f71df24d4a017a4', None, None, None, True)
-    pack = UploadPack(root, os.path.join(root, 'jup999.fits'))
-    uploader = FileUploader(pack=pack, identity=identity, dataset=dataset)
-    uploader.upload()
+# def test_upload():
+#     root = '/Users/onekiloparsec/code/onekiloparsec/arcsecond-oort/data/test_folder/'
+#     identity = Identity('cedric', '764837d11cf32dda5f71df24d4a017a4', None, None, None, True)
+#     pack = UploadPack(root, os.path.join(root, 'jup999.fits'), identity)
+#     uploader = FileUploader(pack._upload, identity)
+#     uploader.upload()

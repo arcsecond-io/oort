@@ -40,12 +40,17 @@ MODELS = [m[1] for m in inspect.getmembers(sys.modules['oort.shared.models'], in
 def use_test_database(fn):
     test_db = peewee.SqliteDatabase(':memory:')
 
+    # To have an asyncio compatible version:
+    # - decorate tests with @pytest.mark.asyncio
+    # - add `async` before `def inner`
+    # - add `await` before `fn()`
+
     @wraps(fn)
-    async def inner():
+    def inner():
         with test_db.bind_ctx(MODELS):
             test_db.create_tables(MODELS)
             try:
-                await fn()
+                fn()
             finally:
                 test_db.drop_tables(MODELS)
 
