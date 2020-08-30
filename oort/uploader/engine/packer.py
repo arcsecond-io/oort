@@ -1,8 +1,9 @@
 import os
 import warnings
 import xml.etree.ElementTree as ET
-from datetime import timedelta
+from datetime import datetime, timedelta
 from enum import Enum, auto
+from typing import Optional
 
 import dateparser
 from astropy.io import fits as pyfits
@@ -13,7 +14,7 @@ from astropy.utils.exceptions import AstropyWarning
 from oort.shared.config import get_logger
 from oort.shared.identity import Identity
 from oort.shared.models import (Calibration, FINISHED_SUBSTATUSES, Observation, PREPARATION_DONE_SUBSTATUSES, Status,
-                                Substatus, Upload)
+                                Upload)
 
 warnings.simplefilter('ignore', category=AstropyWarning)
 warnings.simplefilter('ignore', category=VOTableSpecWarning)
@@ -92,27 +93,32 @@ class UploadPack(object):
         self._file_size = os.path.getsize(self._file_path)
         self._upload.smart_update(file_date=self.file_date, file_size=self.file_size)
 
-    def archive(self):
-        self._upload.smart_update(status=Status.OK.value, substatus=Substatus.SKIPPED.value)
+    def archive(self, substatus):
+        assert substatus is not None
+        self._upload.smart_update(status=Status.OK.value, substatus=substatus)
 
     @property
-    def upload(self):
+    def identity(self) -> Identity:
+        return self._identity
+
+    @property
+    def upload(self) -> Optional[Upload]:
         return self._upload
 
     @property
-    def file_path(self):
+    def file_path(self) -> str:
         return self._file_path
 
     @property
-    def file_date(self):
+    def file_date(self) -> Optional[datetime]:
         return self._file_date
 
     @property
-    def file_name(self):
+    def file_name(self) -> str:
         return os.sep.join(self._segments)
 
     @property
-    def file_size(self):
+    def file_size(self) -> int:
         return self._file_size
 
     @property
@@ -127,7 +133,7 @@ class UploadPack(object):
         return (self._file_date - timedelta(days=x)).date().isoformat()
 
     @property
-    def resource_type(self):
+    def resource_type(self) -> str:
         return self._type.name.lower()
 
     @property
@@ -135,19 +141,19 @@ class UploadPack(object):
         return Observation if self._type == ResourceType.OBSERVATION else Calibration
 
     @property
-    def remote_resources_name(self):
+    def remote_resources_name(self) -> str:
         return self._type.name.lower() + 's'
 
     @property
-    def dataset_name(self):
+    def dataset_name(self) -> str:
         return self._dataset_name.strip()
 
     @property
-    def should_prepare(self):
+    def should_prepare(self) -> bool:
         return self._upload.substatus not in PREPARATION_DONE_SUBSTATUSES
 
     @property
-    def is_already_finished(self):
+    def is_already_finished(self) -> bool:
         return self._upload.substatus in FINISHED_SUBSTATUSES
 
     def _find_date(self, path):
