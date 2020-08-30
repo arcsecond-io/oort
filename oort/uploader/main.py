@@ -19,7 +19,7 @@ if __name__ == "__main__":
         identity = Identity(
             username=folder_section.get('username'),
             api_key=folder_section.get('api_key'),
-            organisation=folder_section.get('organisation'),
+            subdomain=folder_section.get('subdomain'),
             role=folder_section.get('role'),
             telescope=folder_section.get('telescope'),
             longitude=folder_section.get('longitude'),
