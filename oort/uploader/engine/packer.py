@@ -105,9 +105,11 @@ class UploadPack(object):
             upload_preparator = preparator.UploadPreparator(self, debug=self._identity.debug)
             upload_preparator.prepare()
         else:
-            self._logger.info(f'Preparation already done for {self.file_path}. Moving forward.')
+            self._logger.info(f'Preparation already done for {self.file_path}.')
 
-        if self._upload.dataset is not None:
+        if self.is_already_finished:
+            self._logger.info(f'Upload already finished for {self.file_path}.')
+        elif self._upload.dataset is not None:
             file_uploader = uploader.FileUploader(self)
             file_uploader.upload()
         else:
