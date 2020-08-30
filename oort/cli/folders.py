@@ -92,7 +92,7 @@ def save_upload_folders(folders: list,
 
         identity = Identity(username=ArcsecondAPI.username(debug=debug),
                             api_key=ArcsecondAPI.api_key(debug=debug),
-                            organisation=org_subdomain or '',
+                            subdomain=org_subdomain or '',
                             role=org_role or '',
                             telescope=telescope_uuid,
                             longitude=longitude,
