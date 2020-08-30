@@ -88,7 +88,7 @@ def test_packer_calibs_flat_with_filter():
         assert pack.resource_type == 'calibration'
         assert pack.remote_resources_name == 'calibrations'
         # Check name of dataset respect folder name
-        assert pack.dataset_name == path.split('/')[-3] + ' ' + path.split('/')[-2]
+        assert pack.dataset_name == path.split('/')[-3] + '/' + path.split('/')[-2]
 
 
 @use_test_database
@@ -126,7 +126,7 @@ def test_packer_observation_with_filter():
         assert pack.resource_type == 'observation'
         assert pack.remote_resources_name == 'observations'
         # Check name of dataset respect folder name
-        assert pack.dataset_name == 'HD5980 Halpha'
+        assert pack.dataset_name == 'HD5980/Halpha'
 
 
 @use_test_database
@@ -145,7 +145,7 @@ def test_packer_observation_with_double_filter():
         assert pack.resource_type == 'observation'
         assert pack.remote_resources_name == 'observations'
         # Check name of dataset respect folder name
-        assert pack.dataset_name == 'Tests HD5980 Halpha'
+        assert pack.dataset_name == 'Tests/HD5980/Halpha'
 
 
 @use_test_database

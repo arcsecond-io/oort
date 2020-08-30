@@ -64,7 +64,7 @@ class UploadPack(object):
             self._file_size = self._upload.file_size
 
     def _parse(self):
-        self._segments = self._file_path[len(self._root_path):].split(os.sep)
+        self._segments = [s for s in self._file_path[len(self._root_path):].split(os.sep) if s != '']
         self._filename = self._segments.pop()
 
         self._type = ResourceType.OBSERVATION
