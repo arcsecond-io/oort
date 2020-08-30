@@ -7,12 +7,11 @@ from arcsecond.api.endpoints import AsyncFileUploader
 
 from oort.shared.config import get_logger
 from oort.shared.models import Status, Substatus
-from .errors import UploadRemoteFileCheckError
-from .packer import UploadPack
+from . import errors
 
 
 class FileUploader(object):
-    def __init__(self, pack: UploadPack):
+    def __init__(self, pack):
         self._logger = get_logger(debug=True)
         self._upload = pack.upload
 
@@ -62,7 +61,7 @@ class FileUploader(object):
                 _remote_resource_exists = False
             else:
                 self._logger.info(f'{self.prefix} Check remote file: {str(error)}')
-                raise UploadRemoteFileCheckError(str(error))
+                raise errors.UploadRemoteFileCheckError(str(error))
         else:
             _remote_resource_exists = True
             _remote_resource_has_file = 's3.amazonaws.com' in response.get('file', '')
@@ -78,7 +77,7 @@ class FileUploader(object):
             self._upload.smart_update(status=Status.UPLOADING.value, substatus=Substatus.CHECKING.value)
             exists_remotely = self._check_remote_resource_and_file()
 
-        except UploadRemoteFileCheckError as error:
+        except errors.UploadRemoteFileCheckError as error:
             self._logger.info(f'{self.prefix} {str(error)}')
             self._upload.smart_update(status=Status.ERROR.value,
                                       substatus=Substatus.ERROR.value,

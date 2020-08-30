@@ -7,7 +7,7 @@ from watchdog.events import FileSystemEventHandler
 from oort.cli.folders import check_organisation
 from oort.shared.config import get_logger
 from oort.shared.identity import Identity
-from .packer import UploadPack
+from . import packer
 
 
 def perform_initial_walk(root_path: str, identity: Identity, debug: bool):
@@ -26,7 +26,7 @@ def perform_initial_walk(root_path: str, identity: Identity, debug: bool):
         for filename in filenames:
             file_path = os.path.join(root, filename)
             if os.path.isfile(file_path) and not os.path.basename(file_path).startswith('.'):
-                initial_packs.append(UploadPack(root_path, file_path, identity))
+                initial_packs.append(packer.UploadPack(root_path, file_path, identity))
 
     time.sleep(0.5)
 
@@ -43,7 +43,6 @@ class DataFileHandler(FileSystemEventHandler):
         self._identity = identity
         self._debug = debug
         self._logger = get_logger(debug=self._debug)
-        self._initial_packs = []
         self._walk_process = None
 
     @property
@@ -57,7 +56,9 @@ class DataFileHandler(FileSystemEventHandler):
 
     def run_initial_walk(self):
         if self._walk_process is None:
-            self._walk_process = Process(target=perform_initial_walk)
+            self._walk_process = Process(target=perform_initial_walk, name=f'initial-walk-{self._root_path}')
+        if not self._walk_process.is_alive:
+            self._walk_process.start()
 
     def on_created(self, event):
         if os.path.isfile(event.src_path) and not os.path.basename(event.src_path).startswith('.'):
@@ -68,7 +69,7 @@ class DataFileHandler(FileSystemEventHandler):
                 file_size = os.path.getsize(event.src_path)
                 time.sleep(0.1)
 
-            pack = UploadPack(self._root_path, event.src_path, self._identity)
+            pack = packer.UploadPack(self._root_path, event.src_path, self._identity)
             pack.do_upload()
 
     def on_moved(self, event):

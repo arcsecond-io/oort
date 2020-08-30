@@ -5,7 +5,6 @@ from arcsecond import ArcsecondAPI
 from peewee import DoesNotExist
 
 from oort.shared.config import get_logger
-from oort.shared.identity import Identity
 from oort.shared.models import (
     BaseModel,
     Dataset,
@@ -15,14 +14,13 @@ from oort.shared.models import (
     Substatus,
     Telescope
 )
-from .errors import UploadPreparationAPIError, UploadPreparationError, UploadPreparationFatalError
-from .packer import UploadPack
+from . import errors
 
 
 class UploadPreparator(object):
     """Sync remote Telescope, Night Log, Observation or Calibration and Dataset."""
 
-    def __init__(self, pack: UploadPack, debug=False):
+    def __init__(self, pack, debug=False):
         self._pack = pack
         self._identity = self._pack.identity
         self._debug = debug
@@ -85,7 +83,7 @@ class UploadPreparator(object):
     def _sync_local_resource(self, db_class: Type[BaseModel], api: ArcsecondAPI, id_value) -> BaseModel:
         remote_resource, error = api.read(id_value)
         if error:
-            raise UploadPreparationAPIError(str(error))
+            raise errors.UploadPreparationAPIError(str(error))
 
         try:
             resource = db_class.smart_get(**{db_class._primary_field: id_value})
@@ -105,13 +103,13 @@ class UploadPreparator(object):
 
             remote_resource = self._find_or_create_remote_resource(api, **kwargs)
             if remote_resource is None:
-                raise UploadPreparationError('cant create resource')
+                raise errors.UploadPreparationError('cant create resource')
 
             common_keys = kwargs.keys() & remote_resource.keys()
             common_values = [(k, kwargs.get(k), remote_resource.get(k)) for k in common_keys]
             if any([(k, v1, v2) for k, v1, v2 in common_values if v1 != v2]):
                 msg = f'Mismatch between remote and local for {db_class} resource: {common_values}'
-                raise UploadPreparationError(msg)
+                raise errors.UploadPreparationError(msg)
 
             resource = self._create_local_resource(db_class, **remote_resource)
 
@@ -127,7 +125,7 @@ class UploadPreparator(object):
 
         # An error occurred. Deal with it.
         if error is not None:
-            raise UploadPreparationError(str(error))
+            raise errors.UploadPreparationError(str(error))
 
         # Dealing with paginated results
         if isinstance(response_list, dict) and 'results' in response_list.keys():
@@ -145,7 +143,7 @@ class UploadPreparator(object):
         # Multiple resources found ??? Filter is not good, or something fishy is happening.
         else:
             msg = f'Multiple resources found for API {api}? Choosing first.'
-            raise UploadPreparationError(msg)
+            raise errors.UploadPreparationError(msg)
 
         return new_resource
 
@@ -158,7 +156,7 @@ class UploadPreparator(object):
 
         if error is not None:
             msg = f'Failed to create resource in {api} endpoint: {str(error)}'
-            raise UploadPreparationError(msg)
+            raise errors.UploadPreparationError(msg)
         else:
             self._logger.info(f'{self.prefix} Remote resource created.')
             return remote_resource
@@ -241,13 +239,13 @@ class UploadPreparator(object):
             if self._dataset:
                 self._pack.upload.smart_update(dataset=self.dataset)
 
-        except UploadPreparationFatalError as e:
+        except errors.UploadPreparationFatalError as e:
             self._logger.info(f'Preparation failed for {self._pack.file_path} with error: {str(e)}')
             self._pack.upload.smart_update(status=Status.ERROR.value, substatus=Substatus.ERROR.value, error=str(e))
             self._preparation_succeeded = False
             self._preparation_can_be_restarted = False
 
-        except UploadPreparationError as e:
+        except errors.UploadPreparationError as e:
             self._logger.info(f'Preparation failed for {self._pack.file_path} with error: {str(e)}')
             self._pack.upload.smart_update(status=Status.ERROR.value, substatus=Substatus.ERROR.value, error=str(e))
             self._preparation_succeeded = False

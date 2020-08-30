@@ -15,8 +15,8 @@ from oort.shared.config import get_logger
 from oort.shared.identity import Identity
 from oort.shared.models import (Calibration, FINISHED_SUBSTATUSES, Observation, PREPARATION_DONE_SUBSTATUSES, Status,
                                 Substatus, Upload)
-from .preparator import UploadPreparator
-from .uploader import FileUploader
+from . import preparator
+from . import uploader
 
 warnings.simplefilter('ignore', category=AstropyWarning)
 warnings.simplefilter('ignore', category=VOTableSpecWarning)
@@ -102,13 +102,13 @@ class UploadPack(object):
             return
 
         if self.should_prepare:
-            preparator = UploadPreparator(self, debug=self._identity.debug)
-            preparator.prepare()
+            upload_preparator = preparator.UploadPreparator(self, debug=self._identity.debug)
+            upload_preparator.prepare()
         else:
             self._logger.info(f'Preparation already done for {self.file_path}. Moving forward.')
 
         if self._upload.dataset is not None:
-            file_uploader = FileUploader(self)
+            file_uploader = uploader.FileUploader(self)
             file_uploader.upload()
         else:
             logger = get_logger(debug=self._identity.debug)
