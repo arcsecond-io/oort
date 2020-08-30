@@ -15,6 +15,8 @@ from oort.shared.config import get_logger
 from oort.shared.identity import Identity
 from oort.shared.models import (Calibration, FINISHED_SUBSTATUSES, Observation, PREPARATION_DONE_SUBSTATUSES, Status,
                                 Substatus, Upload)
+from .preparator import UploadPreparator
+from .uploader import FileUploader
 
 warnings.simplefilter('ignore', category=AstropyWarning)
 warnings.simplefilter('ignore', category=VOTableSpecWarning)
@@ -93,11 +95,25 @@ class UploadPack(object):
         self._file_size = os.path.getsize(self._file_path)
         self._upload.smart_update(file_date=self.file_date, file_size=self.file_size)
 
-    def skip_for_no_fits_or_xisf(self):
-        self._archive(Substatus.SKIPPED_NOT_FITS_OR_XISF.value)
+    def do_upload(self):
+        if not self.is_fits_or_xisf:
+            self._logger.info(f'{self.file_path} not a FITS or XISF. Upload skipped.')
+            self._archive(Substatus.SKIPPED_NOT_FITS_OR_XISF.value)
+            return
 
-    def skip_for_no_dataset(self):
-        self._archive(Substatus.SKIPPED_NO_DATASET.value)
+        if self.should_prepare:
+            preparator = UploadPreparator(self, debug=self._identity.debug)
+            preparator.prepare()
+        else:
+            self._logger.info(f'Preparation already done for {self.file_path}. Moving forward.')
+
+        if self._upload.dataset is not None:
+            file_uploader = FileUploader(self)
+            file_uploader.upload()
+        else:
+            logger = get_logger(debug=self._identity.debug)
+            logger.info(f'Missing dataset, upload skipped for {self.file_path}.')
+            self._archive(Substatus.SKIPPED_NO_DATASET.value)
 
     def _archive(self, substatus):
         assert substatus is not None
