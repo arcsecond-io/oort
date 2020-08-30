@@ -1,6 +1,6 @@
 import os
+import threading
 import time
-from multiprocessing import Process
 
 from watchdog.events import FileSystemEventHandler
 
@@ -56,8 +56,9 @@ class DataFileHandler(FileSystemEventHandler):
 
     def run_initial_walk(self):
         if self._walk_process is None:
-            self._walk_process = Process(target=perform_initial_walk, name=f'initial-walk-{self._root_path}')
-        if not self._walk_process.is_alive:
+            self._walk_process = threading.Thread(target=perform_initial_walk,
+                                                  args=(self._root_path, self._identity, self._debug))
+        if not self._walk_process.is_alive():
             self._walk_process.start()
 
     def on_created(self, event):
