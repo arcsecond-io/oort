@@ -176,11 +176,9 @@ class FileUploader(object):
         elif self.is_finished():
             return 'finished'
 
-
-def test_upload():
-    root = '/Users/onekiloparsec/code/onekiloparsec/arcsecond-oort/data/test_folder/'
-    dataset = Dataset.get(Dataset.uuid == '4968f81d-77cc-4f16-b83a-5a0587235a56')
-    identity = Identity('cedric', '764837d11cf32dda5f71df24d4a017a4', None, None, None, True)
-    pack = UploadPack(root, os.path.join(root, 'jup999.fits'))
-    uploader = FileUploader(pack=pack, identity=identity, dataset=dataset)
-    uploader.upload()
+# def test_upload():
+#     root = '/Users/onekiloparsec/code/onekiloparsec/arcsecond-oort/data/test_folder/'
+#     identity = Identity('cedric', '764837d11cf32dda5f71df24d4a017a4', None, None, None, True)
+#     pack = UploadPack(root, os.path.join(root, 'jup999.fits'), identity)
+#     uploader = FileUploader(pack._upload, identity)
+#     uploader.upload()
