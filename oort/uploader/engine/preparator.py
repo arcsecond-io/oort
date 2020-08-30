@@ -86,7 +86,7 @@ class UploadPreparator(object):
 
     @property
     def prefix(self) -> str:
-        return '[' + '/'.join(self._pack.file_path.split(os.sep)[-2:]) + ']'
+        return '[UploadPreparator: ' + '/'.join(self._pack.file_path.split(os.sep)[-2:]) + ']'
 
     # ------ SYNC ------------------------------------------------------------------------------------------------------
 
