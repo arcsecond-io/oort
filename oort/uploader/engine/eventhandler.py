@@ -58,19 +58,26 @@ class DataFileHandler(FileSystemEventHandler):
     def _dispatch_fits_xisf_packs_only(self):
         for pack in self._initial_packs:
             if pack.is_fits_or_xisf:
+                self._prepare_upload(pack)
                 self._perform_upload(pack)
             else:
-                self._logger.info(f'{pack.file_path} not a FITS or XISF. Skipping.')
-                pack.archive()
+                self._logger.info(f'{pack.file_path} not a FITS or XISF. Upload skipped.')
+                pack.skip_for_no_fits_or_xisf()
 
-    def _perform_upload(self, pack):
-        preparator = UploadPreparator(pack=pack, identity=self._identity, debug=self._debug)
-        preparator.prepare()
-        if preparator.dataset:
-            file_uploader = FileUploader(preparator.pack, preparator.identity, preparator.dataset)
+    def _prepare_upload(self, pack: UploadPack):
+        if pack.should_prepare:
+            preparator = UploadPreparator(pack, debug=self._debug)
+            preparator.prepare()
+        else:
+            self._logger.info(f'Preparation already done for {pack.file_path}')
+
+    def _perform_upload(self, pack: UploadPack):
+        if pack.upload.dataset is not None:
+            file_uploader = FileUploader(pack)
             file_uploader.upload()
         else:
-            self._logger.info(f'Missing dataset, upload skipped for {preparator.pack.file_path}')
+            self._logger.info(f'Missing dataset, upload skipped for {pack.file_path}')
+            pack.skip_for_no_dataset()
 
     def on_created(self, event):
         if os.path.isfile(event.src_path) and not os.path.basename(event.src_path).startswith('.'):
