@@ -14,7 +14,7 @@ from astropy.utils.exceptions import AstropyWarning
 from oort.shared.config import get_logger
 from oort.shared.identity import Identity
 from oort.shared.models import (Calibration, FINISHED_SUBSTATUSES, Observation, PREPARATION_DONE_SUBSTATUSES, Status,
-                                Upload)
+                                Substatus, Upload)
 
 warnings.simplefilter('ignore', category=AstropyWarning)
 warnings.simplefilter('ignore', category=VOTableSpecWarning)
@@ -93,7 +93,13 @@ class UploadPack(object):
         self._file_size = os.path.getsize(self._file_path)
         self._upload.smart_update(file_date=self.file_date, file_size=self.file_size)
 
-    def archive(self, substatus):
+    def skip_for_no_fits_or_xisf(self):
+        self._archive(Substatus.SKIPPED_NOT_FITS_OR_XISF.value)
+
+    def skip_for_no_dataset(self):
+        self._archive(Substatus.SKIPPED_NO_DATASET.value)
+
+    def _archive(self, substatus):
         assert substatus is not None
         self._upload.smart_update(status=Status.OK.value, substatus=substatus)
 
