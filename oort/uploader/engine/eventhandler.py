@@ -1,13 +1,14 @@
 import os
 import threading
 import time
+from threading import Timer
 
 from watchdog.events import FileSystemEventHandler
 
 from oort.cli.folders import check_organisation
 from oort.shared.config import get_logger
 from oort.shared.identity import Identity
-from oort.shared.models import Upload, Substatus
+from oort.shared.models import Substatus, Upload
 from . import packer
 
 
@@ -45,6 +46,8 @@ class DataFileHandler(FileSystemEventHandler):
         self._debug = debug
         self._logger = get_logger(debug=self._debug)
         self._walk_process = None
+        self._restart_timer = Timer(1.0, self._restart_uploads)
+        self._restart_timer.start()
 
     @property
     def debug(self):
@@ -62,11 +65,12 @@ class DataFileHandler(FileSystemEventHandler):
         if not self._walk_process.is_alive():
             self._walk_process.start()
 
-    def on_save_handler(self, model_class, instance):
-        if model_class == Upload and instance.substatus == Substatus.RESTART.value:
-            self._logger.info(f'Restarting upload for path : {instance.file_path}')
-            pack = packer.UploadPack(self._root_path, instance.file_path, self._identity)
+    def _restart_uploads(self):
+        for upload in Upload.select().where(Upload.substatus == Substatus.RESTART.value):
+            pack = packer.UploadPack(self._root_path, upload.file_path, self._identity, upload=upload)
             pack.do_upload()
+        self._restart_timer = Timer(1.0, self._restart_uploads)
+        self._restart_timer.start()
 
     def on_created(self, event):
         if os.path.isfile(event.src_path) and not os.path.basename(event.src_path).startswith('.'):
