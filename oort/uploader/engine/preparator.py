@@ -90,7 +90,13 @@ class UploadPreparator(object):
         try:
             local_resource = db_class.smart_get(**{db_class._primary_field: id_value})
         except DoesNotExist:
+            kwargs = {db_class._primary_field: id_value}
+            if 'name' in remote_resource.keys():
+                kwargs.update(name=remote_resource.get('name'))
             local_resource = self._create_local_resource(db_class, **kwargs)
+        else:
+            if 'name' in remote_resource.keys() and 'name' in db_class._meta.sorted_field_names:
+                local_resource.smart_update(name=remote_resource.get('name'))
 
         return local_resource
 
