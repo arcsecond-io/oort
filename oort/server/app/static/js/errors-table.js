@@ -6,7 +6,8 @@ Vue.component('errors-table', {
       <th>Filename</th>
       <th>Owner</th>
       <th>Size</th>
-      <th>Status</th>
+      <th>Reason</th>
+      <th></th>
     </tr>
   </thead>
   <tbody>
@@ -26,7 +27,7 @@ Vue.component('errors-table', {
       {{ upload.error }}
     </td>
     <td>
-      <button class="btn btn-primary-black" @click="sendRetryCommand(upload)">Retry</button>
+      <button class="btn btn-sm btn-primary-black" @click="sendRetryCommand(upload)">Retry</button>
     </td>
   </tr>
   </tbody>
