@@ -119,7 +119,7 @@ class UploadPack(object):
 
     def _archive(self, substatus):
         assert substatus is not None
-        self._upload.smart_update(status=Status.OK.value, substatus=substatus)
+        self._upload.smart_update(status=Status.OK.value, substatus=substatus, ended=datetime.now())
 
     @property
     def identity(self) -> Identity:
