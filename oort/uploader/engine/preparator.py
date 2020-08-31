@@ -88,11 +88,11 @@ class UploadPreparator(object):
             raise errors.UploadPreparationAPIError(str(error))
 
         try:
-            resource = db_class.smart_get(**{db_class._primary_field: id_value})
+            local_resource = db_class.smart_get(**{db_class._primary_field: id_value})
         except DoesNotExist:
-            resource = self._create_local_resource(db_class, **{db_class._primary_field: id_value})
+            local_resource = self._create_local_resource(db_class, **kwargs)
 
-        return resource
+        return local_resource
 
     # ------------------------------------------------------------------------------------------------------------------
 
