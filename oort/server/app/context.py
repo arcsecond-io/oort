@@ -64,8 +64,13 @@ class Context:
                 u['night_log'] = {}
             return u
 
+        state = self.to_dict()
+        state.update(hiddenCount=Upload.select()
+                     .where(Upload.status == Status.OK.value)
+                     .where(Upload.ended < one_day_back).count())
+
         data = {
-            'state': self.to_dict(),
+            'state': state,
             'pending': [_ff(model_to_dict(u, max_depth=1)) for u in pending_query.order_by(Upload.created)],
             'current': [_ff(model_to_dict(u, max_depth=1)) for u in current_query],
             'finished': [_ff(model_to_dict(u, max_depth=1)) for u in finished_query.order_by(-Upload.ended)],
