@@ -13,11 +13,14 @@ from peewee import (
     SqliteDatabase,
     UUIDField
 )
+from playhouse.signals import Signal
 
 from oort.shared.config import get_db_file_path
 from oort.uploader.engine.errors import MultipleDBInstanceError
 
 db = SqliteDatabase(get_db_file_path())
+
+upload_post_save_signal = Signal()
 
 
 class BaseModel(Model):
@@ -91,7 +94,7 @@ class BaseModel(Model):
             for k, v in kwargs.items():
                 setattr(self, k, v)
             self.save()
-
+        upload_post_save_signal.send(self)
 
 class Organisation(BaseModel):
     _primary_field = 'subdomain'
