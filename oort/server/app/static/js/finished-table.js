@@ -23,22 +23,26 @@ Vue.component('finished-table', {
       <div class="subtitle">Obs Date: {{ upload.file_date }}</div>
     </td>
     <td>
-      <a v-if="upload.organisation" :href='getOrganisationDatasetURL(upload)' target="_blank">
-        {{ upload.dataset.name }}
-      </a>
-      <a v-else :href='getDatasetURL(upload)' target="_blank">
-        {{ upload.dataset.name }}
-      </a>
-      <div class="subtitle">{{ upload.dataset.uuid }}</div>
+      <div v-if="upload.dataset">
+        <a v-if="upload.organisation" :href='getOrganisationDatasetURL(upload)' target="_blank">
+          {{ upload.dataset.name }}
+        </a>
+        <a v-else :href='getDatasetURL(upload)' target="_blank">
+          {{ upload.dataset.name }}
+        </a>
+        <div class="subtitle">{{ upload.dataset.uuid }}</div>
+      </div>
     </td>
     <td>
-      <a v-if="upload.organisation" :href='getOrganisationNightLogURL(upload)' target="_blank">
-        {{ upload.night_log.date }}
-      </a>
-      <a v-else :href='getNightLogURL(upload)' target="_blank">
-        {{ upload.night_log.date }}
-      </a>
-      <div class="subtitle">{{ upload.night_log.uuid }}</div>
+      <div v-if="upload.night_log && upload.night_log.date">
+        <a v-if="upload.organisation" :href='getOrganisationNightLogURL(upload)' target="_blank">
+          {{ upload.night_log.date }}
+        </a>
+        <a v-else :href='getNightLogURL(upload)' target="_blank">
+          {{ upload.night_log.date }}
+        </a>
+        <div class="subtitle">{{ upload.night_log.uuid }}</div>
+      </div>
     </td>
     <td>
       <div v-if="upload.telescope">
@@ -82,13 +86,13 @@ Vue.component('finished-table', {
       return 'https://' + upload.organisation.subdomain + '.arcsecond.io/data/' + upload.night_log.date
     },
     getDatasetURL (upload) {
-      return 'https://www.arcsecond.io/datasets/' + upload.dataset.uuid
+      return (upload.dataset) ? 'https://www.arcsecond.io/datasets/' + upload.dataset.uuid : ''
     },
     getOrganisationNightLogURL (upload) {
       return 'https://' + upload.organisation.subdomain + '.arcsecond.io/nights/' + upload.night_log.date
     },
     getNightLogURL (upload) {
-      return 'https://www.arcsecond.io/nightlogs/' + upload.night_log.uuid
+      return (upload.night_log) ? 'https://www.arcsecond.io/nightlogs/' + upload.night_log.uuid : ''
     },
     getProfileURL (upload) {
       return 'https://www.arcsecond.io/@' + upload.astronomer
