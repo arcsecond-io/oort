@@ -6,6 +6,7 @@ from flask import Blueprint, Response, render_template, request
 from flask import current_app as app, redirect, url_for
 
 from oort.shared.config import get_logger
+from oort.shared.models import Upload, Substatus, Status
 from .context import Context
 
 logger = get_logger()
@@ -41,3 +42,13 @@ def uploads():
 
     # Using Server-Side Events. See https://blog.easyaspy.org/post/10/2019-04-30-creating-real-time-charts-with-flask
     return Response(generate(), mimetype='text/event-stream')
+
+
+@main.route('/retries')
+def retries():
+    ids = request.args.get("ids", '').split(',')
+    print(ids)
+    for upload_id in ids:
+        u = Upload.get_by_id(upload_id)
+        u.smart_update(status=Status.UPLOADING.value, substatus=Substatus.RESTART.value, error='')
+    return Response({}, mimetype='application/json')

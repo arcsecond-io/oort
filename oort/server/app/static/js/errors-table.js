@@ -25,6 +25,9 @@ Vue.component('errors-table', {
     <td>
       {{ upload.error }}
     </td>
+    <td>
+      <button class="btn btn-primary-black" @click="sendRetryCommand(upload)">Retry</button>
+    </td>
   </tr>
   </tbody>
 </table>
@@ -52,6 +55,9 @@ Vue.component('errors-table', {
       const sizes = ['Bytes', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
       const i = Math.floor(Math.log(bytes) / Math.log(k))
       return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i]
+    },
+    sendRetryCommand (upload) {
+      fetch('/retries?ids=' + upload.id.toString())
     }
   }
 })

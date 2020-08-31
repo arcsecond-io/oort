@@ -147,11 +147,12 @@ class Substatus(Enum):
     SYNC_DATASET = 'syncing dataset...'
     CHECKING = 'checking remote file...'
     READY = 'ready'
+    RESTART = 'restart'
     STARTING = 'starting...'
     UPLOADING = 'uploading...'
+    DONE = 'done'
     ERROR = 'error'
     ALREADY_SYNCED = 'already synced'
-    DONE = 'done'
     SKIPPED_NOT_FITS_OR_XISF = 'skipped (not fits or xisf)'
     SKIPPED_NO_DATASET = 'skipped (no dataset)'
 
