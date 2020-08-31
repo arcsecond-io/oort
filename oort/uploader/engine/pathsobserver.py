@@ -4,7 +4,7 @@ from watchdog.observers import Observer
 
 from oort.shared.config import get_logger
 from oort.shared.identity import Identity
-from shared.models import Upload, upload_post_save_signal
+from oort.shared.models import Upload, upload_post_save_signal
 from .eventhandler import DataFileHandler
 
 

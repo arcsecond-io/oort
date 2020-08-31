@@ -7,7 +7,7 @@ from watchdog.events import FileSystemEventHandler
 from oort.cli.folders import check_organisation
 from oort.shared.config import get_logger
 from oort.shared.identity import Identity
-from shared.models import Upload, Substatus
+from oort.shared.models import Upload, Substatus
 from . import packer
 
 
