@@ -60,4 +60,5 @@ class Identity(object):
                                     role=self.role or '',
                                     path=upload_folder,
                                     telescope=self.telescope or '',
+                                    longitude=str(self._longitude) if self._longitude else '',
                                     debug=str(self.debug))
