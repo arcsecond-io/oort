@@ -51,6 +51,9 @@ class Identity(object):
     def debug(self) -> bool:
         return self._debug
 
+    def get_args_string(self):
+        return f"{self.username},{self.api_key},{self.subdomain},{self.role},{self.telescope},{self.longitude},{str(self.debug)}"
+
     def save_with_folder(self, upload_folder):
         folder_hash = hashlib.shake_128(upload_folder.encode('utf8')).hexdigest(3)
         write_config_section_values(f'watch-folder-{folder_hash}',
@@ -60,4 +63,5 @@ class Identity(object):
                                     role=self.role or '',
                                     path=upload_folder,
                                     telescope=self.telescope or '',
+                                    longitude=str(self._longitude) if self._longitude else '',
                                     debug=str(self.debug))

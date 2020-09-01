@@ -4,9 +4,10 @@ import uuid
 from unittest.mock import patch
 
 from arcsecond.api.main import ArcsecondAPI
+from arcsecond.config import config_file_save_api_key, config_file_save_organisation_membership
 
 from oort.shared.identity import Identity
-from oort.shared.models import Organisation
+from oort.shared.models import Calibration, Dataset, NightLog, Observation, Organisation, Telescope, Upload, db
 from oort.uploader.engine.packer import UploadPack
 from oort.uploader.engine.preparator import UploadPreparator
 from tests.utils import use_test_database
@@ -18,6 +19,9 @@ fits_file_name = 'very_simple.fits'
 fits_file_path = os.path.join(folder_path, fits_file_name)
 
 telescope_uuid = '44f5bee9-a557-4264-86d6-c877d5013788'
+
+db.connect(reuse_if_open=True)
+db.create_tables([Organisation, Telescope, NightLog, Observation, Calibration, Dataset, Upload])
 
 
 @use_test_database
@@ -38,7 +42,11 @@ def test_preparator_init_no_org():
 
 @use_test_database
 def test_preparator_init_with_org():
-    identity = Identity('cedric', str(uuid.uuid4()), 'saao', 'admin', telescope_uuid)
+    api_key = str(uuid.uuid4())
+    config_file_save_api_key(api_key, 'cedric', section='debug')
+    config_file_save_organisation_membership('saao', 'admin', section='debug')
+
+    identity = Identity('cedric', api_key, 'saao', 'admin', telescope_uuid)
     pack = UploadPack(folder_path, fits_file_path, identity)
     with patch.object(UploadPreparator, 'prepare'), \
          patch.object(ArcsecondAPI, 'read', return_value=({'subdomain': 'saao'}, None)) as mock_method_read:
@@ -59,7 +67,10 @@ def test_preparator_init_with_org():
 
 @use_test_database
 def test_preparator_prepare_no_org_no_telescope():
-    identity = Identity('cedric', str(uuid.uuid4()), debug=True)
+    api_key = str(uuid.uuid4())
+    config_file_save_api_key(api_key, 'cedric', section='debug')
+
+    identity = Identity('cedric', api_key, debug=True)
     pack = UploadPack(folder_path, fits_file_path, identity)
     assert len(pack.night_log_date_string) > 0
     assert identity.telescope is None

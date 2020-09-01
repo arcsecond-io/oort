@@ -1,18 +1,20 @@
 import os
-from typing import Optional, Type
+from typing import Optional, Type, Union
 
 from arcsecond import ArcsecondAPI
 from peewee import DoesNotExist
 
 from oort.shared.config import get_logger
 from oort.shared.models import (
-    BaseModel,
+    Model,
     Dataset,
     NightLog,
     Organisation,
     Status,
     Substatus,
-    Telescope
+    Telescope,
+    Observation,
+    Calibration
 )
 from . import errors
 
@@ -59,19 +61,19 @@ class UploadPreparator(object):
         return kwargs
 
     @property
-    def telescope(self) -> Optional[dict]:
+    def telescope(self) -> Optional[Telescope]:
         return self._telescope
 
     @property
-    def night_log(self) -> Optional[BaseModel]:
+    def night_log(self) -> Optional[NightLog]:
         return self._night_log
 
     @property
-    def obs_or_calib(self) -> Optional[BaseModel]:
+    def obs_or_calib(self) -> Optional[Union[Observation, Calibration]]:
         return self._obs_or_calib
 
     @property
-    def dataset(self) -> Optional[BaseModel]:
+    def dataset(self) -> Optional[Dataset]:
         return self._dataset
 
     @property
@@ -80,21 +82,27 @@ class UploadPreparator(object):
 
     # ------ SYNC ------------------------------------------------------------------------------------------------------
 
-    def _sync_local_resource(self, db_class: Type[BaseModel], api: ArcsecondAPI, id_value) -> BaseModel:
+    def _sync_local_resource(self, db_class: Type[Model], api: ArcsecondAPI, id_value) -> Model:
         remote_resource, error = api.read(id_value)
         if error:
             raise errors.UploadPreparationAPIError(str(error))
 
         try:
-            resource = db_class.smart_get(**{db_class._primary_field: id_value})
+            local_resource = db_class.smart_get(**{db_class._primary_field: id_value})
         except DoesNotExist:
-            resource = self._create_local_resource(db_class, **{db_class._primary_field: id_value})
+            kwargs = {db_class._primary_field: id_value}
+            if 'name' in remote_resource.keys():
+                kwargs.update(name=remote_resource.get('name'))
+            local_resource = self._create_local_resource(db_class, **kwargs)
+        else:
+            if 'name' in remote_resource.keys() and 'name' in db_class._meta.sorted_field_names:
+                local_resource.smart_update(name=remote_resource.get('name'))
 
-        return resource
+        return local_resource
 
     # ------------------------------------------------------------------------------------------------------------------
 
-    def _sync_resource(self, db_class: Type[BaseModel], api: ArcsecondAPI, **kwargs) -> BaseModel:
+    def _sync_resource(self, db_class: Type[Model], api: ArcsecondAPI, **kwargs) -> Model:
         try:
             resource = db_class.smart_get(**kwargs)
 
@@ -163,7 +171,7 @@ class UploadPreparator(object):
 
     # ------------------------------------------------------------------------------------------------------------------
 
-    def _create_local_resource(self, db_class: Type[BaseModel], **kwargs):
+    def _create_local_resource(self, db_class: Type[Model], **kwargs):
         self._logger.info(f'{self.prefix} Creating local resource.')
 
         fields = {k: v for k, v in kwargs.items() if k in db_class._meta.sorted_field_names and v is not None}

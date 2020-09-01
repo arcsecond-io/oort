@@ -4,8 +4,7 @@ from watchdog.observers import Observer
 
 from oort.shared.config import get_logger
 from oort.shared.identity import Identity
-from .eventhandler import DataFileHandler
-
+from . import eventhandler
 
 class PathsObserver(Observer):
     def __init__(self):
@@ -27,8 +26,7 @@ class PathsObserver(Observer):
 
     def observe_folder(self, folder_path: str, identity: Identity) -> None:
         self._logger.info(f'Starting to observe folder {folder_path}')
-        event_handler = DataFileHandler(path=folder_path, identity=identity, debug=self._debug)
-        event_handler.run_initial_walk()
+        event_handler = eventhandler.DataFileHandler(path=folder_path, identity=identity, debug=self._debug)
         watch = self.schedule(event_handler, folder_path, recursive=True)
         self._mapping[folder_path] = {'watcher': watch, 'handler': event_handler}
 

@@ -13,11 +13,14 @@ from peewee import (
     SqliteDatabase,
     UUIDField
 )
+from playhouse.signals import Signal
 
 from oort.shared.config import get_db_file_path
 from oort.uploader.engine.errors import MultipleDBInstanceError
 
 db = SqliteDatabase(get_db_file_path())
+
+upload_post_save_signal = Signal()
 
 
 class BaseModel(Model):
@@ -91,6 +94,7 @@ class BaseModel(Model):
             for k, v in kwargs.items():
                 setattr(self, k, v)
             self.save()
+        upload_post_save_signal.send(self)
 
 
 class Organisation(BaseModel):
@@ -147,11 +151,12 @@ class Substatus(Enum):
     SYNC_DATASET = 'syncing dataset...'
     CHECKING = 'checking remote file...'
     READY = 'ready'
+    RESTART = 'restart'
     STARTING = 'starting...'
     UPLOADING = 'uploading...'
+    DONE = 'done'
     ERROR = 'error'
     ALREADY_SYNCED = 'already synced'
-    DONE = 'done'
     SKIPPED_NOT_FITS_OR_XISF = 'skipped (not fits or xisf)'
     SKIPPED_NO_DATASET = 'skipped (no dataset)'
 
@@ -164,7 +169,9 @@ FINISHED_SUBSTATUSES = [Substatus.DONE.value,
 
 PREPARATION_DONE_SUBSTATUSES = [Substatus.CHECKING.value,
                                 Substatus.READY.value,
-                                Substatus.STARTING.value] + FINISHED_SUBSTATUSES
+                                Substatus.RESTART.value,
+                                Substatus.STARTING.value,
+                                Substatus.UPLOADING.value] + FINISHED_SUBSTATUSES
 
 
 class Upload(BaseModel):

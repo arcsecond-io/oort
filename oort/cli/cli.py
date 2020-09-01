@@ -1,5 +1,6 @@
 import builtins
 import os
+import subprocess
 import webbrowser
 
 import click
@@ -160,6 +161,7 @@ def watch(state, folders, o=None, organisation=None, t=None, telescope=None):
     """
     telescope_uuid = t or telescope or ''
     org_subdomain = o or organisation or ''
+    oort_folder = os.path.dirname(os.path.dirname(__file__))
 
     if org_subdomain:
         check_organisation(org_subdomain, state.debug)
@@ -193,5 +195,7 @@ def watch(state, folders, o=None, organisation=None, t=None, telescope=None):
 
     if ok.strip() == '':
         prepared_folders = save_upload_folders(folders, org_subdomain, org_role, telescope_details, state.debug)
-        for (upload_folder, identity) in prepared_folders:
-            paths_observer.observe_folder(upload_folder, identity)
+        for (folder_path, identity) in prepared_folders:
+            script_path = os.path.join(oort_folder, 'uploader', 'engine', 'initial_walk.py')
+            subprocess.Popen(["python3", script_path, folder_path, identity.get_args_string()], close_fds=True)
+            paths_observer.observe_folder(folder_path, identity)

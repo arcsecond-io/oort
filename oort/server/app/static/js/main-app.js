@@ -16,7 +16,8 @@ var app = new Vue({
       current: true,
       finished: true,
       error: true
-    }
+    },
+    skipped_count: 0
   },
   computed: {
     selectButtonTitle () {
@@ -34,12 +35,14 @@ var app = new Vue({
         self.selected_folder = self.state.folders[0]
       }
 
-      self.pending_uploads = json_data.pending
-      self.current_uploads = json_data.current
-      self.finished_uploads = json_data.finished
-      self.error_uploads = json_data.errors
+      self.pending_uploads = json_data.pending.filter(u => u.file_path.startsWith(self.selectButtonTitle))
+      self.current_uploads = json_data.current.filter(u => u.file_path.startsWith(self.selectButtonTitle))
+      self.finished_uploads = json_data.finished.filter(u => u.file_path.startsWith(self.selectButtonTitle))
+      self.error_uploads = json_data.errors.filter(u => u.file_path.startsWith(self.selectButtonTitle))
 
-      self.progresses = self.current_uploads.map(upload => upload.progress)
+      self.progresses = self.current_uploads.map(u => u.progress)
+
+      self.skipped_count = self.finished_uploads.filter(u => u.substatus.startsWith('skipped')).length
     }
   }
 })

@@ -48,23 +48,23 @@ class CalibrationType(Enum):
 class UploadPack(object):
     """Logic to determine dataset, night_log and observations/calibrations from filepath."""
 
-    def __init__(self, root_path, file_path, identity: Identity):
+    def __init__(self, root_path, file_path, identity: Identity, upload=None):
         self._logger = get_logger(debug=True)
+        self._identity = identity
 
         self._root_path = root_path
         self._file_path = file_path
-
-        self._identity = identity
-        self._upload = None
-
         self._parse()
 
-        self._upload, created = Upload.get_or_create(file_path=self.file_path)
-        if created:
-            self._find_date_and_size()
+        if upload is None:
+            self._upload, created = Upload.get_or_create(file_path=self.file_path)
+            if created:
+                self._find_date_and_size()
         else:
-            self._file_date = self._upload.file_date
-            self._file_size = self._upload.file_size
+            self._upload = upload
+
+        self._file_date = self._upload.file_date
+        self._file_size = self._upload.file_size
 
     def _parse(self):
         self._segments = [s for s in self._file_path[len(self._root_path):].split(os.sep) if s != '']
@@ -119,7 +119,7 @@ class UploadPack(object):
 
     def _archive(self, substatus):
         assert substatus is not None
-        self._upload.smart_update(status=Status.OK.value, substatus=substatus)
+        self._upload.smart_update(status=Status.OK.value, substatus=substatus, ended=datetime.now())
 
     @property
     def identity(self) -> Identity:

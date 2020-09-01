@@ -47,7 +47,7 @@ class Context:
         current_query = Upload.select().where(Upload.status == Status.UPLOADING.value)
         error_query = Upload.select().where(Upload.status == Status.ERROR.value)
 
-        one_day_back = datetime.datetime.now() - datetime.timedelta(days=1)
+        one_day_back = datetime.datetime.now() - datetime.timedelta(days=7)
         finished_query = Upload.select().where(Upload.status == Status.OK.value).where(Upload.ended >= one_day_back)
 
         def _ff(u):
@@ -64,9 +64,14 @@ class Context:
                 u['night_log'] = {}
             return u
 
+        state = self.to_dict()
+        state.update(hiddenCount=Upload.select()
+                     .where(Upload.status == Status.OK.value)
+                     .where(Upload.ended < one_day_back).count())
+
         data = {
-            'state': self.to_dict(),
-            'pending': [_ff(model_to_dict(u, max_depth=1)) for u in pending_query.order_by(-Upload.created)],
+            'state': state,
+            'pending': [_ff(model_to_dict(u, max_depth=1)) for u in pending_query.order_by(Upload.created)],
             'current': [_ff(model_to_dict(u, max_depth=1)) for u in current_query],
             'finished': [_ff(model_to_dict(u, max_depth=1)) for u in finished_query.order_by(-Upload.ended)],
             'errors': [_ff(model_to_dict(u, max_depth=1)) for u in error_query]
