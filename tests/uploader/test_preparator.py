@@ -7,7 +7,7 @@ from arcsecond.api.main import ArcsecondAPI
 from arcsecond.config import config_file_save_api_key, config_file_save_organisation_membership
 
 from oort.shared.identity import Identity
-from oort.shared.models import Organisation
+from oort.shared.models import Calibration, Dataset, NightLog, Observation, Organisation, Telescope, Upload, db
 from oort.uploader.engine.packer import UploadPack
 from oort.uploader.engine.preparator import UploadPreparator
 from tests.utils import use_test_database
@@ -19,6 +19,9 @@ fits_file_name = 'very_simple.fits'
 fits_file_path = os.path.join(folder_path, fits_file_name)
 
 telescope_uuid = '44f5bee9-a557-4264-86d6-c877d5013788'
+
+db.connect()
+db.create_tables([Organisation, Telescope, NightLog, Observation, Calibration, Dataset, Upload])
 
 
 @use_test_database
