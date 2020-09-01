@@ -4,6 +4,7 @@ import uuid
 from unittest.mock import patch
 
 from arcsecond.api.main import ArcsecondAPI
+from arcsecond.config import config_file_save_api_key
 
 from oort.shared.identity import Identity
 from oort.shared.models import Organisation
@@ -59,7 +60,10 @@ def test_preparator_init_with_org():
 
 @use_test_database
 def test_preparator_prepare_no_org_no_telescope():
-    identity = Identity('cedric', str(uuid.uuid4()), debug=True)
+    api_key = str(uuid.uuid4())
+    config_file_save_api_key(api_key, 'cedric', section='debug')
+
+    identity = Identity('cedric', api_key, debug=True)
     pack = UploadPack(folder_path, fits_file_path, identity)
     assert len(pack.night_log_date_string) > 0
     assert identity.telescope is None
