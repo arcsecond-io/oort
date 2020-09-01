@@ -47,7 +47,7 @@ class Context:
         current_query = Upload.select().where(Upload.status == Status.UPLOADING.value)
         error_query = Upload.select().where(Upload.status == Status.ERROR.value)
 
-        one_day_back = datetime.datetime.now() - datetime.timedelta(days=1)
+        one_day_back = datetime.datetime.now() - datetime.timedelta(days=7)
         finished_query = Upload.select().where(Upload.status == Status.OK.value).where(Upload.ended >= one_day_back)
 
         def _ff(u):
