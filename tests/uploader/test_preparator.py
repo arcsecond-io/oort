@@ -4,7 +4,7 @@ import uuid
 from unittest.mock import patch
 
 from arcsecond.api.main import ArcsecondAPI
-from arcsecond.config import config_file_save_api_key
+from arcsecond.config import config_file_save_api_key, config_file_save_organisation_membership
 
 from oort.shared.identity import Identity
 from oort.shared.models import Organisation
@@ -39,7 +39,11 @@ def test_preparator_init_no_org():
 
 @use_test_database
 def test_preparator_init_with_org():
-    identity = Identity('cedric', str(uuid.uuid4()), 'saao', 'admin', telescope_uuid)
+    api_key = str(uuid.uuid4())
+    config_file_save_api_key(api_key, 'cedric', section='debug')
+    config_file_save_organisation_membership('saao', 'admin', section='debug')
+
+    identity = Identity('cedric', api_key, 'saao', 'admin', telescope_uuid)
     pack = UploadPack(folder_path, fits_file_path, identity)
     with patch.object(UploadPreparator, 'prepare'), \
          patch.object(ArcsecondAPI, 'read', return_value=({'subdomain': 'saao'}, None)) as mock_method_read:
