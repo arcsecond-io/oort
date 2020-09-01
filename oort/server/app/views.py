@@ -47,7 +47,6 @@ def uploads():
 @main.route('/retries')
 def retries():
     ids = request.args.get("ids", '').split(',')
-    print(ids)
     for upload_id in ids:
         u = Upload.get_by_id(upload_id)
         u.smart_update(status=Status.UPLOADING.value, substatus=Substatus.RESTART.value, error='')
