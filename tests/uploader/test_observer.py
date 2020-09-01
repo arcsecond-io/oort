@@ -1,7 +1,6 @@
 from unittest.mock import ANY, patch
 
 from oort.shared.identity import Identity
-from oort.uploader.engine.eventhandler import DataFileHandler
 from oort.uploader.engine.pathsobserver import PathsObserver
 
 
