@@ -2,6 +2,7 @@ import logging
 import os
 
 from configparser import ConfigParser
+from typing import Dict, List
 
 
 def get_directory_path():
@@ -86,7 +87,7 @@ def get_config_value(section: str, key: str):
     return config.get(section, key)
 
 
-def get_config_upload_folder_sections():
+def get_config_upload_folder_sections() -> List[Dict]:
     conf_file_path = get_oort_config_file_path()
     if not os.path.exists(conf_file_path):
         return []
