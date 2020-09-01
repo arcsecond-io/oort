@@ -1,41 +1,13 @@
 import os
 import threading
 import time
-from threading import Timer
 
 from watchdog.events import FileSystemEventHandler
 
-from oort.cli.folders import check_organisation
 from oort.shared.config import get_logger
 from oort.shared.identity import Identity
 from oort.shared.models import Substatus, Upload
 from . import packer
-
-
-def perform_initial_walk(root_path: str, identity: Identity, debug: bool):
-    logger = get_logger(debug=debug)
-    logger.info(f'Running initial walk for {root_path}')
-
-    time.sleep(0.5)
-
-    if identity.subdomain:
-        check_organisation(identity.subdomain, debug)
-
-    time.sleep(0.5)
-
-    initial_packs = []
-    for root, _, filenames in os.walk(root_path):
-        for filename in filenames:
-            file_path = os.path.join(root, filename)
-            if os.path.isfile(file_path) and not os.path.basename(file_path).startswith('.'):
-                initial_packs.append(packer.UploadPack(root_path, file_path, identity))
-
-    time.sleep(0.5)
-
-    for pack in initial_packs:
-        pack.do_upload()
-
-    logger.info(f'Finished initial walk for {root_path}')
 
 
 class DataFileHandler(FileSystemEventHandler):
@@ -45,9 +17,7 @@ class DataFileHandler(FileSystemEventHandler):
         self._identity = identity
         self._debug = debug
         self._logger = get_logger(debug=self._debug)
-        self._walk_process = None
-        self._restart_timer = Timer(1.0, self._restart_uploads)
-        self._restart_timer.start()
+        threading.Timer(5.0, self._restart_uploads).start()
 
     @property
     def debug(self):
@@ -58,19 +28,11 @@ class DataFileHandler(FileSystemEventHandler):
         self._debug = value
         self._logger = get_logger(debug=self._debug)
 
-    def run_initial_walk(self):
-        if self._walk_process is None:
-            self._walk_process = threading.Thread(target=perform_initial_walk,
-                                                  args=(self._root_path, self._identity, self._debug))
-        if not self._walk_process.is_alive():
-            self._walk_process.start()
-
     def _restart_uploads(self):
         for upload in Upload.select().where(Upload.substatus == Substatus.RESTART.value):
             pack = packer.UploadPack(self._root_path, upload.file_path, self._identity, upload=upload)
             pack.do_upload()
-        self._restart_timer = Timer(1.0, self._restart_uploads)
-        self._restart_timer.start()
+        threading.Timer(5.0, self._restart_uploads).start()
 
     def on_created(self, event):
         if os.path.isfile(event.src_path) and not os.path.basename(event.src_path).startswith('.'):

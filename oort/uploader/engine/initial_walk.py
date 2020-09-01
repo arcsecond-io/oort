@@ -38,6 +38,5 @@ if __name__ == '__main__':
     root_path = sys.argv[1]
     username, api_key, subdomain, role, telescope, longitude, debug_str = sys.argv[2].split(",")
     debug = (debug_str == 'True')
-    print(sys.argv)
     identity = Identity(username, api_key, subdomain, role, telescope, longitude, debug)
     perform_initial_walk(root_path, identity, debug)
