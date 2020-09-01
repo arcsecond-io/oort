@@ -20,7 +20,7 @@ fits_file_path = os.path.join(folder_path, fits_file_name)
 
 telescope_uuid = '44f5bee9-a557-4264-86d6-c877d5013788'
 
-db.connect()
+db.connect(reuse_if_open=True)
 db.create_tables([Organisation, Telescope, NightLog, Observation, Calibration, Dataset, Upload])
 
 
