@@ -124,7 +124,6 @@ class UploadPack(object):
             self._archive(Substatus.SKIPPED_NO_DATASET.value)
 
     def _archive(self, substatus):
-        assert substatus is not None
         self._upload.smart_update(status=Status.OK.value, substatus=substatus, ended=datetime.now())
 
     @property
