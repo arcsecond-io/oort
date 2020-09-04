@@ -30,21 +30,36 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.pass_context
 def main(ctx, version=False, **kwargs):
     """
-    Oort-Cloud ('oort' command) is a super-easy upload manager for arcsecond.io
+    Oort-Cloud ('oort' command) is a super-easy upload manager for arcsecond.io.
 
-    It monitors folders you indicates, and upload all files contained in the
-    folder (and its subfolders), *using the folder structure to infer the
-    organisation of files*.
+    It watches folders you indicates, and automatically upload all files
+    contained in the folder (and its subfolders). As soon a new file appears
+    in the folder tree, Oort will upload it.
+
+    *** Oort is using the folder structure to infer the type and organisation
+    of files. ***
+
+    Structure is as follow: Night Logs contain multiple Observation and/or
+    Calibrations. To each Observation and Calibration is attached a Dataset
+    containing the files.
 
     For instance, if a folder contains the word "Bias" (case-insensitive), the
     files inside it will be put inside a Calibration object, associated with
     a Dataset whose name is that of the folder.
 
-    Special names directing files in Calibrations are "Bias", "Dark", "Flat" and
+    Keywords directing files in Calibrations are "Bias", "Dark", "Flat" and
     "Calib". All other folder names are considered as target names, and put
     inside Observations.
 
-    All Calibrations and Observations are automatically  associated with
+    Complete subfolder names will be used as Dataset and Observation / Calibration
+    names.
+
+    For instance, FITS or XISF files found in "<root>/NGC3603/mosaic/Halpha"
+    will be put in an Observation (not a Calibration, there is no special
+    keyword found), and its Dataset will be named identically
+    "NGC3603/mosaic/Halpha".
+
+    All Calibrations and Observations are automatically associated with
     Night Logs whose date is inferred from the observation date of the files.
     Oort takes automatically care of the right "date" whether the file is taken
     before or after noon on that local place. In other words, the "night"
@@ -52,14 +67,15 @@ def main(ctx, version=False, **kwargs):
 
     Oort-Cloud works by managing 2 processes:\n
     • An uploader, which takes care of creating/syncing the right Night Logs,
-        Datasets and Datafiles in Arcsecond.io (either in your personal account,
-        or your Organisation). And then upload the files.\n
+        Observations and Calibrations, as well as Datasets and Datafiles in
+        Arcsecond.io (either in your personal account, or your Organisation).
+        And then upload the files.\n
     • A small web server, which allow you to monitor, control and setup what is
         happening in the uploader (and find what happened before too).
 
     The `oort` command is dedicated to start, stop and get status
     of these two processes. Once they are up and running, only ONE thing
-    remain to be done by you: indicate which folders `oort` should monitor
+    remain to be done by you: indicate which folders `oort` should watch
     to find files to upload.
     """
     if version:
@@ -74,8 +90,10 @@ def main(ctx, version=False, **kwargs):
 @basic_options
 @pass_state
 def login(state, username, password):
-    """Login to your personal Arcsecond.io account, and retrieve the associated API key.
-    This API key is a secret token you should take care. It will be stored locally on a file:
+    """Login to your personal Arcsecond.io account.
+
+    It also fetch your personal API key. This API key is a secret token
+    you should take care. It will be stored locally on a file:
     ~/.arcsecond.ini
 
     Make sure to indicate the organisation subdomain if you intend to upload for that
@@ -127,7 +145,7 @@ def open(state):
     webbrowser.open(f"http://{host}:{port}")
 
 
-@main.command(help='Tail the logs.')
+@main.command(help='Tail the Oort logs.')
 @click.option('-n', required=False, nargs=1, type=click.INT, help="The number of (last) lines to show (Default: 10).")
 @basic_options
 @pass_state
@@ -151,11 +169,12 @@ def logs(state, n):
 @pass_state
 def watch(state, folders, o=None, organisation=None, t=None, telescope=None):
     """
-    Indicate a folder (or multiple folders) that oort should monitor for files
-    to upload.
+    Indicate a folder (or multiple folders) that Oort should watch.
 
-    Oort will walk through the folder tree and uploads files according to the
-    name of the subfolders (see main help).
+    Oort will start by walking through the folder tree and uploads files
+    according to the name of the subfolders (see main help). Once done,
+    every new file created in the folder tree will trigger a sync + upload
+    process.
     """
     telescope_uuid = t or telescope or ''
     org_subdomain = o or organisation or ''
@@ -172,7 +191,7 @@ def watch(state, folders, o=None, organisation=None, t=None, telescope=None):
     if org_subdomain:
         click.echo(f" • Uploading for organisation: {org_subdomain} (role: {org_role})")
     else:
-        click.echo(" • Uploading in *personal* account.")
+        click.echo(" • Uploading in *personal* account (use option '-o <subdomain>' for an organisation).")
 
     if telescope_details:
         name, uuid = telescope_details.get('name'), telescope_details.get('uuid')
