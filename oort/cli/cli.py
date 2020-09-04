@@ -216,3 +216,23 @@ def watch(state, folders, o=None, organisation=None, t=None, telescope=None):
             script_path = os.path.join(oort_folder, 'uploader', 'engine', 'initial_walk.py')
             subprocess.Popen(["python3", script_path, folder_path, identity.get_args_string()], close_fds=True)
             paths_observer.observe_folder(folder_path, identity)
+
+
+@main.command(help="Get a list of all watched folders and their options.")
+@basic_options
+@pass_state
+def list(state):
+    for index, section in enumerate(get_config_upload_folder_sections()):
+        click.echo(f" • Folder #{index + 1}:")
+        click.echo(f"   username     = {section.get('username')}")
+        click.echo(f"   api_key      = {section.get('api_key')[0:4]}•••••••")
+        if section.get('subdomain'):
+            click.echo(f"   organisation = {section.get('subdomain')} (role: {section.get('role')})")
+        else:
+            click.echo("   organisation = (no organisation)")
+        if section.get('telescope'):
+            click.echo(f"   telescope    = {section.get('telescope')}")
+        else:
+            click.echo("   telescope    = (no telescope)")
+        click.echo(f"   path         = {section.get('path')}")
+        click.echo()
