@@ -194,7 +194,7 @@ class UploadPack(object):
         _, extension = os.path.splitext(path)
         if extension.lower() == '.xisf':
             return self._find_xisf_filedate(path)
-        else:
+        elif extension.lower() in OORT_FITS_EXTENSIONS:
             return self._find_fits_filedate(path)
 
     def _find_fits_filedate(self, path):
