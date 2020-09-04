@@ -12,6 +12,7 @@ from astropy.io.votable.exceptions import VOTableSpecWarning
 from astropy.utils.exceptions import AstropyWarning
 
 from oort.shared.config import get_logger
+from oort.shared.constants import OORT_FITS_EXTENSIONS
 from oort.shared.identity import Identity
 from oort.shared.models import (Calibration, FINISHED_SUBSTATUSES, Observation, PREPARATION_DONE_SUBSTATUSES, Status,
                                 Substatus, Upload)
@@ -101,6 +102,11 @@ class UploadPack(object):
             self._archive(Substatus.SKIPPED_NOT_FITS_OR_XISF.value)
             return
 
+        if not self.has_date_obs:
+            self._logger.info(f'{self.file_path} has no date we could find. Upload skipped.')
+            self._archive(Substatus.SKIPPED_NO_DATE_OBS.value)
+            return
+
         if self.should_prepare:
             upload_preparator = preparator.UploadPreparator(self, debug=self._identity.debug)
             upload_preparator.prepare()
@@ -146,8 +152,13 @@ class UploadPack(object):
         return self._file_size
 
     @property
-    def is_fits_or_xisf(self) -> bool:
+    def has_date_obs(self) -> bool:
         return self._file_date is not None
+
+    @property
+    def is_fits_or_xisf(self) -> bool:
+        _, extension = os.path.splitext(self._file_path)
+        return extension.lower() in ['.xisf'] + OORT_FITS_EXTENSIONS
 
     @property
     def night_log_date_string(self) -> str:
