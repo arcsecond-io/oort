@@ -10,9 +10,11 @@ from oort import __version__
 from oort.cli.folders import (check_organisation, check_organisation_membership, check_organisation_telescope,
                               save_upload_folders)
 from oort.cli.options import State, basic_options
-from oort.cli.supervisor import (configure_supervisor, get_supervisor_processes_status, restart_supervisor_processes,
-                                 start_supervisor_daemon)
-from oort.shared.config import get_config_value, get_log_file_path
+from oort.cli.supervisor import (get_supervisor_processes_status, reconfigure_supervisor, start_supervisor_daemon,
+                                 stop_supervisor_daemon,
+                                 stop_supervisor_processes,
+                                 update_supervisor_processes)
+from oort.shared.config import get_config_upload_folder_sections, get_config_value, get_log_file_path
 from oort.shared.utils import tail
 from oort.uploader.main import paths_observer
 
@@ -82,28 +84,6 @@ def login(state, username, password):
     ArcsecondAPI.login(username, password, None, debug=state.debug)
 
 
-#
-# @main.command(help='Start Oort processes.')
-# @basic_options
-# @pass_state
-# def start(state):
-#     start_supervisor_processes(debug=state.debug)
-#
-#
-# @main.command(help='Stop Oort processes.')
-# @basic_options
-# @pass_state
-# def stop(state):
-#     stop_supervisor_processes(debug=state.debug)
-#
-#
-# @main.command(help='Restart Oort processes.')
-# @basic_options
-# @pass_state
-# def restart(state):
-#     restart_supervisor_processes(debug=state.debug)
-#
-
 @main.command(help='Get Oort processes status.')
 @basic_options
 @pass_state
@@ -111,13 +91,31 @@ def status(state):
     get_supervisor_processes_status(debug=state.debug)
 
 
-@main.command(help='Reload and restart Oort.')
+@main.command(help='Update Oort processes (for when you just upgraded Oort).')
 @basic_options
 @pass_state
-def reload(state):
-    configure_supervisor(debug=state.debug)
+def update(state):
+    reconfigure_supervisor(debug=state.debug)
+    update_supervisor_processes(debug=state.debug)
+    # start_supervisor_daemon(debug=state.debug)
+
+
+@main.command(help='Completely stop, reload and restart Oort daemon and processes.')
+@basic_options
+@pass_state
+def restart(state):
+    stop_supervisor_processes(debug=state.debug)
+    get_supervisor_processes_status(debug=state.debug)
+    stop_supervisor_daemon(debug=state.debug)
+    reconfigure_supervisor(debug=state.debug)
     start_supervisor_daemon(debug=state.debug)
-    restart_supervisor_processes(debug=state.debug)
+
+
+@main.command(help='Stop Oort processes.')
+@basic_options
+@pass_state
+def stop(state):
+    stop_supervisor_processes(debug=state.debug)
 
 
 @main.command(help='Open web server in default browser')

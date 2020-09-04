@@ -7,9 +7,11 @@ from datetime import datetime
 from oort.shared.config import (
     get_config_socket_file_path,
     get_logger,
-    get_oort_config_file_path, get_supervisor_conf_file_path,
-    get_supervisord_log_file_path
+    get_oort_config_file_path,
+    get_supervisor_conf_file_path,
+    get_supervisord_log_file_path, get_supervisord_pid_file_path
 )
+from oort.shared.constants import OORT_SUPERVISOR_SOCK_FILENAME
 from oort.shared.utils import get_username
 
 SERVER_PROCESS = 'oort-server'
@@ -18,15 +20,14 @@ DEFAULT_PROCESSES = [SERVER_PROCESS, UPLOADER_PROCESS]
 
 
 # noinspection OsChmod
-def configure_supervisor(debug=False):
+def reconfigure_supervisor(debug=False):
     logger = get_logger(debug=debug)
     logger.debug(f'Configuring supervisord debug={debug}...')
 
     conf_file_path = get_supervisor_conf_file_path()
-    if not os.path.exists(conf_file_path):
-        output = subprocess.run(["echo_supervisord_conf"], capture_output=True, text=True)
-        with open(conf_file_path, "w") as f:
-            f.write(output.stdout)
+    output = subprocess.run(["echo_supervisord_conf"], capture_output=True, text=True)
+    with open(conf_file_path, "w") as f:
+        f.write(output.stdout)
 
     conf = ConfigParser()
     conf.read(conf_file_path)
@@ -34,15 +35,16 @@ def configure_supervisor(debug=False):
     # section: unix_http_server
     conf.set('unix_http_server', 'file', get_config_socket_file_path())
     conf.set('unix_http_server', 'chmod', '0760')
-    conf.set('unix_http_server', 'user', get_username())
+    # conf.set('unix_http_server', 'user', get_username())
 
     # section: supervisord:
     conf.set('supervisord', 'logfile', get_supervisord_log_file_path())
-    conf.set('supervisord', 'user', get_username())
+    conf.set('supervisord', 'pidfile', get_supervisord_pid_file_path())
+    # conf.set('supervisord', 'user', get_username())
 
     # section: supervisorctl
     conf.set('supervisorctl', 'serverurl', 'unix://' + get_config_socket_file_path())
-    conf.set('supervisorctl', 'user', get_username())
+    # conf.set('supervisorctl', 'user', get_username())
 
     # section: inet_http_server
     if 'inet_http_server' not in conf.sections():
@@ -70,6 +72,8 @@ def configure_supervisor(debug=False):
     with open(conf_file_path, 'w') as f:
         conf.write(f)
 
+    logger.debug('Configuration file saved.')
+
     # Save details about config
 
     conf = ConfigParser()
@@ -82,7 +86,10 @@ def configure_supervisor(debug=False):
     with open(get_oort_config_file_path(), 'w') as f:
         conf.write(f)
 
-    logger.debug('Configuration done.')
+    logger.info('(Re)Configuration of supervisord done.')
+
+    # start_supervisor_daemon(debug=debug)
+    # Note to self: avoid "supervisorctl reload"!
 
 
 def check_config_version(debug=False):
@@ -98,7 +105,7 @@ def check_config_version(debug=False):
 
 def start_supervisor_daemon(debug=False):
     logger = get_logger(debug=debug)
-    logger.debug('Starting supervisord...')
+    logger.info('Starting supervisord...')
 
     conf_file_path = get_supervisor_conf_file_path()
     output = subprocess.run(["supervisord", "-c", conf_file_path], capture_output=True, text=True)
@@ -111,22 +118,40 @@ def start_supervisor_daemon(debug=False):
         port_9001_process_pid = output[0].strip()
 
         p1 = subprocess.Popen(['lsof', '-a', f'-p{port_9001_process_pid}'], stdout=subprocess.PIPE)
-        p2 = subprocess.Popen(["grep", "supervisor.sock"], stdin=p1.stdout, stdout=subprocess.PIPE, text=True)
+        p2 = subprocess.Popen(["grep", OORT_SUPERVISOR_SOCK_FILENAME],
+                              stdin=p1.stdout,
+                              stdout=subprocess.PIPE,
+                              text=True)
         port_9001_processes = p2.communicate()
 
         if len(port_9001_processes[0]) > 0:
-            print('Supervisor is already running. Fine.')
+            logger.info('Supervisord is already running. Config will be reread.')
         else:
-            print('Supervisor usual port (9001) is already taken by another process.')
+            logger.error('Supervisor usual port (9001) is already taken by another process.')
 
     elif len(output.stderr) > 0:
-        print(output.stderr)
+        logger.error(output.stderr)
 
     elif len(output.stdout) > 0:
         logger.debug(output.stdout)
 
-    subprocess.run(["supervisorctl", "reload"])
-    logger.debug('Daemon start done.')
+    else:
+        logger.info('Daemon supervisord started.')
+
+
+def stop_supervisor_daemon(debug=False):
+    logger = get_logger(debug=debug)
+    logger.info('Stopping supervisord...')
+
+    conf = ConfigParser()
+    conf.read(get_supervisor_conf_file_path())
+    pidfile = conf.get('supervisord', 'pidfile').split(';')[0].strip()
+    if os.path.exists(pidfile):
+        with open(pidfile, 'r') as f:
+            pid = f.read().strip()
+            subprocess.run(["kill", "-3", pid])
+    else:
+        logger.debug('No supervisord pidfile. Probably not running.')
 
 
 def start_supervisor_processes(*args, debug=True):
@@ -134,7 +159,7 @@ def start_supervisor_processes(*args, debug=True):
     logger.debug('Starting Oort processes...')
     if len(args) == 0:
         args = DEFAULT_PROCESSES
-    subprocess.run(["supervisorctl", "start"] + list(args))
+    subprocess.run(["supervisorctl", "-c", get_supervisor_conf_file_path(), "start"] + list(args))
     logger.debug('Start done.')
 
 
@@ -142,22 +167,22 @@ def stop_supervisor_processes(*args, debug=True):
     logger = get_logger(debug=debug)
     if len(args) == 0:
         args = DEFAULT_PROCESSES
-    logger.debug('Getting status of Oort processes...')
-    subprocess.run(["supervisorctl", "stop"] + list(args))
+    logger.info('Stopping Oort processes...')
+    subprocess.run(["supervisorctl", "-c", get_supervisor_conf_file_path(), "stop"] + list(args))
     logger.debug('Stop done.')
 
 
-def restart_supervisor_processes(*args, debug=True):
+def update_supervisor_processes(*args, debug=True):
     logger = get_logger(debug=debug)
+    logger.info('(Re)Starting Oort processes.')
     if len(args) == 0:
         args = DEFAULT_PROCESSES
-    logger.debug('Restarting Oort processes...')
-    subprocess.run(["supervisorctl", "restart"] + list(args))
+    subprocess.run(["supervisorctl", "-c", get_supervisor_conf_file_path(), "update", "all"] + list(args))
     logger.debug('Restart done.')
 
 
 def get_supervisor_processes_status(*args, debug=True):
     logger = get_logger(debug=debug)
     logger.debug('Getting status of Oort processes...')
-    subprocess.run(["supervisorctl", "status"] + list(args))
+    subprocess.run(["supervisorctl", "-c", get_supervisor_conf_file_path(), "status"] + list(args))
     logger.debug('Getting status done.')
