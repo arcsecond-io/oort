@@ -161,7 +161,7 @@ class UploadPack(object):
 
     @property
     def night_log_date_string(self) -> str:
-        if not self.is_fits_or_xisf:
+        if not self.has_date_obs:
             return ''
         x = 0 if self._file_date.hour >= 12 else 1
         return (self._file_date - timedelta(days=x)).date().isoformat()
