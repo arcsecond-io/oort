@@ -26,7 +26,7 @@ class InvalidAstronomerOortCloudError(OortCloudError):
 
 class InvalidOrgMembershipOortCloudError(OortCloudError):
     def __init__(self, subdomain):
-        msg = f'Invalid / unknown membership for {subdomain}. Login again: `arcsecond login --organisation {subdomain}`'
+        msg = f'Invalid / unknown membership for {subdomain}.'
         super().__init__(msg)
 
 
