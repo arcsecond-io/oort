@@ -202,11 +202,11 @@ def watch(state, folders, o=None, organisation=None, t=None, telescope=None):
     click.echo(" • Dates inside FITS/XISF files are assumed to be local dates.")
 
     if len(folders) == 1:
-        click.echo(f" • Folder: {os.path.expanduser(os.path.realpath(folders[0]))}")
+        click.echo(f" • Folder path: {os.path.expanduser(os.path.realpath(folders[0]))}")
     else:
-        click.echo(" • Folders:")
+        click.echo(" • Folder paths:")
         for folder in folders:
-            click.echo(f"   - {os.path.expanduser(os.path.realpath(folder))}")
+            click.echo(f"   > {os.path.expanduser(os.path.realpath(folder))}")
 
     ok = input(' --> OK? (Press Enter) ')
 
