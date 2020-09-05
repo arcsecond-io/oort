@@ -11,14 +11,14 @@ from oort.shared.models import Organisation
 from tests.utils import use_test_database
 
 
-def test_cli_missing_folders():
+def test_cli_watch_missing_folders():
     runner = CliRunner()
     result = runner.invoke(watch)
     assert result.exit_code != 0 and result.exception
     assert 'Missing argument \'FOLDERS...\'' in result.output
 
 
-def test_cli_unknown_organisation():
+def test_cli_watch_unknown_organisation():
     runner = CliRunner()
     error = {'detail': 'unknown organisation'}
     with patch.object(ArcsecondAPI, 'read', return_value=(None, error)) as mock_method_read:
@@ -29,7 +29,7 @@ def test_cli_unknown_organisation():
 
 
 @use_test_database
-def test_cli_unknown_membership():
+def test_cli_watch_unknown_membership():
     runner = CliRunner()
     # Create the watch command org to pass the org check.
     Organisation.smart_create(subdomain='robotland')
