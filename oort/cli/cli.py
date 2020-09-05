@@ -7,7 +7,9 @@ import click
 from arcsecond import ArcsecondAPI
 
 from oort import __version__
-from oort.cli.folders import (check_organisation, check_organisation_membership, check_organisation_telescope,
+from oort.cli.folders import (check_astronomer_credentials, check_astronomer_org_membership, check_organisation,
+                              check_organisation_local_membership,
+                              check_organisation_telescope,
                               save_upload_folders)
 from oort.cli.options import State, basic_options
 from oort.cli.supervisor import (get_supervisor_processes_status, reconfigure_supervisor, start_supervisor_daemon,
@@ -165,11 +167,22 @@ def logs(state, n):
               nargs=1,
               type=click.UUID,
               help="The UUID of the telescope acquiring data (in the case of organisation uploads).")
+@click.option('--astronomer',
+              required=False,
+              nargs=2,
+              type=(str, str),
+              default=[None, None],
+              help="A customized astronomer to upload on behalf. You MUST provide")
 @basic_options
 @pass_state
-def watch(state, folders, o=None, organisation=None, t=None, telescope=None):
+def watch(state, folders, o=None, organisation=None, t=None, telescope=None, astronomer=None):
     """
     Indicate a folder (or multiple folders) that Oort should watch.
+
+    If an organisation is provided, a telescope UUID must also be provided.
+
+    If an organisation is provided, no custom astronomer can be used. Inversely,
+    if a custom astronomer is provided, no organisation can be used.
 
     Oort will start by walking through the folder tree and uploads files
     according to the name of the subfolders (see main help). Once done,
@@ -177,13 +190,40 @@ def watch(state, folders, o=None, organisation=None, t=None, telescope=None):
     process.
     """
     telescope_uuid = t or telescope or ''
+    telescope_details = None
+
     org_subdomain = o or organisation or ''
+    org_role = ''
+    username = ''
+    api_key = ''
 
-    if org_subdomain:
-        check_organisation(org_subdomain, state.debug)
+    # No custom astronomer. We MAY use an organisation. Let's check.
+    if astronomer == (None, None):
+        if org_subdomain:
+            check_organisation(org_subdomain, state.debug)
+            org_role = check_organisation_local_membership(org_subdomain, state.debug)
 
-    telescope_details = check_organisation_telescope(org_subdomain, telescope_uuid, state.debug)
-    org_role = check_organisation_membership(org_subdomain, state.debug)
+        if org_subdomain and not telescope_uuid:
+            click.echo("Error: if an organisation is provided, you must specify a telescope UUID.")
+            click.echo(f"Here a list of existing telescopes for organisation {org_subdomain}:")
+            telescope_list, error = ArcsecondAPI.telescopes(state.debug, organisation=org_subdomain).list()
+            for telescope in telescope_list:
+                click.echo(f" • {telescope['name']} ({telescope['uuid']})")
+            return
+
+    else:
+        if org_subdomain:
+            click.echo("Error: if a custom astronomer is provided, no organisation can be used.")
+            return
+
+        username, api_key = astronomer
+        check_astronomer_credentials(username, api_key, state.debug)
+        if org_subdomain:
+            check_astronomer_org_membership(org_subdomain, username, api_key, state.debug)
+
+    # In every case, check for telescope details if a UUID is provided.
+    if telescope_uuid:
+        telescope_details = check_organisation_telescope(telescope_uuid, org_subdomain, api_key, state.debug)
 
     click.echo(" --- Folder(s) watch summary --- ")
     click.echo(f" • Account username: @{ArcsecondAPI.username(debug=state.debug)}")
@@ -210,8 +250,15 @@ def watch(state, folders, o=None, organisation=None, t=None, telescope=None):
     ok = input(' --> OK? (Press Enter) ')
 
     if ok.strip() == '':
-        prepared_folders = save_upload_folders(folders, org_subdomain, org_role, telescope_details, state.debug)
         oort_folder = os.path.dirname(os.path.dirname(__file__))
+        prepared_folders = save_upload_folders(folders,
+                                               username,
+                                               api_key,
+                                               org_subdomain,
+                                               org_role,
+                                               telescope_details,
+                                               state.debug)
+
         for (folder_path, identity) in prepared_folders:
             script_path = os.path.join(oort_folder, 'uploader', 'engine', 'initial_walk.py')
             subprocess.Popen(["python3", script_path, folder_path, identity.get_args_string()], close_fds=True)
