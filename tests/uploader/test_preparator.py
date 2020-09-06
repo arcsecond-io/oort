@@ -60,7 +60,7 @@ def test_preparator_init_with_org():
         assert prep.obs_or_calib is None
         assert prep.dataset is None
 
-        assert mock_method_read.called_once_with(date=pack.night_log_date_string)
+        mock_method_read.assert_called_once_with(date=pack.night_log_date_string)
         org = Organisation.select(Organisation.subdomain == 'saao').get()
         assert org is not None
 
@@ -85,15 +85,15 @@ def test_preparator_prepare_no_org_no_telescope():
 
         up = UploadPreparator(pack, identity)
         up.prepare()
-        assert mock_method_list.called_once_with(date=pack.night_log_date_string)
-        assert mock_method_create.called_with(**nl)
+        mock_method_list.assert_called_once_with(date=pack.night_log_date_string)
+        mock_method_create.assert_called_with(**nl)
         assert up.night_log is not None
         assert up.night_log.uuid == nl['uuid']
 
-        assert mock_method_create.called_with(**obs)
+        mock_method_create.assert_called_with(**obs)
         assert up.obs_or_calib is not None
         assert up.obs_or_calib.uuid == obs['uuid']
 
-        assert mock_method_create.called_with(**ds)
+        mock_method_create.assert_called_with(**ds)
         assert up.dataset is not None
         assert up.dataset.uuid == ds['uuid']
