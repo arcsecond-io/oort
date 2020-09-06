@@ -32,9 +32,6 @@ Vue.component('finished-table', {
         </a>
         <div class="subtitle">{{ upload.dataset.uuid }}</div>
       </div>
-      <div v-else>
-        <span class="subtitle">(no dataset)</span>
-      </div>
     </td>
     <td>
       <div v-if="upload.night_log && upload.night_log.date">
@@ -45,9 +42,6 @@ Vue.component('finished-table', {
           {{ upload.night_log.date }}
         </a>
         <div class="subtitle">{{ upload.night_log.uuid }}</div>
-      </div>
-      <div v-else>
-        <span class="subtitle">(no night log)</span>
       </div>
     </td>
     <td>
