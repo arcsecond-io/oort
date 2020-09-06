@@ -49,7 +49,7 @@ Vue.component('finished-table', {
         {{ upload.telescope.name }}
         <div class="subtitle">{{ upload.telescope.uuid }}</div>
       </div>
-      <div v-else>
+      <div v-else-if="!upload.telescope && !upload.substatus.toLowerCase().startsWith('skipped')">
         <span class="subtitle">(no telescope)</span>
       </div>
     </td>
