@@ -4,7 +4,8 @@ import uuid
 from unittest.mock import patch
 
 from arcsecond.api.main import ArcsecondAPI
-from arcsecond.config import config_file_save_api_key, config_file_save_organisation_membership
+from arcsecond.config import config_file_clear_section, config_file_save_api_key, \
+    config_file_save_organisation_membership
 
 from oort.shared.identity import Identity
 from oort.shared.models import Calibration, Dataset, NightLog, Observation, Organisation, Telescope, Upload, db
@@ -42,9 +43,10 @@ def test_preparator_init_no_org():
 
 @use_test_database
 def test_preparator_init_with_org():
+    config_file_clear_section('test')
     api_key = str(uuid.uuid4())
-    config_file_save_api_key(api_key, 'cedric', section='debug')
-    config_file_save_organisation_membership('saao', 'admin', section='debug')
+    config_file_save_api_key(api_key, 'cedric', section='test')
+    config_file_save_organisation_membership('saao', 'admin', section='test')
 
     identity = Identity('cedric', api_key, 'saao', 'admin', telescope_uuid)
     pack = UploadPack(folder_path, fits_file_path, identity)
@@ -60,15 +62,18 @@ def test_preparator_init_with_org():
         assert prep.obs_or_calib is None
         assert prep.dataset is None
 
-        mock_method_read.assert_called_once_with(date=pack.night_log_date_string)
+        mock_method_read.assert_called_with('saao')
+        # mock_method_read.assert_called_with(date=pack.night_log_date_string)
         org = Organisation.select(Organisation.subdomain == 'saao').get()
         assert org is not None
 
 
 @use_test_database
 def test_preparator_prepare_no_org_no_telescope():
+    config_file_clear_section('test')
+
     api_key = str(uuid.uuid4())
-    config_file_save_api_key(api_key, 'cedric', section='debug')
+    config_file_save_api_key(api_key, 'cedric', section='test')
 
     identity = Identity('cedric', api_key, debug=True)
     pack = UploadPack(folder_path, fits_file_path, identity)
@@ -85,15 +90,20 @@ def test_preparator_prepare_no_org_no_telescope():
 
         up = UploadPreparator(pack, identity)
         up.prepare()
-        mock_method_list.assert_called_once_with(date=pack.night_log_date_string)
-        mock_method_create.assert_called_with(**nl)
+
+        mock_method_list.assert_any_call(date=pack.night_log_date_string)
+        mock_method_list.assert_any_call(name=pack.dataset_name, night_log=nl['uuid'], target_name=pack.dataset_name)
+        mock_method_list.assert_any_call(name=pack.dataset_name, observation=obs['uuid'])
+
+        mock_method_create.assert_any_call({'date': pack.night_log_date_string})
         assert up.night_log is not None
         assert up.night_log.uuid == nl['uuid']
 
-        mock_method_create.assert_called_with(**obs)
+        payload = {'name': pack.dataset_name, 'night_log': nl['uuid'], 'target_name': pack.dataset_name}
+        mock_method_create.assert_any_call(payload)
         assert up.obs_or_calib is not None
         assert up.obs_or_calib.uuid == obs['uuid']
 
-        mock_method_create.assert_called_with(**ds)
+        mock_method_create.assert_any_call({'name': pack.dataset_name, 'observation': obs['uuid']})
         assert up.dataset is not None
         assert up.dataset.uuid == ds['uuid']
