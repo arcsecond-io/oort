@@ -205,7 +205,7 @@ def watch(state, folders, o=None, organisation=None, t=None, telescope=None, ast
 
         if org_subdomain and not telescope_uuid:
             click.echo("Error: if an organisation is provided, you must specify a telescope UUID.")
-            click.echo(f"Here a list of existing telescopes for organisation {org_subdomain}:")
+            click.echo(f"Here is a list of existing telescopes for organisation {org_subdomain}:")
             telescope_list, error = ArcsecondAPI.telescopes(state.debug, organisation=org_subdomain).list()
             for telescope in telescope_list:
                 click.echo(f" • {telescope['name']} ({telescope['uuid']})")
