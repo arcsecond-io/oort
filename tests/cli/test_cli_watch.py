@@ -10,6 +10,7 @@ from oort.shared.models import Organisation
 from tests.utils import TEST_LOGIN_ORG_SUBDOMAIN, TEST_LOGIN_USERNAME, save_test_credentials, use_test_database
 
 
+@use_test_database
 def test_cli_watch_missing_folders():
     save_test_credentials()
     runner = CliRunner()
@@ -18,6 +19,7 @@ def test_cli_watch_missing_folders():
     assert 'Missing argument \'FOLDERS...\'' in result.output
 
 
+@use_test_database
 def test_cli_watch_unknown_organisation():
     save_test_credentials()
     runner = CliRunner()
