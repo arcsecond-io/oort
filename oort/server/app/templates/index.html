@@ -152,11 +152,20 @@
 
             <div class="table-block">
               <div class="table-title">
-                <input id="toggle-finished" type="checkbox" v-model="show_tables.finished" class="">
-                Finished Uploads ({{ finished_uploads.length }}, among which {{ skipped_count }} were skipped).
+                <div>Finished Uploads {{ finished_count }}.</div>
+                <div>
+                  <span>Show Done ({{ finished_count - skipped_count }}): </span>
+                  <input id="toggle-finished-done" type="checkbox" v-model="show_tables.finished_done" class="">
+                  <span>Show Skipped ({{ skipped_count }}): </span>
+                  <input id="toggle-finished-skipped" type="checkbox" v-model="show_tables.finished_skipped" class="">
+                </div>
               </div>
-              <div v-if="show_tables.finished">
-                <finished-table v-if="finished_uploads.length > 0" v-bind:uploads="finished_uploads"></finished-table>
+              <div v-if="show_tables.finished_done || show_tables.finished_skipped">
+                <finished-table
+                  v-if="finished_uploads.length > 0"
+                  :uploads="finished_uploads"
+                  :root_path="selected_folder.path"
+                ></finished-table>
                 <div class="center-block text-center">
                   <span class="subtitle">Uploads older than 7 days are not shown ({{ state.hiddenCount }} hidden). </span>
                 </div>
@@ -179,6 +188,12 @@
   <script src="{$ url_for('static', filename='js/finished-table.js') $}"></script>
   <script src="{$ url_for('static', filename='js/main-app.js') $}"></script>
 
+  <style>
+      input[type="checkbox"] {
+          vertical-align: -2px;
+          margin-right: 5px;
+      }
+  </style>
 </div>
 </body>
 </html>

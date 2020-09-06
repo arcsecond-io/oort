@@ -19,8 +19,8 @@ Vue.component('finished-table', {
   <tbody>
   <tr v-for="upload in uploads">
     <td>
-      {{ upload.file_path }}
-      <div class="subtitle">Obs Date: {{ upload.file_date }}</div>
+      <span class="subtitle">&lt;root&gt;</span><span><strong>{{ getFilePath(upload) }}</strong></span>
+      <div><span class="subtitle">Obs Date:</span> {{ upload.file_date }}</div>
     </td>
     <td>
       <div v-if="upload.dataset">
@@ -61,7 +61,9 @@ Vue.component('finished-table', {
       {{ getFormattedSize(upload.file_size) }}
     </td>
     <td>
-      {{ upload.status }}
+      <div :style="getStatusStyle(upload)">
+        {{ upload.status }}
+      </div>
       <div class="subtitle">{{ upload.substatus }}</div>
     </td>
     <td>{{ upload.started }}</td>
@@ -73,6 +75,10 @@ Vue.component('finished-table', {
 </table>
 `,
   props: {
+    root_path: {
+      type: String,
+      required: true
+    },
     uploads: {
       type: Array,
       required: false,
@@ -82,6 +88,9 @@ Vue.component('finished-table', {
     }
   },
   methods: {
+    getFilePath(upload) {
+      return upload.file_path.replace(this.root_path, '')
+    },
     getOrganisationDatasetURL (upload) {
       return 'https://' + upload.organisation.subdomain + '.arcsecond.io/data/' + upload.night_log.date
     },
@@ -107,6 +116,9 @@ Vue.component('finished-table', {
       const sizes = ['Bytes', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
       const i = Math.floor(Math.log(bytes) / Math.log(k))
       return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i]
+    },
+    getStatusStyle (upload) {
+      return { color: upload.substatus.toLowerCase().startsWith('skipped') ? 'orange' : 'green' }
     }
   }
 })
