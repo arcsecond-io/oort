@@ -10,16 +10,17 @@ from arcsecond.config import config_file_clear_section, config_file_save_api_key
 
 from oort.shared.models import BaseModel
 
-TEST_LOGIN_ORG_SUBDOMAIN = 'robotland'
 TEST_LOGIN_USERNAME = 'robot1'
 TEST_LOGIN_PASSWORD = 'robotpass'
+TEST_LOGIN_ORG_SUBDOMAIN = 'robotland'
+TEST_LOGIN_ORG_ROLE = 'admin'
 TEST_API_KEY = '935e2b9e24c44581b4ef5f4c8e53213e'
 
 
 def save_test_credentials(username=TEST_LOGIN_USERNAME, subdomain=TEST_LOGIN_ORG_SUBDOMAIN):
     clear_test_credentials()
     config_file_save_api_key(TEST_API_KEY, username, section='test')
-    config_file_save_organisation_membership(subdomain, 'admin', section='test')
+    config_file_save_organisation_membership(subdomain, TEST_LOGIN_ORG_ROLE, section='test')
 
 
 def clear_test_credentials():
