@@ -66,8 +66,22 @@ Vue.component('finished-table', {
       </div>
       <div class="subtitle">{{ upload.substatus }}</div>
     </td>
-    <td>{{ upload.started }}</td>
-    <td>{{ upload.ended }}</td>
+    <td>
+      <div>
+        {{ upload.started }}
+      </div>
+      <div class="subtitle">
+        {{ getTimeAgoString(upload.started) }}
+       </div>
+    </td>
+    <td>
+      <div>
+        {{ upload.ended }}
+      </div>
+      <div class="subtitle">
+        {{ getTimeAgoString(upload.ended) }}
+       </div>
+    </td>
     <td>{{ upload.duration.toFixed(1) }} s</td>
     <td>{{ upload.error }}</td>
   </tr>
@@ -88,7 +102,7 @@ Vue.component('finished-table', {
     }
   },
   methods: {
-    getFilePath(upload) {
+    getFilePath (upload) {
       return upload.file_path.replace(this.root_path, '')
     },
     getOrganisationDatasetURL (upload) {
@@ -119,6 +133,21 @@ Vue.component('finished-table', {
     },
     getStatusStyle (upload) {
       return { color: upload.substatus.toLowerCase().startsWith('skipped') ? 'orange' : 'green' }
+    },
+    getTimeAgoString (date) {
+      if (!date) {
+        return ''
+      }
+      const seconds = Math.ceil((new Date() - new Date(date)) / 1000)
+      if (seconds < 60) {
+        return 'moments ago'
+      } else if (seconds < 3600) {
+        return (seconds / 60).toFixed(1).toString() + ' minutes ago'
+      } else if (seconds < 3600 * 24) {
+        return (seconds / 3600).toFixed(1).toString() + ' hours ago'
+      } else {
+        return (seconds / 3600 / 24).toFixed(1).toString() + ' days ago'
+      }
     }
   }
 })
