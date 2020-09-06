@@ -1,49 +1,40 @@
-# Arcsecond's Oort Cloud
+# Oort-Cloud for Arcsecond
 
-Oort Cloud is a small utility that starts a little server allowing to:
+Oort-Cloud is the open-source super-easy-to-use tool for automatically and
+continuously uploading files that are inside a folder to 
+[Arcsecond.io](https://www.arcsecond.io).
 
-* Automatically upload all the files of a folder (see below), as they appear
-* Upload to your personal or organisation account.
-* Make available a local webpage allowing to follow the upload operations live.
-* Keep track of past uploads  
+[Arcsecond.io](https://www.arcsecond.io) is a comprehensive cloud platform 
+for astronomical observations, for individual astronomers, collaborations and 
+observatories.
 
-In one word, Oort Cloud send your files to Arcsecond's cloud for storage.
+## Usage
 
-Installation
-===
+Use pip (see [this page](https://pip.pypa.io/en/stable/installing/) on how to install pip, if you haven't done so):
 
-```sh
+```bash
 $ pip install oort-cloud
-``` 
+```
 
-This will also install the `arcsecond` [CLI](https://github.com/arcsecond-io/cli).
+Install for the user only (non-root):
 
-Usage
-===
+```bash
+$ pip install oort-cloud --user
+```
 
-Personal
---- 
+Upgrade oort-cloud:
 
-```sh
-$ arcsecond login 
-$ cd <parent folder where files are located>
-// for uploading to a personal account:
-$ oort
-// for uploading to an organisation account whose subdomain is 'saao':
-$ oort -o saao
-``` 
+```bash
+$ pip install oort-cloud --upgrade
+```
 
-As an Organisation Member
----
+Almost no-step-3 usage (the first one is to login to Arcsecond.io if not yet done):
 
-For an organisation identified by its subdomain:' 
+```bash
+oort login
+oort restart
+oort watch [OPTIONS] folder1 folder2 ...
+```
 
-```sh
-$ arcsecond login --organisation <subdomain>
-$ cd <parent folder where files are located>
-$ oort -o <subdomain> -t <telescope uuid>
-``` 
-
-That's it! Now, you can open a browser in `http://0.0.0.0:5000` and follow the operations.
-
-![Oort in action](/assets/oort-cloud-basic.png)
+See [detailed documentation](https://arcsecond-io.github.io/oort/) for a complete
+description of all options and capabilities, with screenshots.

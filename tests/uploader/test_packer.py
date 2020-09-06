@@ -138,6 +138,7 @@ def test_packer_observation_with_double_filter():
         assert pack is not None
         # Check detection of FITS or XISF is OK
         assert pack.is_fits_or_xisf is True
+        assert pack.has_date_obs is True
         # Check night log date format is OK
         assert re.match(r'[0-9]{4}-[0-9]{2}-[0-9]{2}', pack.night_log_date_string) is not None
         # Check detection of resource is OK
@@ -148,7 +149,7 @@ def test_packer_observation_with_double_filter():
 
 
 @use_test_database
-def test_packer_calibration_no_fits_no_xisf():
+def test_packer_calibration_no_date_obs():
     path = '/Users/onekiloparsec/data/Biases/dummy_010.fits'
     with patch('os.path.getsize', return_value=10), \
          patch.object(UploadPack, '_find_fits_filedate', return_value=None), \
@@ -156,7 +157,28 @@ def test_packer_calibration_no_fits_no_xisf():
         pack = UploadPack(root_path, path, identity)
         assert pack is not None
         # Check detection of FITS or XISF is OK
+        assert pack.is_fits_or_xisf is True
+        assert pack.has_date_obs is False
+        # Check night log date format is OK
+        assert pack.night_log_date_string == ''
+        # Check detection of resource is OK
+        assert pack.resource_type == 'calibration'
+        assert pack.remote_resources_name == 'calibrations'
+        # Check name of dataset respect folder name
+        assert pack.dataset_name == 'Biases'
+
+
+@use_test_database
+def test_packer_calibration_no_fits_no_xisf():
+    path = '/Users/onekiloparsec/data/Biases/dummy_010.csv'
+    with patch('os.path.getsize', return_value=10), \
+         patch.object(UploadPack, '_find_fits_filedate', return_value=None), \
+         patch.object(UploadPack, '_find_xisf_filedate', return_value=None):
+        pack = UploadPack(root_path, path, identity)
+        assert pack is not None
+        # Check detection of FITS or XISF is OK
         assert pack.is_fits_or_xisf is False
+        assert pack.has_date_obs is False
         # Check night log date format is OK
         assert pack.night_log_date_string == ''
         # Check detection of resource is OK

@@ -18,9 +18,15 @@ class UnknownTelescopeOortCloudError(OortCloudError):
         super().__init__(msg)
 
 
+class InvalidAstronomerOortCloudError(OortCloudError):
+    def __init__(self, username, api_key):
+        msg = f'Invalid / unknown astronomer with username {username} (for the provided api_key {api_key}). '
+        super().__init__(msg)
+
+
 class InvalidOrgMembershipOortCloudError(OortCloudError):
     def __init__(self, subdomain):
-        msg = f'Invalid / unknown membership for {subdomain}. Login again: `arcsecond login --organisation {subdomain}`'
+        msg = f'Invalid / unknown membership for {subdomain}.'
         super().__init__(msg)
 
 

@@ -4,33 +4,44 @@ from functools import wraps
 
 import httpretty
 import peewee
-from arcsecond import cli
-from arcsecond.api.constants import API_AUTH_PATH_LOGIN, ARCSECOND_API_URL_DEV
-from click.testing import CliRunner
+from arcsecond.api.constants import ARCSECOND_API_URL_DEV
+from arcsecond.config import config_file_clear_section, config_file_save_api_key, \
+    config_file_save_organisation_membership
 
 from oort.shared.models import BaseModel
 
 TEST_LOGIN_USERNAME = 'robot1'
 TEST_LOGIN_PASSWORD = 'robotpass'
+TEST_LOGIN_ORG_SUBDOMAIN = 'robotland'
+TEST_LOGIN_ORG_ROLE = 'admin'
 TEST_API_KEY = '935e2b9e24c44581b4ef5f4c8e53213e'
 
 
-def register_successful_personal_login():
-    runner = CliRunner()
-    httpretty.register_uri(
-        httpretty.POST,
-        ARCSECOND_API_URL_DEV + API_AUTH_PATH_LOGIN,
-        status=200,
-        body='{ "key": "935e2b9e24c44581b4ef5f4c8e53213e935e2b9e24c44581b4ef5f4c8e53213e" }'
-    )
-    httpretty.register_uri(
-        httpretty.GET,
-        ARCSECOND_API_URL_DEV + '/profiles/' + TEST_LOGIN_USERNAME + '/keys/',
-        status=200,
-        body='{ "api_key": "' + TEST_API_KEY + '" }'
-    )
-    result = runner.invoke(cli.login, ['-d'], input=TEST_LOGIN_USERNAME + '\n' + TEST_LOGIN_PASSWORD)
-    assert result.exit_code == 0
+def save_test_credentials(username=TEST_LOGIN_USERNAME, subdomain=TEST_LOGIN_ORG_SUBDOMAIN):
+    clear_test_credentials()
+    config_file_save_api_key(TEST_API_KEY, username, section='test')
+    config_file_save_organisation_membership(subdomain, TEST_LOGIN_ORG_ROLE, section='test')
+
+
+def clear_test_credentials():
+    config_file_clear_section('test')
+
+
+def mock_url_path(method, path, body='', query='', status=200):
+    path = path + '/' if path[-1] != '/' else path
+    httpretty.register_uri(method,
+                           ARCSECOND_API_URL_DEV + path + query,
+                           status=status,
+                           body=body,
+                           match_querystring=True)
+
+
+def mock_http_get(path, body='{}', status=200):
+    mock_url_path(httpretty.GET, path, body, status=status)
+
+
+def mock_http_post(path, body='{}', status=200):
+    mock_url_path(httpretty.POST, path, body, status=status)
 
 
 MODELS = [m[1] for m in inspect.getmembers(sys.modules['oort.shared.models'], inspect.isclass) if

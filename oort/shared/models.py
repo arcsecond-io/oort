@@ -157,12 +157,14 @@ class Substatus(Enum):
     DONE = 'done'
     ERROR = 'error'
     ALREADY_SYNCED = 'already synced'
+    SKIPPED_NO_DATE_OBS = 'skipped (no date obs found)'
     SKIPPED_NOT_FITS_OR_XISF = 'skipped (not fits or xisf)'
     SKIPPED_NO_DATASET = 'skipped (no dataset)'
 
 
 FINISHED_SUBSTATUSES = [Substatus.DONE.value,
                         Substatus.ERROR.value,
+                        Substatus.SKIPPED_NO_DATE_OBS.value,
                         Substatus.SKIPPED_NOT_FITS_OR_XISF.value,
                         Substatus.SKIPPED_NO_DATASET.value,
                         Substatus.ALREADY_SYNCED.value]
