@@ -29,7 +29,8 @@ def check_organisation_local_membership(org_subdomain: str, debug: bool) -> str:
     if org_subdomain is None or len(org_subdomain.strip()) == 0:
         return ''
 
-    role = ArcsecondAPI.memberships(debug=debug).get(org_subdomain, None) if org_subdomain else None
+    test = os.environ.get('OORT_TESTS') == '1'
+    role = ArcsecondAPI.memberships(debug=debug, test=test).get(org_subdomain, None) if org_subdomain else None
     if org_subdomain and role is None:
         raise InvalidOrgMembershipOortCloudError(org_subdomain)
 
