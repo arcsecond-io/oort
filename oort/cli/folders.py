@@ -8,17 +8,23 @@ from peewee import DoesNotExist
 
 from oort.server.errors import (InvalidAstronomerOortCloudError, InvalidOrgMembershipOortCloudError,
                                 InvalidOrganisationTelescopeOortCloudError,
-                                NotLoggedInOortCloudError, UnknownOrganisationOortCloudError)
+                                UnknownOrganisationOortCloudError)
 from oort.shared.identity import Identity
 from oort.shared.models import Organisation
 from oort.shared.utils import find_first_in_list
+
+
+def check_username(debug: bool):
+    test = os.environ.get('OORT_TESTS') == '1'
+    return ArcsecondAPI.username(debug=debug, test=test)
 
 
 def check_organisation(org_subdomain: str, debug: bool):
     try:
         Organisation.get(subdomain=org_subdomain)
     except DoesNotExist:
-        org_resource, error = ArcsecondAPI.organisations(debug=debug).read(org_subdomain)
+        test = os.environ.get('OORT_TESTS') == '1'
+        org_resource, error = ArcsecondAPI.organisations(debug=debug, test=test).read(org_subdomain)
         if error:
             raise UnknownOrganisationOortCloudError(org_subdomain, str(error))
         else:
@@ -37,16 +43,24 @@ def check_organisation_local_membership(org_subdomain: str, debug: bool) -> str:
     return role
 
 
+def list_organisation_telescopes(org_subdomain: str, debug: bool):
+    click.echo("Error: if an organisation is provided, you must specify a telescope UUID.")
+    click.echo(f"Here is a list of existing telescopes for organisation {org_subdomain}:")
+
+    test = os.environ.get('OORT_TESTS') == '1'
+    telescope_list, error = ArcsecondAPI.telescopes(debug=debug, test=test, organisation=org_subdomain).list()
+    for telescope in telescope_list:
+        click.echo(f" • {telescope['name']} ({telescope['uuid']})")
+
+
 def check_organisation_telescope(telescope_uuid: Optional[Union[str, UUID]],
                                  org_subdomain: Optional[str],
                                  api_key: Optional[str],
                                  debug: bool) -> Optional[dict]:
-    if not ArcsecondAPI.is_logged_in():
-        raise NotLoggedInOortCloudError()
-
     click.echo("Fetching telescope details...")
 
-    kwargs = {'debug': debug}
+    test = os.environ.get('OORT_TESTS') == '1'
+    kwargs = {'debug': debug, 'test': test}
     if org_subdomain:
         kwargs.update(organisation=org_subdomain)
     if api_key:
@@ -67,18 +81,25 @@ def check_organisation_telescope(telescope_uuid: Optional[Union[str, UUID]],
 
 def check_astronomer_credentials(username: str, api_key: str, debug: bool):
     click.echo("Checking astronomer credentials...")
-    result, error = ArcsecondAPI.me(debug=debug, api_key=api_key).read(username)
+
+    test = os.environ.get('OORT_TESTS') == '1'
+    result, error = ArcsecondAPI.me(debug=debug, test=test, api_key=api_key).read(username)
     if error:
         raise InvalidAstronomerOortCloudError(username, api_key)
 
 
 def check_astronomer_org_membership(org_subdomain: str, username: str, api_key: str, debug: bool):
     click.echo("Checking astronomer membership...")
-    result, error = ArcsecondAPI.members(organisation=org_subdomain, debug=debug, api_key=api_key).list()
+
+    test = os.environ.get('OORT_TESTS') == '1'
+    result, error = ArcsecondAPI.members(organisation=org_subdomain, debug=debug, test=test, api_key=api_key).list()
+
     if error:
         raise InvalidOrgMembershipOortCloudError(org_subdomain)
+
     if not find_first_in_list(result, username=username):
         raise InvalidOrgMembershipOortCloudError(org_subdomain)
+
     membership = find_first_in_list(result, username=username)
     if membership.get('role') not in ['member', 'admin', 'superadmin']:
         raise InvalidOrgMembershipOortCloudError(org_subdomain)

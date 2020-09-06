@@ -7,12 +7,18 @@ import click
 from arcsecond import ArcsecondAPI
 
 from oort import __version__
-from oort.cli.folders import (check_astronomer_credentials, check_astronomer_org_membership, check_organisation,
+from oort.cli.folders import (check_astronomer_credentials,
+                              check_astronomer_org_membership,
+                              check_organisation,
                               check_organisation_local_membership,
                               check_organisation_telescope,
+                              check_username,
+                              list_organisation_telescopes,
                               save_upload_folders)
 from oort.cli.options import State, basic_options
-from oort.cli.supervisor import (get_supervisor_processes_status, reconfigure_supervisor, start_supervisor_daemon,
+from oort.cli.supervisor import (get_supervisor_processes_status,
+                                 reconfigure_supervisor,
+                                 start_supervisor_daemon,
                                  stop_supervisor_daemon,
                                  stop_supervisor_processes,
                                  update_supervisor_processes)
@@ -199,16 +205,14 @@ def watch(state, folders, o=None, organisation=None, t=None, telescope=None, ast
 
     # No custom astronomer. We MAY use an organisation. Let's check.
     if astronomer == (None, None):
+        username = check_username(state.debug)
+
         if org_subdomain:
             check_organisation(org_subdomain, state.debug)
             org_role = check_organisation_local_membership(org_subdomain, state.debug)
 
         if org_subdomain and not telescope_uuid:
-            click.echo("Error: if an organisation is provided, you must specify a telescope UUID.")
-            click.echo(f"Here is a list of existing telescopes for organisation {org_subdomain}:")
-            telescope_list, error = ArcsecondAPI.telescopes(state.debug, organisation=org_subdomain).list()
-            for telescope in telescope_list:
-                click.echo(f" • {telescope['name']} ({telescope['uuid']})")
+            list_organisation_telescopes(org_subdomain, state.debug)
             return
 
     else:
@@ -226,7 +230,7 @@ def watch(state, folders, o=None, organisation=None, t=None, telescope=None, ast
         telescope_details = check_organisation_telescope(telescope_uuid, org_subdomain, api_key, state.debug)
 
     click.echo(" --- Folder(s) watch summary --- ")
-    click.echo(f" • Account username: @{ArcsecondAPI.username(debug=state.debug)}")
+    click.echo(f" • Account username: @{username}")
     if org_subdomain:
         click.echo(f" • Uploading for organisation: {org_subdomain} (role: {org_role})")
     else:
