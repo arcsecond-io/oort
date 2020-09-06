@@ -86,24 +86,41 @@
     <div id="vuejs" class="main-content">
 
       <div class="row row-select" v-if="state">
-        <div class="h3">
-          {{ state.folders.length }}
-          Watched Folder<span v-if="state.folders.length > 1">s</span>
+        <div v-if="state.folders.length > 0">
+          <div class="h3">
+            {{ state.folders.length }}
+            Watched Folder<span v-if="state.folders.length > 1">s</span>
+          </div>
+          <v-select
+            v-if="state.folders.length"
+            :options="state.folders"
+            v-model="selected_folder"
+            :clearable="false"
+            label="path"
+          >
+          </v-select>
+          <div v-if="selected_folder">
+            Config:
+            <span v-if="selected_folder.subdomain">
+              <span class="subtitle">organisation:</span> {{ selected_folder.subdomain }}<span v-if="selected_folder.telescope">,</span>
+            </span>
+            <span v-else>
+              <span class="subtitle">username:</span> @{{ selected_folder.username }},
+              <span class="subtitle">api_key:</span> {{ selected_folder.api_key.substring(0,4) }}...
+            </span>
+            <span v-if="selected_folder.telescope">
+              <span class="subtitle">telescope:</span> {{ selected_folder.telescope }}
+            </span>
+            <span class="subtitle" v-if="selected_folder.debug">(Debug)</span>
+          </div>
         </div>
-        <v-select
-          v-if="state.folders.length"
-          :options="state.folders"
-          v-model="selected_folder"
-          :clearable="false"
-          label="path"
-        >
-        </v-select>
-        <div v-else>
+        <div v-else class="instruction text-small small">
           There is no folder to watch.
-        </div>
-        <div class="instruction">
           To watch a folder, add it with the terminal command <code>oort watch [options] &lt;folder path&gt;</code>.
         </div>
+      </div>
+      <div v-else>
+        <i class="fa fa-spin fa-spinner">Loading...</i>
       </div>
 
       <div class="row row-tables text-small" v-if="selected_folder">
@@ -193,6 +210,7 @@
           display: flex;
           align-items: baseline;
       }
+
       input[type="checkbox"] {
           margin-right: 5px;
       }
