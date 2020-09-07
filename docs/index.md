@@ -125,14 +125,18 @@ will be put in an Observation (not a Calibration, there is no special
 keyword found), and its Dataset will be named identically
 `NGC3603/mosaic/Halpha`.
 
-| Path | Local Date | Upload Filename | Night Log | Type | Dataset Name |
-| ---- | ---- | --------------- | ---- | ---- | ------------ |
-| `<root>/NGC3603/mosaic/Halpha/Mosaic1.fits` | Sep. 9, 2020, 2pm | `Mosaic1.fits` | 2020-09-09 | Observation | `NGC3603/mosaic/Halpha` |  
-| `<root>/Calibration/MasterBias.xisf` | Sep. 21, 2020, 9am | `Mosaic1.fits` | 2020-09-20 | Calibration | `MasterBias.xisf` |  
-| `<root>/Tests/Flats/U/U1.fit` | Sep. 30, 2020, 01am | `U1.fit` | 2020-09-30 | Calibration | `Tests/Flats/U/U1.fit` |  
-| `<root>/NGC3603_V_2x2.fit` | Oct. 15, 2020, 04am | `NGC3603_V_2x2.fit` | 2020-10-15 | Observation | `(folder <root>)` |  
-| `<root>/passwords.csv` | |  | | | not uploaded (not fits or xisf) |  
-| `<root>/GRO_J1655-40.FITS` | |  | | | not uploaded (no date obs found) |  
+<font size="-1">
+
+| Path | Local Time | Night Log Date | Type | Dataset Name |
+| ---- | ---- | ---- | ---- | ------------ |
+| `<root>/NGC3603/mosaic/Halpha/Mosaic1.fits` | Sep. 9, 2020, 2pm | 2020-09-09 | Observation | `NGC3603/mosaic/Halpha` |  
+| `<root>/Calibration/MasterBias.xisf` | Sep. 21, 2020, 9am | 2020-09-20 | Calibration | `MasterBias.xisf` |  
+| `<root>/Tests/Flats/U/U1.fit` | Sep. 30, 2020, 01am | 2020-09-30 | Calibration | `Tests/Flats/U/U1.fit` |  
+| `<root>/NGC3603_V_2x2.fit` | Oct. 15, 2020, 04am | 2020-10-15 | Observation | `(folder <root>)` |  
+| `<root>/passwords.csv` | |  | | not uploaded (not fits or xisf) |  
+| `<root>/GRO_J1655-40.FITS` | | | | not uploaded (no date obs found) |  
+
+</font>
 
 etc.
 
