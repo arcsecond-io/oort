@@ -127,7 +127,7 @@ will be put in an Observation (not a Calibration, there is no special
 keyword found), and its Dataset will be named identically
 `NGC3603/mosaic/Halpha`.
 
-| <sup>File Path | <sup>Local Time | <sup>Night Log Date | <sup>Type | <sup>Dataset Name |
+| <sup>File Path | &nbsp; &nbsp; &nbsp;<sup>Local Time</sup>&nbsp; &nbsp; &nbsp; | &nbsp; &nbsp; &nbsp;<sup>Night Log Date</sup>&nbsp; &nbsp; &nbsp; | <sup>Type | <sup>Dataset Name |
 | ---- | ---- | ---- | ---- | ------------ |
 | <sup>`<root>/NGC3603/Halpha/Mosaic1.fits`</sup> | <sup>Sep. 9, 2020, 2pm | <sup>2020-09-09 | <sup>Obs. | <sup>`NGC3603/Halpha`</sup> |  
 | <sup>`<root>/Calibration/MasterBias.xisf`</sup> | <sup>Sep. 21, 2020, 9am | <sup>2020-09-20 | <sup>Calib. | <sup>`Calibration`</sup> |  
