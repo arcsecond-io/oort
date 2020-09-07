@@ -17,7 +17,7 @@ below.
 [Contact us](mailto:team@arcsecond.io). We would be happy to open
 a portal for you to see and try, even uploading some data, before you decide. 
 
-![](./assets/oort-screenshot-uploading.png)
+![https://arcsecond-io.github.io/oort/assets/oort-screenshot-uploading.png](./assets/oort-screenshot-uploading.png)
 
 ## Installation & Update
 
