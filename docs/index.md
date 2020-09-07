@@ -107,12 +107,13 @@ processes.
 of files.**
 
 Structure is as follow: Night Logs contain multiple Observation and/or
-Calibrations. To each Observation and Calibration is attached a Dataset
-containing the files.
+Calibrations taken the same night. To each Observation and Calibration is 
+attached one (and only one) Dataset containing the files (as many as they are).
 
 For instance, if a folder contains the word "Bias" (case-insensitive), the
 files inside it will be put inside a Calibration object, associated with
-a Dataset whose name is that of the folder.
+a Dataset whose name is that of the folder. See below for a table of 
+examples.
 
 Keywords directing files in Calibrations are "Bias", "Dark", "Flat" and
 "Calib". All other folder names are considered as target names, and put
@@ -126,14 +127,14 @@ will be put in an Observation (not a Calibration, there is no special
 keyword found), and its Dataset will be named identically
 `NGC3603/mosaic/Halpha`.
 
-| Path | Local Time | Night Log Date | Type | Dataset Name |
+| <sup>File Path | <sup>Local Time | <sup>Night Log Date | <sup>Type | <sup>Dataset Name |
 | ---- | ---- | ---- | ---- | ------------ |
-| `<root>/NGC3603/mosaic/Halpha/Mosaic1.fits` | Sep. 9, 2020, 2pm | 2020-09-09 | Observation | `NGC3603/mosaic/Halpha` |  
-| `<root>/Calibration/MasterBias.xisf` | Sep. 21, 2020, 9am | 2020-09-20 | Calibration | `MasterBias.xisf` |  
-| `<root>/Tests/Flats/U/U1.fit` | Sep. 30, 2020, 01am | 2020-09-30 | Calibration | `Tests/Flats/U/U1.fit` |  
-| `<root>/NGC3603_V_2x2.fit` | Oct. 15, 2020, 04am | 2020-10-15 | Observation | `(folder <root>)` |  
-| `<root>/passwords.csv` | |  | | not uploaded (not fits or xisf) |  
-| `<root>/GRO_J1655-40.FITS` | | | | not uploaded (no date obs found) |  
+| <sup>`<root>/NGC3603/mosaic/Halpha/Mosaic1.fits`</sup> | <sup>Sep. 9, 2020, 2pm | <sup>2020-09-09 | <sup>Obs. | <sup>`NGC3603/mosaic/Halpha`</sup> |  
+| <sup>`<root>/Calibration/MasterBias.xisf`</sup> | <sup>Sep. 21, 2020, 9am | <sup>2020-09-20 | <sup>Calib. | <sup>`MasterBias.xisf`</sup> |  
+| <sup>`<root>/Tests/Flats/U/U1.fit`</sup> | <sup>Sep. 30, 2020, 01am | <sup>2020-09-30 | <sup>Calib. | <sup>`Tests/Flats/U/U1.fit`</sup> |  
+| <sup>`<root>/NGC3603_V_2x2.fit`</sup> | <sup>Oct. 15, 2020, 04am | <sup>2020-10-15 | <sup>Obs. | <sup>`(folder <root>)`</sup> |  
+| <sup>`<root>/passwords.csv`</sup> | | | | <sup>not uploaded (not fits or xisf) |  
+| <sup>`<root>/GRO_J1655-40.FITS`</sup> | | | | <sup>not uploaded (no date obs found) |  
 
 etc.
 
@@ -148,8 +149,13 @@ boundaries are running from local noon to the next local noon.
 
 ## Key things you must be aware of
 
-* Oort doesn't need to run as `root`.
-* If uploading for an organisation, Oort is necessarily run by a member of it.
+* There is no need to install or run Oort as `root`.
 * One must login first before uploading, with the command `oort login`. It will 
-store locally the necessary credentials used for uploading. **Keep these credentials safe**.
-* To determine the Night Log date, Oort reads the FITS or XISF header and look for any of the following keywords: `DATE`, `DATE-OBS` and `DATE_OBS`.
+locally store the necessary credentials used for uploading. **Keep these credentials safe**.
+* If uploading for an organisation, Oort must necessarily be run someone who is a member of it.
+* To determine the Night Log date, Oort reads the FITS or XISF header and look for
+ any of the following keywords: `DATE`, `DATE-OBS` and `DATE_OBS`. Dates are
+ assumed to be local ones.
+* "Nights" run from local noon to local noon. That is, all data files whose
+date is in the morning, until 12am, is considered as part of the night that
+just finished. The Night Log date is that of the starting noon.
