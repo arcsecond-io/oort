@@ -138,14 +138,6 @@ keyword found), and its Dataset will be named identically
 
 etc.
 
-### A note on dates: night are running from noon to noon
-
-All Calibrations and Observations are automatically associated with
-Night Logs whose date is inferred from the observation date of the files.
-Oort takes automatically care of the right "date" whether the file is taken
-before or after noon on that local place. In other words, the "night"
-boundaries are running from local noon to the next local noon.
-
 
 ## Key things you must be aware of
 
@@ -156,6 +148,6 @@ locally store the necessary credentials used for uploading. **Keep these credent
 * To determine the Night Log date, Oort reads the FITS or XISF header and look for
  any of the following keywords: `DATE`, `DATE-OBS` and `DATE_OBS`. Dates are
  assumed to be local ones.
-* "Nights" run from local noon to local noon. That is, all data files whose
+* **"Nights" run from local noon to local noon.** That is, all data files whose
 date is in the morning, until 12am, is considered as part of the night that
 just finished. The Night Log date is that of the starting noon.
