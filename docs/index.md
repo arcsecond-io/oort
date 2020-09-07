@@ -8,6 +8,17 @@ continuously uploading files that are inside a folder to
 for astronomical observations, for individual astronomers, collaborations and 
 observatories.
 
+Oort-Cloud can be used by individual astronomers who want to store data in
+a cloud dedicated to astronomical data. Or by an observatory, to store data
+specifically for that organisation. For that, the organisation must have been 
+registered first, and subdomain defined. See also the `--organisation` option 
+below.
+
+[Contact us](mailto:team@arcsecond.io). We would be happy to open
+a portal for you to see and try, even uploading some data, before you decide. 
+
+![](./assets/oort-screenshot-uploading.png)
+
 ## Installation & Update
 
 Use pip (see [this page](https://pip.pypa.io/en/stable/installing/) on how to install pip, if you haven't done so):
@@ -42,7 +53,7 @@ oort restart
 oort watch [OPTIONS] folder1 folder2 ...
 ```
 
-The `OPTIONS` part of `oort watch is important. There is two option:
+The `OPTIONS` part of `oort watch` is important. There are two options:
 * `-o <subdomain>` (or `--organisation <subdomain>`) to specify that uploads of 
 that folder will be sent to that organisation.
 * `-t <telescope uuid>` (or `--telescope <telescope uuid>`) to specify to which 
@@ -57,11 +68,15 @@ tree and upload existing files.
 
 ## Manage and Monitor
 
-* `oort open` to open the web server in the default browser
-* `oort logs` to read the latest logs in the terminal.
+* `oort login` to login to Arcsecond first.
 * `oort status` to check the status of the two processes (see below)
 * `oort update` to update processes after upgrade Oort version.
+* `oort open` to open the web server in the default browser
+* `oort logs` to read the latest logs in the terminal.
 
+And:
+* `oort restart`, in case you need a full restart.
+* `oort` or `oort --help` for a complete help.
 
 ## How does it work?
 
@@ -78,7 +93,8 @@ Oort-Cloud works by managing 2 processes:
     happening in the uploader (and find what happened before too).
 
 A subset of the `oort` subcommands is dedicated to start, stop and get status
-of these two processes. 
+of these two processes. These processes are managed by a small `supervisord`
+daemon.
 
 These processes are **managed**, that is, they are automatically restarted if
 they crash. Use the command `oort logs` to get the latest logs of these 
@@ -109,6 +125,17 @@ will be put in an Observation (not a Calibration, there is no special
 keyword found), and its Dataset will be named identically
 `NGC3603/mosaic/Halpha`.
 
+| Path | Local Date | Upload Filename | Night Log | Type | Dataset Name |
+| ---- | ---- | --------------- | ---- | ---- | ------------ |
+| `<root>/NGC3603/mosaic/Halpha/Mosaic1.fits` | Sep. 9, 2020, 2pm | `Mosaic1.fits` | 2020-09-09 | Observation | `NGC3603/mosaic/Halpha` |  
+| `<root>/Calibration/MasterBias.xisf` | Sep. 21, 2020, 9am | `Mosaic1.fits` | 2020-09-20 | Calibration | `MasterBias.xisf` |  
+| `<root>/Tests/Flats/U/U1.fit` | Sep. 30, 2020, 01am | `U1.fit` | 2020-09-30 | Calibration | `Tests/Flats/U/U1.fit` |  
+| `<root>/NGC3603_V_2x2.fit` | Oct. 15, 2020, 04am | `NGC3603_V_2x2.fit` | 2020-10-15 | Observation | `(folder <root>)` |  
+| `<root>/passwords.csv` | |  | | | not uploaded (not fits or xisf) |  
+| `<root>/GRO_J1655-40.FITS` | |  | | | not uploaded (no date obs found) |  
+
+etc.
+
 ### A note on dates: night are running from noon to noon
 
 All Calibrations and Observations are automatically associated with
@@ -118,9 +145,10 @@ before or after noon on that local place. In other words, the "night"
 boundaries are running from local noon to the next local noon.
 
 
-## Key principles you must be aware of
+## Key things you must be aware of
 
-* Oort doesn't need to be run as `root`.
+* Oort doesn't need to run as `root`.
 * If uploading for an organisation, Oort is necessarily run by a member of it.
-* API keys are stored in clear in the uploading machine.
- 
+* One must login first before uploading, with the command `oort login`. It will 
+store locally the necessary credentials used for uploading. **Keep these credentials safe**.
+* To determine the Night Log date, Oort reads the FITS or XISF header and look for any of the following keywords: `DATE`, `DATE-OBS` and `DATE_OBS`.
