@@ -18,6 +18,7 @@ below.
 a portal for you to see and try, even uploading some data, before you decide. 
 
 ![https://arcsecond-io.github.io/oort/assets/oort-screenshot-uploading.png](./assets/oort-screenshot-uploading.png)
+(<a href="https://arcsecond-io.github.io/oort/assets/oort-screenshot-uploading.png">enlarge</a>)
 
 ## Installation & Update
 
@@ -125,8 +126,6 @@ will be put in an Observation (not a Calibration, there is no special
 keyword found), and its Dataset will be named identically
 `NGC3603/mosaic/Halpha`.
 
-<font size="-1">
-
 | Path | Local Time | Night Log Date | Type | Dataset Name |
 | ---- | ---- | ---- | ---- | ------------ |
 | `<root>/NGC3603/mosaic/Halpha/Mosaic1.fits` | Sep. 9, 2020, 2pm | 2020-09-09 | Observation | `NGC3603/mosaic/Halpha` |  
@@ -135,8 +134,6 @@ keyword found), and its Dataset will be named identically
 | `<root>/NGC3603_V_2x2.fit` | Oct. 15, 2020, 04am | 2020-10-15 | Observation | `(folder <root>)` |  
 | `<root>/passwords.csv` | |  | | not uploaded (not fits or xisf) |  
 | `<root>/GRO_J1655-40.FITS` | | | | not uploaded (no date obs found) |  
-
-</font>
 
 etc.
 
