@@ -127,12 +127,12 @@ will be put in an Observation (not a Calibration, there is no special
 keyword found), and its Dataset will be named identically
 `NGC3603/mosaic/Halpha`.
 
-| <sup>File Path | &nbsp; &nbsp; &nbsp;<sup>Local Time</sup>&nbsp; &nbsp; &nbsp; | &nbsp; &nbsp; &nbsp;<sup>Night Log Date</sup>&nbsp; &nbsp; &nbsp; | <sup>Type | <sup>Dataset Name |
+| <sup>File Path | <sup>Local Time</sup>| <sup>Night Log Date</sup> | <sup>Type | <sup>Dataset Name |
 | ---- | ---- | ---- | ---- | ------------ |
-| <sup>`<root>/NGC3603/Halpha/Mosaic1.fits`</sup> | <sup>Sep. 9, 2020, 2pm | <sup>2020-09-09 | <sup>Obs. | <sup>`NGC3603/Halpha`</sup> |  
-| <sup>`<root>/Calibration/MasterBias.xisf`</sup> | <sup>Sep. 21, 2020, 9am | <sup>2020-09-20 | <sup>Calib. | <sup>`Calibration`</sup> |  
-| <sup>`<root>/Tests/Flats/U/U1.fit`</sup> | <sup>Sep. 30, 2020, 01am | <sup>2020-09-30 | <sup>Calib. | <sup>`Tests/Flats/U`</sup> |  
-| <sup>`<root>/NGC3603_V_2x2.fit`</sup> | <sup>Oct. 15, 2020, 04am | <sup>2020-10-15 | <sup>Obs. | <sup>`(folder <root>)`</sup> |  
+| <sup>`<root>/NGC3603/Halpha/Mosaic1.fits`</sup> | <sup>`Sep. 9, 2020, 2pm` | <sup>`2020-09-09` | <sup>Obs. | <sup>`NGC3603/Halpha`</sup> |  
+| <sup>`<root>/Calibration/MasterBias.xisf`</sup> | <sup>`Sep. 21, 2020, 9am` | <sup>`2020-09-20` | <sup>Calib. | <sup>`Calibration`</sup> |  
+| <sup>`<root>/Tests/Flats/U/U1.fit`</sup> | <sup>`Sep. 30, 2020, 01am` | <sup>`2020-09-30` | <sup>Calib. | <sup>`Tests/Flats/U`</sup> |  
+| <sup>`<root>/NGC3603_V_2x2.fit`</sup> | <sup>`Oct. 15, 2020, 04am` | <sup>`2020-10-15` | <sup>Obs. | <sup>`(folder <root>)`</sup> |  
 | <sup>`<root>/passwords.csv`</sup> | | | | <sup>not uploaded (not fits or xisf) |  
 | <sup>`<root>/GRO_J1655-40.FITS`</sup> | | | | <sup>not uploaded (no date obs found) |  
 
