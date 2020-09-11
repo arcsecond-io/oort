@@ -134,7 +134,11 @@
                 <i class="fa fa-spin fa-spinner"></i>
               </div>
               <div v-if="show_tables.current">
-                <active-table v-if="current_uploads.length > 0" v-bind:uploads="current_uploads"></active-table>
+                <active-table
+                  v-if="current_uploads.length > 0"
+                  :uploads="current_uploads"
+                  :root_path="selected_folder.path"
+                ></active-table>
                 <div v-else>
                   <span class="label-centered">There are no active uploads.</span>
                 </div>
@@ -147,7 +151,11 @@
                 Failed Uploads ({{ error_uploads.length }})
               </div>
               <div v-if="show_tables.error">
-                <errors-table v-if="error_uploads.length > 0" v-bind:uploads="error_uploads"></errors-table>
+                <errors-table
+                  v-if="error_uploads.length > 0"
+                  :uploads="error_uploads"
+                  :root_path="selected_folder.path"
+                ></errors-table>
                 <div v-else>
                   <span class="label-centered">There are no failed uploads.</span>
                 </div>
@@ -160,7 +168,11 @@
                 Pending Uploads ({{ pending_uploads.length }})
               </div>
               <div v-if="show_tables.pending">
-                <pending-table v-if="pending_uploads.length > 0" v-bind:uploads="pending_uploads"></pending-table>
+                <pending-table
+                  v-if="pending_uploads.length > 0"
+                  :uploads="pending_uploads"
+                  :root_path="selected_folder.path"
+                ></pending-table>
                 <div v-else>
                   <span class="label-centered">There are no pending uploads.</span>
                 </div>
@@ -199,6 +211,7 @@
 
   {% endif %}
 
+  <script src="{$ url_for('static', filename='js/utils.js') $}"></script>
   <script src="{$ url_for('static', filename='js/active-table.js') $}"></script>
   <script src="{$ url_for('static', filename='js/pending-table.js') $}"></script>
   <script src="{$ url_for('static', filename='js/errors-table.js') $}"></script>

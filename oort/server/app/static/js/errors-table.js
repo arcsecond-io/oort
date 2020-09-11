@@ -13,8 +13,8 @@ Vue.component('errors-table', {
   <tbody>
   <tr v-for="upload in uploads">
     <td>
-      {{ upload.file_path }}
-      <div class="subtitle">Obs Date: {{ upload.file_date }}</div>
+      <span class="subtitle">&lt;root&gt;</span><span><strong>{{ getFilePath(upload, root_path) }}</strong></span>
+      <div><span class="subtitle">Obs Date:</span> {{ upload.file_date }}</div>
     </td>
     <td>
       <a v-if="upload.organisation" :href='getOrganisationURL(upload)' target="_blank">{{ upload.organisation.subdomain }}</a>
@@ -34,6 +34,10 @@ Vue.component('errors-table', {
 </table>
 `,
   props: {
+    root_path: {
+      type: String,
+      required: true
+    },
     uploads: {
       type: Array,
       required: false,
@@ -43,20 +47,6 @@ Vue.component('errors-table', {
     }
   },
   methods: {
-    getProfileURL (upload) {
-      return 'https://www.arcsecond.io/@' + upload.astronomer
-    },
-    getOrganisationURL (upload) {
-      return 'https://' + upload.organisation.subdomain + '.arcsecond.io'
-    },
-    getFormattedSize (bytes, decimals) {
-      if (bytes === 0) return '0 Bytes'
-      const k = 1024
-      const dm = decimals || 2
-      const sizes = ['Bytes', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
-      const i = Math.floor(Math.log(bytes) / Math.log(k))
-      return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i]
-    },
     sendRetryCommand (upload) {
       fetch('/retries?ids=' + upload.id.toString())
     }

@@ -20,8 +20,8 @@ Vue.component('active-table', {
   <tbody>
   <tr v-for="upload in uploads">
     <td>
-      {{ upload.file_path }}
-      <div class="subtitle">Obs Date: {{ upload.file_date }}</div>
+      <span class="subtitle">&lt;root&gt;</span><span><strong>{{ getFilePath(upload, root_path) }}</strong></span>
+      <div><span class="subtitle">Obs Date:</span> {{ upload.file_date }}</div>
     </td>
     <td>
       <a v-if="upload.organisation" :href='getOrganisationDatasetURL(upload)' target="_blank">
@@ -81,6 +81,10 @@ Vue.component('active-table', {
 </table>
 `,
   props: {
+    root_path: {
+      type: String,
+      required: true
+    },
     uploads: {
       type: Array,
       required: false,
@@ -105,34 +109,6 @@ Vue.component('active-table', {
           bar.style.width = progress.toFixed(1).toString() + '%'
         }
       })
-    }
-  },
-  methods: {
-    getOrganisationDatasetURL (upload) {
-      return 'https://' + upload.organisation.subdomain + '.arcsecond.io/data/' + upload.night_log.date
-    },
-    getDatasetURL (upload) {
-      return 'https://www.arcsecond.io/datasets/' + upload.dataset.uuid
-    },
-    getOrganisationNightLogURL (upload) {
-      return 'https://' + upload.organisation.subdomain + '.arcsecond.io/nights/' + upload.night_log.date
-    },
-    getNightLogURL (upload) {
-      return 'https://www.arcsecond.io/nightlogs/' + upload.night_log.uuid
-    },
-    getProfileURL (upload) {
-      return 'https://www.arcsecond.io/@' + upload.astronomer
-    },
-    getOrganisationURL (upload) {
-      return 'https://' + upload.organisation.subdomain + '.arcsecond.io'
-    },
-    getFormattedSize (bytes, decimals) {
-      if (bytes === 0) return '0 Bytes'
-      const k = 1024
-      const dm = decimals || 2
-      const sizes = ['Bytes', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
-      const i = Math.floor(Math.log(bytes) / Math.log(k))
-      return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i]
     }
   }
 })
