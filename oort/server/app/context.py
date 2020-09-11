@@ -40,11 +40,11 @@ class Context:
         }
 
     def get_yield_string(self):
-        pending_query = Upload.select().where(
-            (Upload.status == Status.NEW.value) |
-            (Upload.status == Status.PREPARING.value)
+        pending_query = Upload.select().where(Upload.status == Status.NEW.value)
+        current_query = Upload.select().where(
+            (Upload.status == Status.PREPARING.value) |
+            (Upload.status == Status.UPLOADING.value)
         )
-        current_query = Upload.select().where(Upload.status == Status.UPLOADING.value)
         error_query = Upload.select().where(Upload.status == Status.ERROR.value)
 
         one_day_back = datetime.datetime.now() - datetime.timedelta(days=7)
