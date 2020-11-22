@@ -1,5 +1,6 @@
 import logging
 import os
+import tempfile
 from configparser import ConfigParser
 from typing import Dict, List
 
@@ -18,7 +19,7 @@ def get_oort_config_file_path():
 
 
 def get_config_socket_file_path():
-    return os.path.join(get_directory_path(), OORT_SUPERVISOR_SOCK_FILENAME)
+    return os.path.join(tempfile.gettempdir(), OORT_SUPERVISOR_SOCK_FILENAME)
 
 
 def get_supervisord_log_file_path():

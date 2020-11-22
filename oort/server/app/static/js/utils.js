@@ -36,7 +36,8 @@ Vue.mixin({
       if (!date) {
         return ''
       }
-      const seconds = Math.ceil((new Date() - new Date(date)) / 1000)
+      // The replace is needed for Safari to successfully parse the date...
+      const seconds = Math.ceil((new Date() - new Date(date.replace(' ', 'T'))) / 1000)
       if (seconds < 60) {
         return 'moments ago'
       } else if (seconds < 3600) {
