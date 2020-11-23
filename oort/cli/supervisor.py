@@ -134,13 +134,18 @@ def stop_supervisor_daemon(debug=False):
 
     conf = ConfigParser()
     conf.read(get_supervisor_conf_file_path())
+    if 'supervisord' not in conf.sections():
+        logger.debug('No supervisord section in config file.')
+        return
+
     pidfile = conf.get('supervisord', 'pidfile').split(';')[0].strip()
-    if os.path.exists(pidfile):
-        with open(pidfile, 'r') as f:
-            pid = f.read().strip()
-            subprocess.run(["kill", "-3", pid])
-    else:
+    if not os.path.exists(pidfile):
         logger.debug('No supervisord pidfile. Probably not running.')
+        return
+
+    with open(pidfile, 'r') as f:
+        pid = f.read().strip()
+        subprocess.run(["kill", "-3", pid])
 
 
 def start_supervisor_processes(*args, debug=True):
