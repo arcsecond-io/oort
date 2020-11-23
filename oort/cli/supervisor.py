@@ -130,7 +130,7 @@ def start_supervisor_daemon(debug=False):
 
 def stop_supervisor_daemon(debug=False):
     logger = get_logger(debug=debug)
-    logger.info('Stopping supervisord...')
+    logger.info('Stopping supervisord (if any)...')
 
     conf = ConfigParser()
     conf.read(get_supervisor_conf_file_path())
@@ -145,7 +145,7 @@ def stop_supervisor_daemon(debug=False):
 
     with open(pidfile, 'r') as f:
         pid = f.read().strip()
-        subprocess.run(["kill", "-3", pid])
+        subprocess.run(["kill", "-3", pid], capture_output=True)
 
 
 def start_supervisor_processes(*args, debug=True):
@@ -161,8 +161,8 @@ def stop_supervisor_processes(*args, debug=True):
     logger = get_logger(debug=debug)
     if len(args) == 0:
         args = DEFAULT_PROCESSES
-    logger.info('Stopping Oort processes...')
-    subprocess.run(["supervisorctl", "-c", get_supervisor_conf_file_path(), "stop"] + list(args))
+    logger.info('Stopping Oort processes (if any)...')
+    subprocess.run(["supervisorctl", "-c", get_supervisor_conf_file_path(), "stop"] + list(args), capture_output=True)
     logger.debug('Stop done.')
 
 
