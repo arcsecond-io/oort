@@ -92,17 +92,6 @@ def reconfigure_supervisor(debug=False):
     # Note to self: avoid "supervisorctl reload"!
 
 
-def check_config_version(debug=False):
-    raw_current_version = subprocess.check_output(["oort", "--version"]) or ''
-    current_version = raw_current_version.decode('utf8').strip()
-    conf = ConfigParser()
-    conf.read(get_oort_config_file_path())
-    config_version = conf.get('supervisor', 'version')
-    if config_version != current_version:
-        logger = get_logger(debug=debug)
-        logger.warn(f'Config version {config_version} is obsolete (new: {current_version}). Run `oort reload`.')
-
-
 def start_supervisor_daemon(debug=False):
     logger = get_logger(debug=debug)
     logger.info('Starting supervisord...')
