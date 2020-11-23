@@ -141,6 +141,7 @@ def restart(state):
     reconfigure_supervisor(debug=state.debug)
     start_supervisor_daemon(debug=state.debug)
     # start_supervisor_processes(debug=state.debug)
+    get_supervisor_processes_status(debug=state.debug)
 
 
 @main.command(help='Open Oort web URL in default browser')
