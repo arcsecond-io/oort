@@ -19,10 +19,13 @@ from oort.cli.options import State, basic_options
 from oort.cli.supervisor import (get_supervisor_processes_status,
                                  reconfigure_supervisor,
                                  start_supervisor_daemon,
+                                 start_supervisor_processes,
                                  stop_supervisor_daemon,
-                                 stop_supervisor_processes,
-                                 update_supervisor_processes)
-from oort.shared.config import get_config_upload_folder_sections, get_config_value, get_log_file_path
+                                 stop_supervisor_processes)
+from oort.shared.config import (get_config_upload_folder_sections,
+                                get_config_value,
+                                get_log_file_path,
+                                get_supervisor_conf_file_path)
 from oort.shared.utils import tail
 from oort.uploader.main import paths_observer
 
@@ -47,20 +50,20 @@ def main(ctx, version=False, **kwargs):
     *** Oort is using the folder structure to infer the type and organisation
     of files. ***
 
-    Structure is as follow: Night Logs contain multiple Observation and/or
-    Calibrations. To each Observation and Calibration is attached a Dataset
+    Structure is as follow: Night Logs contain multiple Observations and/or
+    Calibrations. And to each Observation and Calibration is attached a Dataset
     containing the files.
 
-    For instance, if a folder contains the word "Bias" (case-insensitive), the
-    files inside it will be put inside a Calibration object, associated with
-    a Dataset whose name is that of the folder.
+    If a folder contains the word "Bias" (case-insensitive) or "Dark" or "Flat"
+    or "Calib", the files inside it will be put inside a Calibration object,
+    associated with a Dataset whose name is that of the folder.
 
-    Keywords directing files in Calibrations are "Bias", "Dark", "Flat" and
-    "Calib". All other folder names are considered as target names, and put
-    inside Observations.
+    Folders not containing these keywords are considered as target names. Their
+    files will be put inside a Dataset of that name, inside an Observation.
 
-    Complete subfolder names will be used as Dataset and Observation / Calibration
-    names.
+    To form the Dataset and Observation / Calibration names, Oort uses
+    the complete subfolder path string, making the original filesystem structure
+    "visible" in the Arcsecond webpage.
 
     For instance, FITS or XISF files found in "<root>/NGC3603/mosaic/Halpha"
     will be put in an Observation (not a Calibration, there is no special
@@ -79,12 +82,12 @@ def main(ctx, version=False, **kwargs):
         Arcsecond.io (either in your personal account, or your Organisation).
         And then upload the files.\n
     • A small web server, which allow you to monitor, control and setup what is
-        happening in the uploader (and find what happened before too).
+        happening in the uploader (and also see what happened before).
 
     The `oort` command is dedicated to start, stop and get status
-    of these two processes. Once they are up and running, only ONE thing
-    remain to be done by you: indicate which folders `oort` should watch
-    to find files to upload.
+    of these two processes. Once they are up and running, the only one thing
+    you jave to do is to indicate which folders `oort` should watch
+    to find files to upload. Use `oort watch` for that.
     """
     if version:
         click.echo(__version__)
@@ -103,38 +106,22 @@ def login(state, username, password):
     It also fetch your personal API key. This API key is a secret token
     you should take care. It will be stored locally on a file:
     ~/.arcsecond.ini
-
-    Make sure to indicate the organisation subdomain if you intend to upload for that
-    organisation.
     """
     ArcsecondAPI.login(username, password, None, debug=state.debug)
 
 
-@main.command(help='Get Oort processes status.')
+@main.command(help='Display current Oort processes status.')
 @basic_options
 @pass_state
 def status(state):
     get_supervisor_processes_status(debug=state.debug)
 
 
-@main.command(help='Update Oort processes (for when you just upgraded Oort).')
+@main.command(help='Start Oort processes.')
 @basic_options
 @pass_state
-def update(state):
-    reconfigure_supervisor(debug=state.debug)
-    update_supervisor_processes(debug=state.debug)
-    # start_supervisor_daemon(debug=state.debug)
-
-
-@main.command(help='Completely stop, reload and restart Oort daemon and processes.')
-@basic_options
-@pass_state
-def restart(state):
-    stop_supervisor_processes(debug=state.debug)
-    get_supervisor_processes_status(debug=state.debug)
-    stop_supervisor_daemon(debug=state.debug)
-    reconfigure_supervisor(debug=state.debug)
-    start_supervisor_daemon(debug=state.debug)
+def start(state):
+    start_supervisor_processes(debug=state.debug)
 
 
 @main.command(help='Stop Oort processes.')
@@ -144,7 +131,20 @@ def stop(state):
     stop_supervisor_processes(debug=state.debug)
 
 
-@main.command(help='Open web server in default browser')
+@main.command(help='Stop Oort process and deamon, reconfigure, and restart everything.')
+@basic_options
+@pass_state
+def restart(state):
+    stop_supervisor_processes(debug=state.debug)
+    get_supervisor_processes_status(debug=state.debug)
+    stop_supervisor_daemon(debug=state.debug)
+    reconfigure_supervisor(debug=state.debug)
+    start_supervisor_daemon(debug=state.debug)
+    # start_supervisor_processes(debug=state.debug)
+    get_supervisor_processes_status(debug=state.debug)
+
+
+@main.command(help='Open Oort web URL in default browser')
 @basic_options
 @pass_state
 def open(state):
@@ -153,13 +153,21 @@ def open(state):
     webbrowser.open(f"http://{host}:{port}")
 
 
-@main.command(help='Tail the Oort logs.')
+@main.command(help='Display the tail of the Oort logs.')
 @click.option('-n', required=False, nargs=1, type=click.INT, help="The number of (last) lines to show (Default: 10).")
 @basic_options
 @pass_state
 def logs(state, n):
     with builtins.open(get_log_file_path(), 'r') as f:
         print(''.join(tail(f, n or 10)))
+
+
+@main.command(help='Display the supervisord config.')
+@basic_options
+@pass_state
+def config(state):
+    with builtins.open(get_supervisor_conf_file_path(), 'r') as f:
+        print(f.read())
 
 
 @main.command()
@@ -269,21 +277,25 @@ def watch(state, folders, o=None, organisation=None, t=None, telescope=None, ast
             paths_observer.observe_folder(folder_path, identity)
 
 
-@main.command(help="Get a list of all watched folders and their options.")
+@main.command(help="Display the list of all watched folders and their options.")
 @basic_options
 @pass_state
-def list(state):
-    for index, section in enumerate(get_config_upload_folder_sections()):
-        click.echo(f" • Folder #{index + 1}:")
-        click.echo(f"   username     = {section.get('username')}")
-        click.echo(f"   api_key      = {section.get('api_key')[0:4]}•••••••")
-        if section.get('subdomain'):
-            click.echo(f"   organisation = {section.get('subdomain')} (role: {section.get('role')})")
-        else:
-            click.echo("   organisation = (no organisation)")
-        if section.get('telescope'):
-            click.echo(f"   telescope    = {section.get('telescope')}")
-        else:
-            click.echo("   telescope    = (no telescope)")
-        click.echo(f"   path         = {section.get('path')}")
-        click.echo()
+def folders(state):
+    sections = get_config_upload_folder_sections()
+    if len(sections) == 0:
+        click.echo(" • No folder watched. Use `oort watch` (or `oort watch --help` for more details).")
+    else:
+        for index, section in enumerate(sections):
+            click.echo(f" • Folder #{index + 1}:")
+            click.echo(f"   username     = {section.get('username')}")
+            click.echo(f"   api_key      = {section.get('api_key')[0:4]}•••••••")
+            if section.get('subdomain'):
+                click.echo(f"   organisation = {section.get('subdomain')} (role: {section.get('role')})")
+            else:
+                click.echo("   organisation = (no organisation)")
+            if section.get('telescope'):
+                click.echo(f"   telescope    = {section.get('telescope')}")
+            else:
+                click.echo("   telescope    = (no telescope)")
+            click.echo(f"   path         = {section.get('path')}")
+            click.echo()

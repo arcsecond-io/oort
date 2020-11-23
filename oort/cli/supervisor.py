@@ -92,17 +92,6 @@ def reconfigure_supervisor(debug=False):
     # Note to self: avoid "supervisorctl reload"!
 
 
-def check_config_version(debug=False):
-    raw_current_version = subprocess.check_output(["oort", "--version"]) or ''
-    current_version = raw_current_version.decode('utf8').strip()
-    conf = ConfigParser()
-    conf.read(get_oort_config_file_path())
-    config_version = conf.get('supervisor', 'version')
-    if config_version != current_version:
-        logger = get_logger(debug=debug)
-        logger.warn(f'Config version {config_version} is obsolete (new: {current_version}). Run `oort reload`.')
-
-
 def start_supervisor_daemon(debug=False):
     logger = get_logger(debug=debug)
     logger.info('Starting supervisord...')
@@ -141,17 +130,22 @@ def start_supervisor_daemon(debug=False):
 
 def stop_supervisor_daemon(debug=False):
     logger = get_logger(debug=debug)
-    logger.info('Stopping supervisord...')
+    logger.info('Stopping supervisord (if any)...')
 
     conf = ConfigParser()
     conf.read(get_supervisor_conf_file_path())
+    if 'supervisord' not in conf.sections():
+        logger.debug('No supervisord section in config file.')
+        return
+
     pidfile = conf.get('supervisord', 'pidfile').split(';')[0].strip()
-    if os.path.exists(pidfile):
-        with open(pidfile, 'r') as f:
-            pid = f.read().strip()
-            subprocess.run(["kill", "-3", pid])
-    else:
+    if not os.path.exists(pidfile):
         logger.debug('No supervisord pidfile. Probably not running.')
+        return
+
+    with open(pidfile, 'r') as f:
+        pid = f.read().strip()
+        subprocess.run(["kill", "-3", pid], capture_output=True)
 
 
 def start_supervisor_processes(*args, debug=True):
@@ -167,8 +161,8 @@ def stop_supervisor_processes(*args, debug=True):
     logger = get_logger(debug=debug)
     if len(args) == 0:
         args = DEFAULT_PROCESSES
-    logger.info('Stopping Oort processes...')
-    subprocess.run(["supervisorctl", "-c", get_supervisor_conf_file_path(), "stop"] + list(args))
+    logger.info('Stopping Oort processes (if any)...')
+    subprocess.run(["supervisorctl", "-c", get_supervisor_conf_file_path(), "stop"] + list(args), capture_output=True)
     logger.debug('Stop done.')
 
 
