@@ -54,7 +54,8 @@ class CalibrationType(Enum):
 
 
 class UploadPack(object):
-    """Logic to determine dataset, night_log and observations/calibrations from filepath."""
+    """Class containing the logic to determine the dataset, the night_log and
+     the observations/calibrations from filepath."""
 
     def __init__(self, root_path, file_path, identity: Identity, upload=None):
         self._logger = get_logger(debug=True)
@@ -64,6 +65,8 @@ class UploadPack(object):
         self._file_path = file_path
         self._parse()
 
+        # If the Upload DB object for this file_path doesn't exist yet in DB,
+        # then, create it.
         if upload is None:
             self._upload, created = Upload.get_or_create(file_path=self.file_path)
             if created:
