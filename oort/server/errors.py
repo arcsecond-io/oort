@@ -6,6 +6,11 @@ class NotLoggedInOortCloudError(OortCloudError):
         super().__init__('You must login first: `arcsecond login`')
 
 
+class InvalidWatchOptionsOortCloudError(OortCloudError):
+    def __init__(self):
+        super().__init__('Invalid or incomplete Watch options')
+
+
 class UnknownOrganisationOortCloudError(OortCloudError):
     def __init__(self, subdomain, error_string):
         msg = f'Invalid / unknown organisation with subdomain {subdomain}: {error_string}'
