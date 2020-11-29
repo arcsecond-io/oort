@@ -4,8 +4,10 @@ from unittest.mock import patch
 import pytest
 from arcsecond import ArcsecondAPI, ArcsecondError
 
-from oort.cli.folders import parse_upload_watch_options
+from oort.cli.folders import parse_upload_watch_options, save_upload_folders
 from oort.server.errors import InvalidOrganisationTelescopeOortCloudError, InvalidWatchOptionsOortCloudError
+from oort.shared.config import get_config_upload_folder_sections
+from oort.shared.identity import Identity
 from tests.utils import (
     TEST_LOGIN_ORG_ROLE,
     TEST_LOGIN_ORG_SUBDOMAIN,
@@ -106,7 +108,6 @@ def test_cli_folders_loggedin_astronomer_with_o_and_t_options():
         assert telescope_details == tel_details
 
 
-
 @use_test_database
 def test_cli_folders_custom_astronomer_with_o_and_t_options():
     """Case of an astronomer logged in and uploading for an organisation account.
@@ -115,11 +116,12 @@ def test_cli_folders_custom_astronomer_with_o_and_t_options():
     save_test_credentials()
 
     tel_uuid = str(uuid.uuid4())
+    o, organisation, t, telescope = None, TEST_LOGIN_ORG_SUBDOMAIN, tel_uuid, None
+    astronomer = ('custom', '1-2-3-4-5-6-7-8-9')
+
     tel_details = {'uuid': tel_uuid, 'name': 'telescope name', 'coordinates': {}}
     org_details = {'subdomain': TEST_LOGIN_ORG_SUBDOMAIN}
-
-    o, organisation, t, telescope = None, TEST_LOGIN_ORG_SUBDOMAIN, tel_uuid, None
-    astronomer = (None, None)
+    astronomer_detail = {'username': astronomer[0]}
 
     with patch.object(ArcsecondAPI, 'read') as mock_method_read:
         mock_method_read.side_effect = [(org_details, None), (tel_details, None)]
@@ -130,8 +132,26 @@ def test_cli_folders_custom_astronomer_with_o_and_t_options():
 
         # Assert
         assert mock_method_read.call_count == 2
-        assert username == TEST_LOGIN_USERNAME
-        assert api_key == ''
-        assert org_subdomain == TEST_LOGIN_ORG_SUBDOMAIN
-        assert org_role == TEST_LOGIN_ORG_ROLE
+        assert username == astronomer[0]
+        assert api_key == astronomer[1]
+        assert org_subdomain == ''
+        assert org_role == ''
         assert telescope_details == tel_details
+
+        folders = ['f1', 'f2']
+
+        save_upload_folders(folders,
+                            username,
+                            api_key,
+                            org_subdomain,
+                            org_role,
+                            telescope_details,
+                            True)
+
+        for folder_section in get_config_upload_folder_sections():
+            identity = Identity.from_folder_section(folder_section, True)
+            assert identity.username == username
+            assert identity.api_key == api_key
+            assert identity.subdomain == org_subdomain
+            assert identity.role == org_role
+            assert identity.telescope == telescope_details

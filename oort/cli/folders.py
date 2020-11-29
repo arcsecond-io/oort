@@ -53,6 +53,8 @@ def list_organisation_telescopes(org_subdomain: str, debug: bool):
         click.echo(f" • {telescope['name']} ({telescope['uuid']})")
 
 
+# The organisation is actually optional. It allows to check for a telescope
+# also in the case of a custom astronomer.
 def check_organisation_telescope(telescope_uuid: Optional[Union[str, UUID]],
                                  org_subdomain: Optional[str],
                                  api_key: Optional[str],
@@ -81,6 +83,9 @@ def check_organisation_telescope(telescope_uuid: Optional[Union[str, UUID]],
 
 def check_astronomer_credentials(username: str, api_key: str, debug: bool):
     click.echo("Checking astronomer credentials...")
+
+    if username is None or api_key is None:
+        raise InvalidWatchOptionsOortCloudError()
 
     test = os.environ.get('OORT_TESTS') == '1'
     result, error = ArcsecondAPI.me(debug=debug, test=test, api_key=api_key).read(username)
@@ -132,17 +137,10 @@ def parse_upload_watch_options(o: Optional[str] = None,
             raise InvalidWatchOptionsOortCloudError()
 
     else:
-        if org_subdomain:
-            click.echo("Error: if a custom astronomer is provided, no organisation can be used.")
-            raise InvalidWatchOptionsOortCloudError()
-
         username, api_key = astronomer
-        if username is None or api_key is None:
-            raise InvalidWatchOptionsOortCloudError()
-
         check_astronomer_credentials(username, api_key, debug)
-        # if org_subdomain:
-        #     check_astronomer_org_membership(org_subdomain, username, api_key, debug)
+        # If valid astronomer is provided, clear up organisation items
+        org_subdomain, org_role = '', ''
 
     # In every case, check for telescope details if a UUID is provided.
     if telescope_uuid:
