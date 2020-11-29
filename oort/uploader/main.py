@@ -18,19 +18,16 @@ if __name__ == "__main__":
     paths_observer.start()
 
     for folder_section in get_config_upload_folder_sections():
-        username = folder_section.get('username', '')
-        api_key = folder_section.get('api_key', '')
-        subdomain = folder_section.get('subdomain', '')
-        role = folder_section.get('role', '')
-        telescope = folder_section.get('telescope', '')
-        longitude = folder_section.get('longitude', '')
+        identity = Identity.from_folder_section(folder_section, debug)
 
+        # Prepare for initial_walk
         script_path = os.path.join(os.path.dirname(__file__), 'engine', 'initial_walk.py')
-        identity = Identity(username, api_key, subdomain, role, telescope, longitude, debug)
-
         folder_path = folder_section.get('path')
+
         # Using run instead of Popen(close_fds=True) will run the initial_walk in a synchronous way.
         subprocess.run(["python3", script_path, folder_path, identity.get_args_string()])
+
+        # Once initial_walk is done, start observing folder.
         paths_observer.observe_folder(folder_path, identity)
 
     try:

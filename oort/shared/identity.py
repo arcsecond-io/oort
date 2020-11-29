@@ -5,6 +5,16 @@ from oort.shared.config import write_config_section_values
 
 
 class Identity(object):
+    @classmethod
+    def from_folder_section(cls, folder_section, debug=False):
+        return cls(folder_section.get('username'),
+                   folder_section.get('api_key'),
+                   folder_section.get('subdomain', ''),
+                   folder_section.get('role', ''),
+                   folder_section.get('telescope', ''),
+                   folder_section.get('longitude', ''),
+                   debug)
+
     def __init__(self,
                  username: str,
                  api_key: str,
