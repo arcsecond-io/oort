@@ -172,8 +172,8 @@ def save_upload_folders(folders: list,
             telescope_uuid = telescope_details.get('uuid') or ''
             longitude = telescope_details.get('coordinates').get('longitude') or ''
 
-        identity = Identity(username=username or ArcsecondAPI.username(debug=debug),
-                            api_key=api_key or ArcsecondAPI.api_key(debug=debug),
+        identity = Identity(username=username,
+                            api_key=api_key or '',
                             subdomain=org_subdomain or '',
                             role=org_role or '',
                             telescope=telescope_uuid,
