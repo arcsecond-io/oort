@@ -28,9 +28,10 @@ if __name__ == "__main__":
         script_path = os.path.join(os.path.dirname(__file__), 'engine', 'initial_walk.py')
         identity = Identity(username, api_key, subdomain, role, telescope, longitude, debug)
 
+        folder_path = folder_section.get('path')
         # Using run instead of Popen(close_fds=True) will run the initial_walk in a synchronous way.
-        subprocess.run(["python3", script_path, folder_section.get('path'), identity.get_args_string()])
-        paths_observer.observe_folder(folder_section['path'], identity)
+        subprocess.run(["python3", script_path, folder_path, identity.get_args_string()])
+        paths_observer.observe_folder(folder_path, identity)
 
     try:
         while paths_observer.is_alive():
