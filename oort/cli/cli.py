@@ -208,7 +208,7 @@ def watch(state, folders, o=None, organisation=None, t=None, telescope=None, ast
     if org_subdomain:
         click.echo(f" • Uploading for organisation: {org_subdomain} (role: {org_role})")
     else:
-        click.echo(" • Uploading in *personal* account (use option '-o <subdomain>' for an organisation).")
+        click.echo(" • Uploading to a *personal* account (use option '-o <subdomain>' for an organisation).")
 
     if telescope_details:
         name, uuid = telescope_details.get('name'), telescope_details.get('uuid')
