@@ -1,8 +1,6 @@
 import hashlib
 from typing import Optional
 
-from arcsecond import ArcsecondAPI
-
 from oort.shared.config import write_config_section_values
 
 
@@ -57,8 +55,8 @@ class Identity(object):
     def save_with_folder(self, upload_folder_path: str):
         folder_hash = hashlib.shake_128(upload_folder_path.encode('utf8')).hexdigest(3)
         write_config_section_values(f'watch-folder-{folder_hash}',
-                                    username=ArcsecondAPI.username(),
-                                    api_key=ArcsecondAPI.api_key(debug=self.debug),
+                                    username=self._username,
+                                    api_key=self._api_key,
                                     subdomain=self.subdomain or '',
                                     role=self.role or '',
                                     path=upload_folder_path,
