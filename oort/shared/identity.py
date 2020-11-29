@@ -54,14 +54,14 @@ class Identity(object):
     def get_args_string(self):
         return f"{self.username},{self.api_key},{self.subdomain},{self.role},{self.telescope},{self.longitude},{str(self.debug)}"
 
-    def save_with_folder(self, upload_folder):
-        folder_hash = hashlib.shake_128(upload_folder.encode('utf8')).hexdigest(3)
+    def save_with_folder(self, upload_folder_path: str):
+        folder_hash = hashlib.shake_128(upload_folder_path.encode('utf8')).hexdigest(3)
         write_config_section_values(f'watch-folder-{folder_hash}',
                                     username=ArcsecondAPI.username(),
                                     api_key=ArcsecondAPI.api_key(debug=self.debug),
                                     subdomain=self.subdomain or '',
                                     role=self.role or '',
-                                    path=upload_folder,
+                                    path=upload_folder_path,
                                     telescope=self.telescope or '',
                                     longitude=str(self._longitude) if self._longitude else '',
                                     debug=str(self.debug))
