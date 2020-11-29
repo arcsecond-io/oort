@@ -177,7 +177,7 @@ def save_upload_folders(folders: list,
                             longitude=longitude,
                             debug=debug)
 
-        identity.save_with_folder(upload_folder=upload_folder)
+        identity.save_with_folder(upload_folder_path=upload_folder)
         prepared_folders.append((upload_folder, identity))
 
     return prepared_folders
