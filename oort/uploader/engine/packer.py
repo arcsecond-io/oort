@@ -74,9 +74,6 @@ class UploadPack(object):
         else:
             self._upload = upload
 
-        self._file_date = self._upload.file_date
-        self._file_size = self._upload.file_size
-
     def _parse(self):
         self._segments = [s for s in self._file_path[len(self._root_path):].split(os.sep) if s != '']
         self._filename = self._segments.pop()
@@ -102,9 +99,9 @@ class UploadPack(object):
         # What happens when rules change: dataset will change -> new upload...
 
     def _find_date_and_size(self):
-        self._file_date = self._find_date(self._file_path)
-        self._file_size = os.path.getsize(self._file_path)
-        self._upload.smart_update(file_date=self.file_date, file_size=self.file_size)
+        _file_date = self._find_date(self._file_path)
+        _file_size = os.path.getsize(self._file_path)
+        self._upload.smart_update(file_date=_file_date, file_size=_file_size)
 
     def do_upload(self):
         if not self.is_fits_or_xisf:
@@ -150,7 +147,7 @@ class UploadPack(object):
 
     @property
     def file_date(self) -> Optional[datetime]:
-        return self._file_date
+        return self._upload.file_date
 
     @property
     def file_name(self) -> str:
@@ -158,11 +155,11 @@ class UploadPack(object):
 
     @property
     def file_size(self) -> int:
-        return self._file_size
+        return self._upload.file_size
 
     @property
     def has_date_obs(self) -> bool:
-        return self._file_date is not None
+        return self._upload.file_date is not None
 
     @property
     def is_fits_or_xisf(self) -> bool:
@@ -173,8 +170,8 @@ class UploadPack(object):
     def night_log_date_string(self) -> str:
         if not self.has_date_obs:
             return ''
-        x = 0 if self._file_date.hour >= 12 else 1
-        return (self._file_date - timedelta(days=x)).date().isoformat()
+        x = 0 if self._upload.file_date.hour >= 12 else 1
+        return (self._upload.file_date - timedelta(days=x)).date().isoformat()
 
     @property
     def resource_type(self) -> str:
