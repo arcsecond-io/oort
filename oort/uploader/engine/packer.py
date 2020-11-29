@@ -14,8 +14,15 @@ from astropy.utils.exceptions import AstropyWarning
 from oort.shared.config import get_logger
 from oort.shared.constants import OORT_FITS_EXTENSIONS
 from oort.shared.identity import Identity
-from oort.shared.models import (Calibration, FINISHED_SUBSTATUSES, Observation, PREPARATION_DONE_SUBSTATUSES, Status,
-                                Substatus, Upload)
+from oort.shared.models import (
+    Calibration,
+    FINISHED_SUBSTATUSES,
+    Observation,
+    PREPARATION_DONE_SUBSTATUSES,
+    Status,
+    Substatus,
+    Upload
+)
 from . import preparator
 from . import uploader
 
