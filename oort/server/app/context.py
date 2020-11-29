@@ -20,6 +20,9 @@ class BoostedJSONEncoder(JSONEncoder):
 
 
 class Context:
+    """Context class used only once, and associated with the currently
+    logged in user, not a potential custom astronomer."""
+
     def __init__(self, config):
         self.debug = config['debug']
         self.start_time = datetime.datetime.utcnow()
