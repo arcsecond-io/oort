@@ -8,7 +8,7 @@ from peewee import DoesNotExist
 
 from oort.server.errors import (InvalidAstronomerOortCloudError, InvalidOrgMembershipOortCloudError,
                                 InvalidOrganisationTelescopeOortCloudError,
-                                UnknownOrganisationOortCloudError)
+                                InvalidWatchOptionsOortCloudError, UnknownOrganisationOortCloudError)
 from oort.shared.identity import Identity
 from oort.shared.models import Organisation
 from oort.shared.utils import find_first_in_list
@@ -103,6 +103,49 @@ def check_astronomer_org_membership(org_subdomain: str, username: str, api_key: 
     membership = find_first_in_list(result, username=username)
     if membership.get('role') not in ['member', 'admin', 'superadmin']:
         raise InvalidOrgMembershipOortCloudError(org_subdomain)
+
+
+def parse_upload_watch_options(o: Optional[str] = None,
+                               organisation: Optional[str] = None,
+                               t: Optional[str] = None,
+                               telescope: Optional[str] = None,
+                               astronomer: Union[Optional[str], Optional[str]] = (None, None),
+                               debug: Optional[bool] = False):
+    telescope_uuid = t or telescope or ''
+    telescope_details = None
+
+    org_subdomain = o or organisation or ''
+    org_role = ''
+    username = ''
+    api_key = ''
+
+    # No custom astronomer. We MAY use an organisation. Let's check.
+    if astronomer == (None, None):
+        username = check_username(debug)
+
+        if org_subdomain:
+            check_organisation(org_subdomain, debug)
+            org_role = check_organisation_local_membership(org_subdomain, debug)
+
+        if org_subdomain and not telescope_uuid:
+            list_organisation_telescopes(org_subdomain, debug)
+            raise InvalidWatchOptionsOortCloudError()
+
+    else:
+        if org_subdomain:
+            click.echo("Error: if a custom astronomer is provided, no organisation can be used.")
+            raise InvalidWatchOptionsOortCloudError()
+
+        username, api_key = astronomer
+        check_astronomer_credentials(username, api_key, debug)
+        if org_subdomain:
+            check_astronomer_org_membership(org_subdomain, username, api_key, debug)
+
+    # In every case, check for telescope details if a UUID is provided.
+    if telescope_uuid:
+        telescope_details = check_organisation_telescope(telescope_uuid, org_subdomain, api_key, debug)
+
+    return username, api_key, org_subdomain, org_role, telescope_details
 
 
 def save_upload_folders(folders: list,
