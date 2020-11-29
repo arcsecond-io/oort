@@ -2,10 +2,10 @@ import uuid
 from unittest.mock import patch
 
 import pytest
-from arcsecond import ArcsecondAPI
+from arcsecond import ArcsecondAPI, ArcsecondError
 
 from oort.cli.folders import parse_upload_watch_options
-from oort.server.errors import InvalidWatchOptionsOortCloudError
+from oort.server.errors import InvalidOrganisationTelescopeOortCloudError, InvalidWatchOptionsOortCloudError
 from tests.utils import (
     TEST_LOGIN_ORG_ROLE,
     TEST_LOGIN_ORG_SUBDOMAIN,
@@ -17,6 +17,9 @@ from tests.utils import (
 
 @use_test_database
 def test_cli_folders_loggedin_astronomer_with_o_option_no_telescope():
+    """Case of an astronomer logged in and uploading for an organisation account.
+    A telescope must be provided."""
+
     # Prepare
     save_test_credentials()
     org_details = {'subdomain': TEST_LOGIN_ORG_SUBDOMAIN}
@@ -36,22 +39,97 @@ def test_cli_folders_loggedin_astronomer_with_o_option_no_telescope():
 
 
 @use_test_database
-def test_cli_folders_loggedin_astronomer_with_o_and_t_options():
+def test_cli_folders_loggedin_astronomer_with_o_option_with_invalid_telescope():
+    """Case of an astronomer logged in and uploading for an organisation account.
+    A valid telescope must be provided."""
+
     # Prepare
     save_test_credentials()
 
     tel_uuid = str(uuid.uuid4())
-    tel_details = {'uuid': tel_uuid, 'name': 'telescope name', 'coordinates': {}}
+    org_details = {'subdomain': TEST_LOGIN_ORG_SUBDOMAIN}
 
-    o, organisation, t, telescope = None, None, tel_uuid, None
+    o, organisation, t, telescope = TEST_LOGIN_ORG_SUBDOMAIN, None, tel_uuid, None
     astronomer = (None, None)
 
-    with patch.object(ArcsecondAPI, 'read', return_value=(tel_details, None)) as mock_method_read:
+    with patch.object(ArcsecondAPI, 'organisations', return_value=ArcsecondAPI()) as mock_method_api_org, \
+            patch.object(ArcsecondAPI, 'telescopes', return_value=ArcsecondAPI()) as mock_method_api_tel, \
+            patch.object(ArcsecondAPI, 'read') as mock_method_read:
+        mock_method_read.side_effect = [(org_details, None), (None, ArcsecondError())]
+
+        # Perform
+        with pytest.raises(InvalidOrganisationTelescopeOortCloudError):
+            username, api_key, org_subdomain, org_role, telescope_details = \
+                parse_upload_watch_options(o, organisation, t, telescope, astronomer, True)
+
+        assert mock_method_api_org.call_count == 1
+        assert mock_method_api_org.call_args_list[0].kwargs == {'debug': True, 'test': True}
+
+        # Important check that telescopes list is fetched using the organisation keyword, that
+        # will actually provide the list of telescopes for that organisation only.
+        assert mock_method_api_tel.call_count == 1
+        assert mock_method_api_tel.call_args_list[0].kwargs == \
+               {'debug': True, 'test': True, 'organisation': TEST_LOGIN_ORG_SUBDOMAIN}
+
+        assert mock_method_read.call_count == 2
+        assert mock_method_read.call_args_list[0].kwargs == {}
+        assert mock_method_read.call_args_list[1].kwargs == {}
+
+
+@use_test_database
+def test_cli_folders_loggedin_astronomer_with_o_and_t_options():
+    """Case of an astronomer logged in and uploading for an organisation account.
+    A valid telescope is provided."""
+
+    save_test_credentials()
+
+    tel_uuid = str(uuid.uuid4())
+    tel_details = {'uuid': tel_uuid, 'name': 'telescope name', 'coordinates': {}}
+    org_details = {'subdomain': TEST_LOGIN_ORG_SUBDOMAIN}
+
+    o, organisation, t, telescope = None, TEST_LOGIN_ORG_SUBDOMAIN, tel_uuid, None
+    astronomer = (None, None)
+
+    with patch.object(ArcsecondAPI, 'read') as mock_method_read:
+        mock_method_read.side_effect = [(org_details, None), (tel_details, None)]
+
         # Perform
         username, api_key, org_subdomain, org_role, telescope_details = \
             parse_upload_watch_options(o, organisation, t, telescope, astronomer, True)
 
         # Assert
+        assert mock_method_read.call_count == 2
+        assert username == TEST_LOGIN_USERNAME
+        assert api_key == ''
+        assert org_subdomain == TEST_LOGIN_ORG_SUBDOMAIN
+        assert org_role == TEST_LOGIN_ORG_ROLE
+        assert telescope_details == tel_details
+
+
+
+@use_test_database
+def test_cli_folders_custom_astronomer_with_o_and_t_options():
+    """Case of an astronomer logged in and uploading for an organisation account.
+    A valid telescope is provided."""
+
+    save_test_credentials()
+
+    tel_uuid = str(uuid.uuid4())
+    tel_details = {'uuid': tel_uuid, 'name': 'telescope name', 'coordinates': {}}
+    org_details = {'subdomain': TEST_LOGIN_ORG_SUBDOMAIN}
+
+    o, organisation, t, telescope = None, TEST_LOGIN_ORG_SUBDOMAIN, tel_uuid, None
+    astronomer = (None, None)
+
+    with patch.object(ArcsecondAPI, 'read') as mock_method_read:
+        mock_method_read.side_effect = [(org_details, None), (tel_details, None)]
+
+        # Perform
+        username, api_key, org_subdomain, org_role, telescope_details = \
+            parse_upload_watch_options(o, organisation, t, telescope, astronomer, True)
+
+        # Assert
+        assert mock_method_read.call_count == 2
         assert username == TEST_LOGIN_USERNAME
         assert api_key == ''
         assert org_subdomain == TEST_LOGIN_ORG_SUBDOMAIN

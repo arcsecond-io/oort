@@ -20,7 +20,8 @@ TEST_API_KEY = '935e2b9e24c44581b4ef5f4c8e53213e'
 def save_test_credentials(username=TEST_LOGIN_USERNAME, subdomain=TEST_LOGIN_ORG_SUBDOMAIN):
     clear_test_credentials()
     config_file_save_api_key(TEST_API_KEY, username, section='test')
-    config_file_save_organisation_membership(subdomain, TEST_LOGIN_ORG_ROLE, section='test')
+    if subdomain == TEST_LOGIN_ORG_SUBDOMAIN:
+        config_file_save_organisation_membership(subdomain, TEST_LOGIN_ORG_ROLE, section='test')
 
 
 def clear_test_credentials():
