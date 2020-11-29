@@ -141,8 +141,8 @@ def parse_upload_watch_options(o: Optional[str] = None,
             raise InvalidWatchOptionsOortCloudError()
 
         check_astronomer_credentials(username, api_key, debug)
-        if org_subdomain:
-            check_astronomer_org_membership(org_subdomain, username, api_key, debug)
+        # if org_subdomain:
+        #     check_astronomer_org_membership(org_subdomain, username, api_key, debug)
 
     # In every case, check for telescope details if a UUID is provided.
     if telescope_uuid:
