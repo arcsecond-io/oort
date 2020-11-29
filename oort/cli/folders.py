@@ -137,6 +137,9 @@ def parse_upload_watch_options(o: Optional[str] = None,
             raise InvalidWatchOptionsOortCloudError()
 
         username, api_key = astronomer
+        if username is None or api_key is None:
+            raise InvalidWatchOptionsOortCloudError()
+
         check_astronomer_credentials(username, api_key, debug)
         if org_subdomain:
             check_astronomer_org_membership(org_subdomain, username, api_key, debug)
