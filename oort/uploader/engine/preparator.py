@@ -5,17 +5,8 @@ from arcsecond import ArcsecondAPI
 from peewee import DoesNotExist
 
 from oort.shared.config import get_logger
-from oort.shared.models import (
-    Model,
-    Dataset,
-    NightLog,
-    Organisation,
-    Status,
-    Substatus,
-    Telescope,
-    Observation,
-    Calibration
-)
+from oort.shared.models import (Calibration, Dataset, Model, NightLog, Observation, Organisation, Status, Substatus,
+                                Telescope)
 from . import errors
 
 
