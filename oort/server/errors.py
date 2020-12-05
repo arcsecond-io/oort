@@ -24,8 +24,10 @@ class UnknownTelescopeOortCloudError(OortCloudError):
 
 
 class InvalidAstronomerOortCloudError(OortCloudError):
-    def __init__(self, username, api_key):
-        msg = f'Invalid / unknown astronomer with username "{username}" (for the provided api_key "{api_key}"). '
+    def __init__(self, username, api_key=None):
+        msg = f'Invalid / unknown astronomer with username "{username}"'
+        if api_key:
+            msg += f' (for the provided api_key "{api_key}")'
         super().__init__(msg)
 
 
