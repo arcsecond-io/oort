@@ -54,8 +54,10 @@ def test_cli_folders_loggedin_astronomer_with_o_option_with_invalid_telescope():
     o, organisation, t, telescope = TEST_LOGIN_ORG_SUBDOMAIN, None, tel_uuid, None
     astronomer = (None, None)
 
-    with patch.object(ArcsecondAPI, 'organisations', return_value=ArcsecondAPI()) as mock_method_api_org, \
-            patch.object(ArcsecondAPI, 'telescopes', return_value=ArcsecondAPI()) as mock_method_api_tel, \
+    with patch.object(ArcsecondAPI, 'organisations',
+                      return_value=ArcsecondAPI(debug=True, test=True)) as mock_method_api_org, \
+            patch.object(ArcsecondAPI, 'telescopes',
+                         return_value=ArcsecondAPI(debug=True, test=True)) as mock_method_api_tel, \
             patch.object(ArcsecondAPI, 'read') as mock_method_read:
         mock_method_read.side_effect = [(org_details, None), (None, ArcsecondError())]
 
@@ -109,7 +111,7 @@ def test_cli_folders_loggedin_astronomer_with_o_and_t_options():
 
 
 @use_test_database
-def test_cli_folders_custom_astronomer_with_o_and_t_options():
+def test_cli_folders_custom_astronomer_with_o_and_t_options_and_valid_upload_key():
     """Case of an astronomer logged in and uploading for an organisation account.
     A valid telescope is provided."""
 
@@ -119,23 +121,26 @@ def test_cli_folders_custom_astronomer_with_o_and_t_options():
     o, organisation, t, telescope = None, TEST_LOGIN_ORG_SUBDOMAIN, tel_uuid, None
     astronomer = ('custom', '1-2-3-4-5-6-7-8-9')
 
-    tel_details = {'uuid': tel_uuid, 'name': 'telescope name', 'coordinates': {}}
     org_details = {'subdomain': TEST_LOGIN_ORG_SUBDOMAIN}
-    astronomer_detail = {'username': astronomer[0]}
+    tel_details = {'uuid': tel_uuid, 'name': 'telescope name', 'coordinates': {}}
+    astronomer_details = {'username': astronomer[0]}
+    upload_keys = [{'username': astronomer[0], 'key': astronomer[1]}]
 
-    with patch.object(ArcsecondAPI, 'read') as mock_method_read:
-        mock_method_read.side_effect = [(org_details, None), (tel_details, None)]
+    with patch.object(ArcsecondAPI, 'read') as mock_method_read, \
+            patch.object(ArcsecondAPI, 'list', return_value=(upload_keys, None)) as mock_method_list:
+        mock_method_read.side_effect = [(org_details, None), (tel_details, None), (astronomer_details, None)]
 
         # Perform
         username, api_key, org_subdomain, org_role, telescope_details = \
             parse_upload_watch_options(o, organisation, t, telescope, astronomer, True)
 
         # Assert
-        assert mock_method_read.call_count == 2
+        assert mock_method_list.call_count == 1
+        assert mock_method_read.call_count == 3
         assert username == astronomer[0]
         assert api_key == astronomer[1]
-        assert org_subdomain == ''
-        assert org_role == ''
+        assert org_subdomain == TEST_LOGIN_ORG_SUBDOMAIN
+        assert org_role == TEST_LOGIN_ORG_ROLE
         assert telescope_details == tel_details
 
         folders = ['f1', 'f2']
