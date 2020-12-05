@@ -7,8 +7,8 @@ class NotLoggedInOortCloudError(OortCloudError):
 
 
 class InvalidWatchOptionsOortCloudError(OortCloudError):
-    def __init__(self):
-        super().__init__('Invalid or incomplete Watch options')
+    def __init__(self, msg=''):
+        super().__init__(f'Invalid or incomplete Watch options: {msg}')
 
 
 class UnknownOrganisationOortCloudError(OortCloudError):
