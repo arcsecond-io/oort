@@ -4,29 +4,38 @@ from unittest.mock import patch
 import pytest
 from arcsecond import ArcsecondAPI, ArcsecondError
 
-from oort.cli.folders import parse_upload_watch_options, save_upload_folders
-from oort.server.errors import InvalidAstronomerOortCloudError, InvalidOrganisationTelescopeOortCloudError
-from oort.shared.config import get_config_upload_folder_sections
-from oort.shared.identity import Identity
+from oort.cli.folders import parse_upload_watch_options
+from oort.server.errors import (
+    InvalidOrgMembershipOortCloudError,
+    InvalidOrganisationTelescopeOortCloudError,
+    InvalidWatchOptionsOortCloudError
+)
 from tests.utils import (
+    TEST_LOGIN_ORG_ROLE,
+    TEST_LOGIN_ORG_SUBDOMAIN,
     TEST_LOGIN_USERNAME,
     save_test_credentials,
     use_test_database
 )
 
+TELESCOPE_UUID = str(uuid.uuid4())
+TELESCOPE_DETAILS = {'uuid': TELESCOPE_UUID, 'name': 'telescope name', 'coordinates': {}}
+ORG_DETAILS = {'subdomain': TEST_LOGIN_ORG_SUBDOMAIN}
+ORG_MEMBERSHIPS = {TEST_LOGIN_ORG_SUBDOMAIN: TEST_LOGIN_ORG_ROLE}
+CUSTOM_ASTRONOMER = ('custom', '1-2-3-4-5-6-7-8-9')
+CUSTOM_ASTRONOMER_DETAILS = {'username': CUSTOM_ASTRONOMER[0], 'key': CUSTOM_ASTRONOMER[1]}
+
 
 @use_test_database
-def test_cli_folders_loggedin_astronomer_no_telescope():
+def test_cli_folders_no_options_org_nor_telescope():
     """Case of a single astronomer uploading for himself in a personal account,
     and not related to any telescope."""
 
-    # Prepare
+    # Prepare: Saving credentials for a single astronomer
     save_test_credentials(subdomain=None)
 
-    o, organisation, t, telescope = None, None, None, None
-    astronomer = (None, None)
-
-    # Perform
+    # Perform: Empty arguments everywhere
+    o, organisation, t, telescope, astronomer = None, None, None, None, (None, None)
     username, api_key, org_subdomain, org_role, telescope_details = \
         parse_upload_watch_options(o, organisation, t, telescope, astronomer, True)
 
@@ -39,21 +48,53 @@ def test_cli_folders_loggedin_astronomer_no_telescope():
 
 
 @use_test_database
-def test_cli_folders_loggedin_astronomer_with_t_option():
+def test_cli_folders_with_options_org_but_no_telescope():
+    """Case of a single astronomer uploading for himself in a personal account,
+    and not related to any telescope."""
+
+    # Prepare: Saving credentials for a single astronomer
+    save_test_credentials(subdomain=None)
+
+    with patch.object(ArcsecondAPI, 'read', return_value=(ORG_DETAILS, None)) as mock_method_read:
+        with pytest.raises(InvalidOrgMembershipOortCloudError):
+            # Perform: Empty arguments everywhere except organisation
+            o, organisation, t, telescope, astronomer = TEST_LOGIN_ORG_SUBDOMAIN, None, None, None, (None, None)
+            username, api_key, org_subdomain, org_role, telescope_details = \
+                parse_upload_watch_options(o, organisation, t, telescope, astronomer, True)
+
+        assert mock_method_read.call_count == 1
+
+
+@use_test_database
+def test_cli_folders_with_options_org_and_telescope():
+    """Case of a single astronomer uploading for himself in a personal account,
+    and not related to any telescope."""
+
+    # Prepare: Saving credentials for a single astronomer
+    save_test_credentials(subdomain=None)
+
+    with patch.object(ArcsecondAPI, 'read', return_value=(ORG_DETAILS, None)) as mock_method_read:
+        with pytest.raises(InvalidOrgMembershipOortCloudError):
+            # Perform: Empty arguments everywhere except organisation
+            o, organisation, t, telescope, astronomer = TEST_LOGIN_ORG_SUBDOMAIN, None, TELESCOPE_UUID, None, (
+                None, None)
+            username, api_key, org_subdomain, org_role, telescope_details = \
+                parse_upload_watch_options(o, organisation, t, telescope, astronomer, True)
+
+        assert mock_method_read.call_count == 1
+
+
+@use_test_database
+def test_cli_folders_with_options_telescope_as_t():
     """Case of a single astronomer uploading for himself in a personal account,
     but associated with a known telescope using the t option."""
 
     # Prepare
     save_test_credentials(subdomain=None)
 
-    tel_uuid = str(uuid.uuid4())
-    tel_details = {'uuid': tel_uuid, 'name': 'telescope name', 'coordinates': {}}
-
-    o, organisation, t, telescope = None, None, tel_uuid, None
-    astronomer = (None, None)
-
-    with patch.object(ArcsecondAPI, 'read', return_value=(tel_details, None)) as mock_method_read:
+    with patch.object(ArcsecondAPI, 'read', return_value=(TELESCOPE_DETAILS, None)) as mock_method_read:
         # Perform
+        o, organisation, t, telescope, astronomer = None, None, TELESCOPE_UUID, None, (None, None)
         username, api_key, org_subdomain, org_role, telescope_details = \
             parse_upload_watch_options(o, organisation, t, telescope, astronomer, True)
 
@@ -63,26 +104,19 @@ def test_cli_folders_loggedin_astronomer_with_t_option():
         assert api_key == ''
         assert org_subdomain == ''
         assert org_role == ''
-        assert telescope_details == tel_details
+        assert telescope_details == TELESCOPE_DETAILS
 
 
 @use_test_database
-def test_cli_folders_loggedin_astronomer_with_telescope_option():
+def test_cli_folders_with_options_telescope_as_telescope():
     """Case of a single astronomer uploading for himself in a personal account,
     but associated with a known telescope using the telescope option
     (instead of simply the t one)."""
 
-    # Prepare
     save_test_credentials(subdomain=None)
 
-    tel_uuid = str(uuid.uuid4())
-    tel_details = {'uuid': tel_uuid, 'name': 'telescope name', 'coordinates': {}}
-
-    o, organisation, t, telescope = None, None, None, tel_uuid
-    astronomer = (None, None)
-
-    with patch.object(ArcsecondAPI, 'read', return_value=(tel_details, None)) as mock_method_read:
-        # Perform
+    with patch.object(ArcsecondAPI, 'read', return_value=(TELESCOPE_DETAILS, None)) as mock_method_read:
+        o, organisation, t, telescope, astronomer = None, None, None, TELESCOPE_UUID, (None, None)
         username, api_key, org_subdomain, org_role, telescope_details = \
             parse_upload_watch_options(o, organisation, t, telescope, astronomer, True)
 
@@ -92,105 +126,67 @@ def test_cli_folders_loggedin_astronomer_with_telescope_option():
         assert api_key == ''
         assert org_subdomain == ''
         assert org_role == ''
-        assert telescope_details == tel_details
+        assert telescope_details == TELESCOPE_DETAILS
 
 
 @use_test_database
-def test_cli_folders_loggedin_astronomer_with_telescope_option_but_invalid_telescope():
+def test_cli_folders_with_options_telescope_but_invalid_telescope():
     """Case of a single astronomer uploading for himself in a personal account,
     but associated with a known telescope using the telescope option
     but the telescope is unknown."""
 
-    # Prepare
     save_test_credentials(subdomain=None)
-
-    tel_uuid = str(uuid.uuid4())
-
-    o, organisation, t, telescope = None, None, None, tel_uuid
-    astronomer = (None, None)
 
     with patch.object(ArcsecondAPI, 'read', return_value=(None, ArcsecondError())) as mock_method_read:
-        # Perform
         with pytest.raises(InvalidOrganisationTelescopeOortCloudError):
+            # The value of TELESCOPE_UUID has no importance, as method is patched.
+            o, organisation, t, telescope, astronomer = None, None, None, TELESCOPE_UUID, (None, None)
             username, api_key, org_subdomain, org_role, telescope_details = \
                 parse_upload_watch_options(o, organisation, t, telescope, astronomer, True)
 
-        # Assert
         assert mock_method_read.call_count == 1
 
 
 @use_test_database
-def test_cli_folders_custom_invalid_astronomer_no_telescope():
-    """Case of a single astronomer uploading for a custom astronomer,
-    and not related to any telescope."""
-
-    # Prepare
+def test_cli_folders_with_options_custom_astronomer_but_no_org_nor_telescope():
     save_test_credentials(subdomain=None)
 
-    o, organisation, t, telescope = None, None, None, None
-    astronomer = ('custom', '1-2-3-4-5-6-7-8-9')
-
-    with patch.object(ArcsecondAPI, 'me', return_value=ArcsecondAPI()) as mock_method_me, \
-            patch.object(ArcsecondAPI, 'read', return_value=(None, ArcsecondError())) as mock_method_read:
-        # Perform
-        with pytest.raises(InvalidAstronomerOortCloudError):
+    with patch.object(ArcsecondAPI, 'me', return_value=ArcsecondAPI(test=True)) as mock_method_me, \
+            patch.object(ArcsecondAPI, 'read', return_value=(CUSTOM_ASTRONOMER_DETAILS, None)) as mock_method_read:
+        with pytest.raises(InvalidWatchOptionsOortCloudError):
+            o, organisation, t, telescope, astronomer = None, None, None, None, CUSTOM_ASTRONOMER
             username, api_key, org_subdomain, org_role, telescope_details = \
                 parse_upload_watch_options(o, organisation, t, telescope, astronomer, True)
 
-        # Assert
         assert mock_method_me.call_count == 1
-        assert mock_method_me.call_args_list[0].kwargs == {'api_key': astronomer[1], 'debug': True, 'test': True}
-
         assert mock_method_read.call_count == 1
-        assert mock_method_read.call_args_list[0].kwargs == {}
-        assert mock_method_read.call_args_list[0].args == (astronomer[0],)
 
 
 @use_test_database
-def test_cli_folders_custom_valid_astronomer_no_telescope():
-    """Case of a single astronomer uploading for a custom astronomer,
-    and not related to any telescope."""
-
-    # Prepare
+def test_cli_folders_with_options_custom_astronomer_with_org_but_no_telescope():
     save_test_credentials(subdomain=None)
 
-    o, organisation, t, telescope = None, None, None, None
-    astronomer = ('custom', '1-2-3-4-5-6-7-8-9')
-    astronomer_detail = {'username': astronomer[0]}
+    with patch.object(ArcsecondAPI, 'me', return_value=ArcsecondAPI(test=True)) as mock_method_me, \
+            patch.object(ArcsecondAPI, 'read', return_value=(CUSTOM_ASTRONOMER_DETAILS, None)) as mock_method_read:
+        with pytest.raises(InvalidOrgMembershipOortCloudError):
+            o, organisation, t, telescope, astronomer = TEST_LOGIN_ORG_SUBDOMAIN, None, None, None, CUSTOM_ASTRONOMER
+            username, api_key, org_subdomain, org_role, telescope_details = \
+                parse_upload_watch_options(o, organisation, t, telescope, astronomer, True)
 
-    with patch.object(ArcsecondAPI, 'me', return_value=ArcsecondAPI()) as mock_method_me, \
-            patch.object(ArcsecondAPI, 'read', return_value=(astronomer_detail, None)) as mock_method_read:
-        # Perform
-        username, api_key, org_subdomain, org_role, telescope_details = \
-            parse_upload_watch_options(o, organisation, t, telescope, astronomer, True)
-
-        # Assert
-        assert mock_method_me.call_count == 1
-        assert mock_method_me.call_args_list[0].kwargs == {'api_key': astronomer[1], 'debug': True, 'test': True}
+        assert mock_method_me.call_count == 0
         assert mock_method_read.call_count == 1
-        assert mock_method_read.call_args_list[0].kwargs == {}
-        assert mock_method_read.call_args_list[0].args == (astronomer[0],)
 
-        assert username == astronomer[0]
-        assert api_key == astronomer[1]
-        assert org_subdomain == ''
-        assert org_role == ''
-        assert telescope_details is None
 
-        folders = ['f1', 'f2']
+@use_test_database
+def test_cli_folders_with_options_custom_astronomer_with_org_and_telescope():
+    save_test_credentials(subdomain=None)
 
-        save_upload_folders(folders,
-                            username,
-                            api_key,
-                            org_subdomain,
-                            org_role,
-                            telescope_details,
-                            True)
+    with patch.object(ArcsecondAPI, 'me', return_value=ArcsecondAPI(test=True)) as mock_method_me, \
+            patch.object(ArcsecondAPI, 'read', return_value=(CUSTOM_ASTRONOMER_DETAILS, None)) as mock_method_read:
+        with pytest.raises(InvalidOrgMembershipOortCloudError):
+            o, organisation, t, telescope, astronomer = TEST_LOGIN_ORG_SUBDOMAIN, None, TELESCOPE_UUID, None, CUSTOM_ASTRONOMER
+            username, api_key, org_subdomain, org_role, telescope_details = \
+                parse_upload_watch_options(o, organisation, t, telescope, astronomer, True)
 
-        for folder_section in get_config_upload_folder_sections():
-            identity = Identity.from_folder_section(folder_section, True)
-            assert identity.username == username
-            assert identity.api_key == api_key
-            assert identity.subdomain == org_subdomain
-            assert identity.role == org_role
-            assert identity.telescope == telescope_details
+        assert mock_method_me.call_count == 0
+        assert mock_method_read.call_count == 1
