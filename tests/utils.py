@@ -12,6 +12,7 @@ from oort.shared.models import BaseModel
 
 TEST_LOGIN_USERNAME = 'robot1'
 TEST_LOGIN_PASSWORD = 'robotpass'
+
 TEST_LOGIN_ORG_SUBDOMAIN = 'robotland'
 TEST_LOGIN_ORG_ROLE = 'admin'
 TEST_LOGIN_API_KEY = '935e2b9e24c44581b4ef5f4c8e53213e'
