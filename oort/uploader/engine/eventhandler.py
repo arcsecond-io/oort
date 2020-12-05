@@ -11,13 +11,13 @@ from . import packer
 
 
 class DataFileHandler(FileSystemEventHandler):
-    def __init__(self, path: str, identity: Identity, debug=False):
+    def __init__(self, path: str, identity: Identity, tick=5.0, debug=False):
         super().__init__()
         self._root_path = path
         self._identity = identity
         self._debug = debug
         self._logger = get_logger(debug=self._debug)
-        threading.Timer(5.0, self._restart_uploads).start()
+        threading.Timer(tick, self._restart_uploads).start()
 
     @property
     def debug(self):
