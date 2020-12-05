@@ -41,3 +41,9 @@ class InvalidOrganisationTelescopeOortCloudError(OortCloudError):
     def __init__(self, telescope_uuid):
         msg = f'Invalid / unknown telescope with UUID {telescope_uuid}.'
         super().__init__(msg)
+
+
+class InvalidOrganisationUploadKeyOortCloudError(OortCloudError):
+    def __init__(self, subdomain, username, api_key):
+        msg = f'Invalid / unknown upload key {api_key} for @{username} and {subdomain} organisation.'
+        super().__init__(msg)
