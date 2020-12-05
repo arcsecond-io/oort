@@ -33,12 +33,12 @@ setup(
     zip_safe=False,
     platforms='any',
     install_requires=[
-        'arcsecond>=1.2.1',
         'astropy',
         'flask',
         'peewee',
         'watchdog',
         'supervisor',
+        'arcsecond>=1.2.2',
         'dateparser',
         'python-dotenv'
     ],
