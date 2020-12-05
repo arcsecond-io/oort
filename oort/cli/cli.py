@@ -7,14 +7,7 @@ import click
 from arcsecond import ArcsecondAPI
 
 from oort import __version__
-from oort.cli.folders import (check_astronomer_credentials,
-                              check_astronomer_org_membership,
-                              check_organisation,
-                              check_organisation_local_membership,
-                              check_organisation_telescope,
-                              check_username,
-                              list_organisation_telescopes,
-                              save_upload_folders)
+from oort.cli.folders import (parse_upload_watch_options, save_upload_folders)
 from oort.cli.options import State, basic_options
 from oort.cli.supervisor import (get_supervisor_processes_status,
                                  reconfigure_supervisor,
@@ -22,6 +15,7 @@ from oort.cli.supervisor import (get_supervisor_processes_status,
                                  start_supervisor_processes,
                                  stop_supervisor_daemon,
                                  stop_supervisor_processes)
+from oort.server.errors import InvalidWatchOptionsOortCloudError
 from oort.shared.config import (get_config_upload_folder_sections,
                                 get_config_value,
                                 get_log_file_path,
@@ -186,10 +180,10 @@ def config(state):
               nargs=2,
               type=(str, str),
               default=[None, None],
-              help="A customized astronomer to upload on behalf. You MUST provide")
+              help="A astronomer on behalf of whom you upload. You MUST provide its username and api key.")
 @basic_options
 @pass_state
-def watch(state, folders, o=None, organisation=None, t=None, telescope=None, astronomer=None):
+def watch(state, folders, o=None, organisation=None, t=None, telescope=None, astronomer=(None, None)):
     """
     Indicate a folder (or multiple folders) that Oort should watch.
 
@@ -203,46 +197,18 @@ def watch(state, folders, o=None, organisation=None, t=None, telescope=None, ast
     every new file created in the folder tree will trigger a sync + upload
     process.
     """
-    telescope_uuid = t or telescope or ''
-    telescope_details = None
-
-    org_subdomain = o or organisation or ''
-    org_role = ''
-    username = ''
-    api_key = ''
-
-    # No custom astronomer. We MAY use an organisation. Let's check.
-    if astronomer == (None, None):
-        username = check_username(state.debug)
-
-        if org_subdomain:
-            check_organisation(org_subdomain, state.debug)
-            org_role = check_organisation_local_membership(org_subdomain, state.debug)
-
-        if org_subdomain and not telescope_uuid:
-            list_organisation_telescopes(org_subdomain, state.debug)
-            return
-
-    else:
-        if org_subdomain:
-            click.echo("Error: if a custom astronomer is provided, no organisation can be used.")
-            return
-
-        username, api_key = astronomer
-        check_astronomer_credentials(username, api_key, state.debug)
-        if org_subdomain:
-            check_astronomer_org_membership(org_subdomain, username, api_key, state.debug)
-
-    # In every case, check for telescope details if a UUID is provided.
-    if telescope_uuid:
-        telescope_details = check_organisation_telescope(telescope_uuid, org_subdomain, api_key, state.debug)
+    try:
+        username, api_key, org_subdomain, org_role, telescope_details = \
+            parse_upload_watch_options(o, organisation, t, telescope, astronomer, state.debug)
+    except InvalidWatchOptionsOortCloudError:
+        return
 
     click.echo(" --- Folder(s) watch summary --- ")
     click.echo(f" • Account username: @{username}")
     if org_subdomain:
         click.echo(f" • Uploading for organisation: {org_subdomain} (role: {org_role})")
     else:
-        click.echo(" • Uploading in *personal* account (use option '-o <subdomain>' for an organisation).")
+        click.echo(" • Uploading to a *personal* account (use option '-o <subdomain>' for an organisation).")
 
     if telescope_details:
         name, uuid = telescope_details.get('name'), telescope_details.get('uuid')

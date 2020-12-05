@@ -16,14 +16,18 @@ class FileUploader(object):
         self._upload = pack.upload
 
         self._stalled_progress = 0
+        test = os.environ.get('OORT_TESTS') == '1'
 
-        if pack.identity.subdomain is None or len(pack.identity.subdomain) == 0:
+        # If we have an api_key, hence it is an oort_key, hence we upload for a custom astronomer.
+        if pack.identity.api_key:
             self._api = ArcsecondAPI.datafiles(dataset=str(self._upload.dataset.uuid),
                                                debug=pack.identity.debug,
+                                               test=test,
                                                api_key=pack.identity.api_key)
         else:
             self._api = ArcsecondAPI.datafiles(dataset=str(self._upload.dataset.uuid),
                                                debug=pack.identity.debug,
+                                               test=test,
                                                organisation=pack.identity.subdomain)
 
     @property

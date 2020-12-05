@@ -6,6 +6,7 @@ from oort.shared.config import get_logger
 from oort.shared.identity import Identity
 from . import eventhandler
 
+
 class PathsObserver(Observer):
     def __init__(self):
         super().__init__()
@@ -24,9 +25,9 @@ class PathsObserver(Observer):
         for folder_path in self._mapping.keys():
             self._mapping[folder_path]['handler'].debug = self._debug
 
-    def observe_folder(self, folder_path: str, identity: Identity) -> None:
+    def observe_folder(self, folder_path: str, identity: Identity, tick=5.0) -> None:
         self._logger.info(f'Starting to observe folder {folder_path}')
-        event_handler = eventhandler.DataFileHandler(path=folder_path, identity=identity, debug=self._debug)
+        event_handler = eventhandler.DataFileHandler(path=folder_path, identity=identity, tick=tick, debug=self._debug)
         watch = self.schedule(event_handler, folder_path, recursive=True)
         self._mapping[folder_path] = {'watcher': watch, 'handler': event_handler}
 

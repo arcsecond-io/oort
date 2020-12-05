@@ -5,17 +5,8 @@ from arcsecond import ArcsecondAPI
 from peewee import DoesNotExist
 
 from oort.shared.config import get_logger
-from oort.shared.models import (
-    Model,
-    Dataset,
-    NightLog,
-    Organisation,
-    Status,
-    Substatus,
-    Telescope,
-    Observation,
-    Calibration
-)
+from oort.shared.models import (Calibration, Dataset, Model, NightLog, Observation, Organisation, Status, Substatus,
+                                Telescope)
 from . import errors
 
 
@@ -41,7 +32,8 @@ class UploadPreparator(object):
 
         self._pack.upload.smart_update(astronomer=self._identity.username)
         if self._identity.subdomain:
-            api = ArcsecondAPI.organisations(debug=self._identity.debug)
+            test = os.environ.get('OORT_TESTS') == '1'
+            api = ArcsecondAPI.organisations(debug=self._identity.debug, test=test)
             self._organisation = self._sync_local_resource(Organisation, api, self._identity.subdomain)
             self._pack.upload.smart_update(organisation=self._organisation)
 
@@ -53,11 +45,17 @@ class UploadPreparator(object):
 
     @property
     def api_kwargs(self) -> dict:
-        kwargs = {'debug': self._identity.debug}
-        if self._identity.subdomain is not None and len(self._identity.subdomain) > 0:
-            kwargs.update(organisation=self._identity.subdomain)
-        else:
+        test = os.environ.get('OORT_TESTS') == '1'
+        kwargs = {'debug': self._identity.debug, 'test': test}
+        if self._identity.api_key:
+            # We have an api key -> we are uploading on behalf of an astronomer, we use PERSONAL APIs.
+            # It will bypass the currently logged-in astronomer credentials.
             kwargs.update(api_key=self._identity.api_key)
+        elif self._identity.subdomain is not None and len(self._identity.subdomain) > 0:
+            # We don't have an api key, but we have an organisation subdomain ->
+            # we are uploading for an organisation, we use ORGANISATION APIs,
+            # using currently logged-in astronomer credentials.
+            kwargs.update(organisation=self._identity.subdomain)
         return kwargs
 
     @property

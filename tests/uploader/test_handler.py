@@ -25,6 +25,6 @@ def test_event_handler_react_to_upload_save():
         # To avoid a mock error:
         mock_method.__name__ = 'mock on_save_handler method'
 
-        df = DataFileHandler(folder_path, identity, debug=True)
-        time.sleep(5.5)
+        df = DataFileHandler(folder_path, identity, tick=0.1, debug=True)
+        time.sleep(0.2)
         assert mock_method.call_count == 1

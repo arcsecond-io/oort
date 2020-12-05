@@ -1,3 +1,4 @@
+import threading
 from unittest.mock import ANY, patch
 
 from oort.shared.identity import Identity
@@ -11,7 +12,8 @@ def test_observer_empty():
 
 def test_observer_adding_folder_path():
     po = PathsObserver()
-    with patch.object(PathsObserver, 'schedule') as mocked_method:
+    with patch.object(PathsObserver, 'schedule', return_value={}) as mocked_method, \
+            patch.object(threading.Timer, 'start'):
         po.observe_folder('.', Identity('cedric', '123', debug=True))
         mocked_method.assert_called_once_with(ANY, '.', recursive=True)
         assert po.observed_paths == ['.']

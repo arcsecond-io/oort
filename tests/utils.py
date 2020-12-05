@@ -12,15 +12,20 @@ from oort.shared.models import BaseModel
 
 TEST_LOGIN_USERNAME = 'robot1'
 TEST_LOGIN_PASSWORD = 'robotpass'
+
 TEST_LOGIN_ORG_SUBDOMAIN = 'robotland'
 TEST_LOGIN_ORG_ROLE = 'admin'
-TEST_API_KEY = '935e2b9e24c44581b4ef5f4c8e53213e'
+TEST_LOGIN_API_KEY = '935e2b9e24c44581b4ef5f4c8e53213e'
+
+TEST_CUSTOM_USERNAME = 'astronomer'
+TEST_CUSTOM_API_KEY = '5e2b9e4ef5f4c8e53224c4458113e93b'
 
 
 def save_test_credentials(username=TEST_LOGIN_USERNAME, subdomain=TEST_LOGIN_ORG_SUBDOMAIN):
     clear_test_credentials()
-    config_file_save_api_key(TEST_API_KEY, username, section='test')
-    config_file_save_organisation_membership(subdomain, TEST_LOGIN_ORG_ROLE, section='test')
+    config_file_save_api_key(TEST_LOGIN_API_KEY, username, section='test')
+    if subdomain == TEST_LOGIN_ORG_SUBDOMAIN:
+        config_file_save_organisation_membership(subdomain, TEST_LOGIN_ORG_ROLE, section='test')
 
 
 def clear_test_credentials():
