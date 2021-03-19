@@ -1,8 +1,8 @@
 # Oort-Cloud for Arcsecond
 
 Oort-Cloud is the open-source super-easy-to-use tool for automatically and
-continuously uploading files that are inside a folder to 
-[Arcsecond.io](https://www.arcsecond.io).
+continuously uploading to [Arcsecond.io](https://www.arcsecond.io) files
+that are inside a folder.
 
 [Arcsecond.io](https://www.arcsecond.io) is a comprehensive cloud platform 
 for astronomical observations, for individual astronomers, collaborations and 
