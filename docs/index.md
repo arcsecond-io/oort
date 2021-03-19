@@ -127,17 +127,43 @@ will be put in an Observation (not a Calibration, there is no special
 keyword found), and its Dataset will be named identically
 `NGC3603/mosaic/Halpha`.
 
-| <sup>File Path | <sup>Local Time</sup>| <sup>Night Log Date</sup> | <sup>Type | <sup>Dataset Name |
-| ---- | ---- | ---- | ---- | ------------ |
-| <sup>`<root>/NGC3603/Halpha/Mosaic1.fits`</sup> | <sup>`Sep. 9, 2020, 2pm` | <sup>`2020-09-09` | <sup>Obs. | <sup>`NGC3603/Halpha`</sup> |  
-| <sup>`<root>/Calibration/MasterBias.xisf`</sup> | <sup>`Sep. 21, 2020, 9am` | <sup>`2020-09-20` | <sup>Calib. | <sup>`Calibration`</sup> |  
-| <sup>`<root>/Tests/Flats/U/U1.fit`</sup> | <sup>`Sep. 30, 2020, 01am` | <sup>`2020-09-30` | <sup>Calib. | <sup>`Tests/Flats/U`</sup> |  
-| <sup>`<root>/NGC3603_V_2x2.fit`</sup> | <sup>`Oct. 15, 2020, 04am` | <sup>`2020-10-15` | <sup>Obs. | <sup>`(folder <root>)`</sup> |  
-| <sup>`<root>/passwords.csv`</sup> | | | | <sup>not uploaded (not fits or xisf) |  
-| <sup>`<root>/GRO_J1655-40.FITS`</sup> | | | | <sup>not uploaded (no date obs found) |  
+Below are detailed examples.
 
-etc.
+#### –––> `<root>/NGC3603/Halpha/Mosaic1.fits` with Local time `Sep. 9, 2020, 2pm`
+    
+| Night Log Date | Type | Dataset Name | Filename | Format |
+ ---- | ---- | ------------ | --- | --- |
+| `2020-09-09` | Observation | `NGC3603/Halpha` | `Mosaic1.fits` | FITS |
 
+
+#### –––> `<root>/Calibration/MasterBias.xisf` with Local time `Sep. 21, 2020, 9am`
+    
+| Night Log Date | Type | Dataset Name | Filename | Format |
+ ---- | ---- | ------------ | --- | --- |
+| `2020-09-20` | Calibration | `Calibration` | `MasterBias.xisf` | XISF |
+
+#### –––> `<root>/Tests/Flats/U/U1.fit` with Local time `Sep. 30, 2020, 01am`
+    
+| Night Log Date | Type | Dataset Name | Filename | Format |
+ ---- | ---- | ------------ | --- | --- |
+| `2020-09-30` | Calibration | `Tests/Flats/U` | `U1.fit` | FITS |
+
+#### –––> `<root>/NGC3603_V_2x2.fit` with Local time `Oct. 15, 2020, 04am`
+    
+| Night Log Date | Type | Dataset Name | Filename | Format |
+ ---- | ---- | ------------ | --- | --- |
+| `2020-10-15` | Observation | `(folder <root>)` | `NGC3603_V_2x2.fit` | FITS |
+
+#### –––> `<root>/passwords.csv`
+
+Not uploaded (not FITS nor XISF)
+
+#### –––> `<root>/GRO_J1655-40.FITS` without any date
+
+Not uploaded (no `DATE`, not `DATE-OBS` nor `DATE_OBS` found)
+
+For the last two cases, feel free to contact us, or make a Pull Request to adapt 
+to your situation.
 
 ## Key things you must be aware of
 
