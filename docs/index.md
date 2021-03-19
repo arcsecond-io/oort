@@ -129,30 +129,34 @@ keyword found), and its Dataset will be named identically
 
 Below are detailed examples.
 
-#### –––> `<root>/NGC3603/Halpha/Mosaic1.fits` with Local time `Sep. 9, 2020, 2pm`
+#### –––> `<root>/NGC3603/Halpha/Mosaic1.fits` 
+with Local time `Sep. 9, 2020, 2pm`
     
-| Night Log Date | Type | Dataset Name | Filename | Format |
+| NL Date | Type | Dataset | Filename | Format |
  ---- | ---- | ------------ | --- | --- |
-| `2020-09-09` | Observation | `NGC3603/Halpha` | `Mosaic1.fits` | FITS |
+| `2020-09-09` | Obs | `NGC3603/Halpha` | `Mosaic1.fits` | FITS |
 
 
-#### –––> `<root>/Calibration/MasterBias.xisf` with Local time `Sep. 21, 2020, 9am`
+#### –––> `<root>/Calibration/MasterBias.xisf` 
+with Local time `Sep. 21, 2020, 9am`
     
-| Night Log Date | Type | Dataset Name | Filename | Format |
+| NL Date | Type | Dataset | Filename | Format |
  ---- | ---- | ------------ | --- | --- |
-| `2020-09-20` | Calibration | `Calibration` | `MasterBias.xisf` | XISF |
+| `2020-09-20` | Calib | `Calibration` | `MasterBias.xisf` | XISF |
 
-#### –––> `<root>/Tests/Flats/U/U1.fit` with Local time `Sep. 30, 2020, 01am`
+#### –––> `<root>/Tests/Flats/U/U1.fit` 
+with Local time `Sep. 30, 2020, 01am`
     
-| Night Log Date | Type | Dataset Name | Filename | Format |
+| NL Date | Type | Dataset | Filename | Format |
  ---- | ---- | ------------ | --- | --- |
-| `2020-09-30` | Calibration | `Tests/Flats/U` | `U1.fit` | FITS |
+| `2020-09-30` | Calib | `Tests/Flats/U` | `U1.fit` | FITS |
 
-#### –––> `<root>/NGC3603_V_2x2.fit` with Local time `Oct. 15, 2020, 04am`
+#### –––> `<root>/NGC3603_V_2x2.fit` 
+with Local time `Oct. 15, 2020, 04am`
     
-| Night Log Date | Type | Dataset Name | Filename | Format |
+| NL Date | Type | Dataset | Filename | Format |
  ---- | ---- | ------------ | --- | --- |
-| `2020-10-15` | Observation | `(folder <root>)` | `NGC3603_V_2x2.fit` | FITS |
+| `2020-10-15` | Obs | `(folder <root>)` | `NGC3603_V_2x2.fit` | FITS |
 
 #### –––> `<root>/passwords.csv`
 
