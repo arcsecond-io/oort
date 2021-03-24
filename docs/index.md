@@ -129,42 +129,53 @@ keyword found), and its Dataset will be named identically
 
 Below are detailed examples.
 
-#### –––> `<root>/NGC3603/Halpha/Mosaic1.fits` 
-with Local time `Sep. 9, 2020, 2pm`
+#### `<root>/NGC3603/Halpha/Mosaic1.fits` 
+with Local time `Sep. 9, 2020, 2pm` will give:
     
 | NL Date | Type | Dataset | Filename | Format |
  ---- | ---- | ------------ | --- | --- |
 | `2020-09-09` | Obs | `NGC3603/Halpha` | `Mosaic1.fits` | FITS |
 
+<br/>
 
-#### –––> `<root>/Calibration/MasterBias.xisf` 
-with Local time `Sep. 21, 2020, 9am`
+#### `<root>/Calibration/MasterBias.xisf` 
+with Local time `Sep. 21, 2020, 9am` will give:
     
 | NL Date | Type | Dataset | Filename | Format |
  ---- | ---- | ------------ | --- | --- |
 | `2020-09-20` | Calib | `Calibration` | `MasterBias.xisf` | XISF |
 
-#### –––> `<root>/Tests/Flats/U/U1.fit` 
-with Local time `Sep. 30, 2020, 01am`
+<br/>
+
+#### `<root>/Tests/Flats/U/U1.fit` 
+with Local time `Sep. 30, 2020, 01am` will give:
     
 | NL Date | Type | Dataset | Filename | Format |
  ---- | ---- | ------------ | --- | --- |
 | `2020-09-30` | Calib | `Tests/Flats/U` | `U1.fit` | FITS |
 
-#### –––> `<root>/NGC3603_V_2x2.fit` 
-with Local time `Oct. 15, 2020, 04am`
+<br/>
+
+#### `<root>/NGC3603_V_2x2.fit` 
+with Local time `Oct. 15, 2020, 04am` will give:
     
 | NL Date | Type | Dataset | Filename | Format |
  ---- | ---- | ------------ | --- | --- |
 | `2020-10-15` | Obs | `(folder <root>)` | `NGC3603_V_2x2.fit` | FITS |
 
-#### –––> `<root>/passwords.csv`
+<br/>
 
-Not uploaded (not FITS nor XISF)
+#### `<root>/passwords.csv`
 
-#### –––> `<root>/GRO_J1655-40.FITS` without any date
+Will not be uploaded (not FITS nor XISF)
 
-Not uploaded (no `DATE`, not `DATE-OBS` nor `DATE_OBS` found)
+<br/>
+
+#### `<root>/GRO_J1655-40.FITS` without any date
+
+Will not be uploaded (no `DATE`, not `DATE-OBS` nor `DATE_OBS` found)
+
+<br/>
 
 For the last two cases, feel free to contact us, or make a Pull Request to adapt 
 to your situation.
