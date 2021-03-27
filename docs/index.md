@@ -1,14 +1,17 @@
-# Welcome to the Oort-Cloud Documentation
+# Welcome to the Oort Documentation
 
-Oort-Cloud is the open-source super-easy-to-use tool for automatically and
-continuously uploading files that are inside a folder to 
-[Arcsecond.io](https://www.arcsecond.io).
+Oort is the open-source super-easy-to-use tool for automatically and
+continuously uploading to [Arcsecond.io](https://www.arcsecond.io)
+files that are inside a folder.
 
 [Arcsecond.io](https://www.arcsecond.io) is a comprehensive cloud platform 
 for astronomical observations, for individual astronomers, collaborations and 
 observatories.
 
-Oort-Cloud can be used by individual astronomers who want to store data in
+Cloud storage backend is Amazon's S3, and Oort has been thorough tested on 
+recent Linux and macOS operating systems (it may need some tweaks on Windows).
+
+Oort can be used by individual astronomers who want to store data in
 a cloud dedicated to astronomical data. Or by an observatory, to store data
 specifically for that organisation. For that, the organisation must have been 
 registered first, and subdomain defined. See also the `--organisation` option 
@@ -108,22 +111,20 @@ of files.**
 
 Structure is as follow: Night Logs contain multiple Observation and/or
 Calibrations taken the same night. To each Observation and Calibration is 
-attached one (and only one) Dataset containing the files (as many as they are).
+attached one (and only one) Dataset containing one or more files.
 
-For instance, if a folder contains the word "Bias" (case-insensitive), the
-files inside it will be put inside a Calibration object, associated with
-a Dataset whose name is that of the folder. See below for a table of 
+For instance, if the folder on disk contains the word "Bias" (case-insensitive), 
+the files inside it will be put inside a Calibration object, associated with
+a Dataset whose name is that of the folder. Complete subfolder names will be 
+used as Dataset and Observation / Calibration names. See below for a table of 
 examples.
 
-Keywords directing files in Calibrations are "Bias", "Dark", "Flat" and
-"Calib". All other folder names are considered as target names, and put
-inside Observations.
-
-Complete subfolder names will be used as Dataset and Observation / Calibration
-names.
+Keywords directing files to Calibrations containers are "Bias", "Dark", "Flat"
+and "Calib". All other folder names are considered as target names, and put
+inside Observations containers.
 
 For instance, FITS or XISF files found in `<root>/NGC3603/mosaic/Halpha`
-will be put in an Observation (not a Calibration, there is no special
+will be put in an Observation (not a Calibration, since there is no special
 keyword found), and its Dataset will be named identically
 `NGC3603/mosaic/Halpha`.
 
