@@ -99,4 +99,14 @@ def get_config_upload_folder_sections() -> List[Dict]:
         return []
     config = ConfigParser()
     config.read(conf_file_path)
-    return [dict(config[section]) for section in config.sections() if section.startswith('watch-folder-')]
+
+    if os.environ.get('OORT_TESTS') == '1':
+        sections = [
+            section for section in config.sections() if
+            section.startswith('watch-folder-') and section.endswith('-tests')
+        ]
+    else:
+        sections = [section for section in config.sections() if section.startswith('watch-folder-')]
+
+    return [dict(config[section], **{'section': section}) for section in sections]
+
