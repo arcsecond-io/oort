@@ -49,6 +49,11 @@ var app = new Vue({
       self.skipped_count = self.finished_uploads.filter(u => u.substatus.toLowerCase().startsWith('skipped')).length
       self.progresses = self.current_uploads.map(u => u.progress)
     }
+  },
+  methods: {
+    retryAllFailed () {
+      fetch('/retries?ids=' + this.error_uploads.reduce((acc, value) => acc + value.id.toString() + ',', ''))
+    }
   }
 })
 
