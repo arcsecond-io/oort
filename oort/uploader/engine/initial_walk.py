@@ -2,7 +2,7 @@ import os
 import sys
 import time
 
-from oort.cli.folders import check_organisation
+from oort.cli.folders import check_remote_organisation
 from oort.shared.config import get_logger
 from oort.shared.identity import Identity
 from oort.uploader.engine import packer
@@ -15,7 +15,7 @@ def perform_initial_walk(root_path: str, identity: Identity, debug: bool):
     time.sleep(0.5)
 
     if identity.subdomain:
-        check_organisation(identity.subdomain, debug)
+        check_remote_organisation(identity.subdomain, debug)
 
     time.sleep(0.5)
 
