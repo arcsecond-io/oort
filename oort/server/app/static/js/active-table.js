@@ -23,13 +23,15 @@ Vue.component('active-table', {
       <div><span class="subtitle">Obs Date:</span> {{ upload.file_date }}</div>
     </td>
     <td>
-      <a v-if="upload.organisation" :href='getOrganisationDatasetURL(upload)' target="_blank">
-        {{ upload.dataset.name }}
-      </a>
-      <a v-else :href='getDatasetURL(upload)' target="_blank">
-        {{ upload.dataset.name }}
-      </a>
-      <div class="subtitle">{{ upload.dataset.uuid }}</div>
+      <div v-if="upload.dataset">
+        <a v-if="upload.organisation" :href='getOrganisationDatasetURL(upload)' target="_blank">
+          {{ upload.dataset.name }}
+        </a>
+        <a v-else :href='getDatasetURL(upload)' target="_blank">
+          {{ upload.dataset.name }}
+        </a>
+        <div class="subtitle">{{ upload.dataset.uuid }}</div>
+      </div>
     </td>
     <td>
       <div v-if="upload.night_log && upload.night_log.date">
