@@ -1,7 +1,7 @@
 Vue.mixin({
   methods: {
     getFilePath (upload, root_path) {
-      return upload.file_path.replace(root_path, '')
+      return upload.file_path.replace(root_path + '/', '')
     },
     getOrganisationDatasetURL (upload) {
       return 'https://' + upload.organisation.subdomain + '.arcsecond.io/data/' + upload.night_log.date

@@ -20,7 +20,7 @@ Vue.component('active-table', {
   <tbody>
   <tr v-for="upload in uploads">
     <td>
-      <span class="subtitle">&lt;root&gt;</span><span><strong>{{ getFilePath(upload, root_path) }}</strong></span>
+      <span class="subtitle">&lt;root&gt;/</span><span><strong>{{ getFilePath(upload, root_path) }}</strong></span>
       <div><span class="subtitle">Obs Date:</span> {{ upload.file_date }}</div>
     </td>
     <td>
