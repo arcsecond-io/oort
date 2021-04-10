@@ -18,8 +18,8 @@ identity = Identity('cedric', str(uuid.uuid4()), 'saao', 'admin', telescope_uuid
 def test_packer_calib_bias():
     path = f'/Users/onekiloparsec/data/Biases{get_random_string(5)}/dummy_001.fits'
     with patch('os.path.getsize', return_value=10), \
-         patch.object(UploadPack, '_find_fits_filedate', return_value=datetime.now()), \
-         patch.object(UploadPack, '_find_xisf_filedate', return_value=datetime.now()):
+            patch.object(UploadPack, '_find_fits_filedate', return_value=datetime.now()), \
+            patch.object(UploadPack, '_find_xisf_filedate', return_value=datetime.now()):
         pack = UploadPack(root_path, path, identity)
         assert pack is not None
         # Check detection of FITS or XISF is OK
@@ -37,8 +37,8 @@ def test_packer_calib_bias():
 def test_packer_calib_dark():
     path = f'/Users/onekiloparsec/data/dArkss{get_random_string(5)}/dummy_001.fits'
     with patch('os.path.getsize', return_value=10), \
-         patch.object(UploadPack, '_find_fits_filedate', return_value=datetime.now()), \
-         patch.object(UploadPack, '_find_xisf_filedate', return_value=datetime.now()):
+            patch.object(UploadPack, '_find_fits_filedate', return_value=datetime.now()), \
+            patch.object(UploadPack, '_find_xisf_filedate', return_value=datetime.now()):
         pack = UploadPack(root_path, path, identity)
         assert pack is not None
         # Check detection of FITS or XISF is OK
@@ -56,8 +56,8 @@ def test_packer_calib_dark():
 def test_packer_calibs_flat_no_filter():
     path = f'/Users/onekiloparsec/data/FLATS{get_random_string(5)}/dummy_001.fits'
     with patch('os.path.getsize', return_value=10), \
-         patch.object(UploadPack, '_find_fits_filedate', return_value=datetime.now()), \
-         patch.object(UploadPack, '_find_xisf_filedate', return_value=datetime.now()):
+            patch.object(UploadPack, '_find_fits_filedate', return_value=datetime.now()), \
+            patch.object(UploadPack, '_find_xisf_filedate', return_value=datetime.now()):
         pack = UploadPack(root_path, path, identity)
         assert pack is not None
         # Check detection of FITS or XISF is OK
@@ -75,8 +75,8 @@ def test_packer_calibs_flat_no_filter():
 def test_packer_calibs_flat_with_filter():
     path = f'/Users/onekiloparsec/data/FLATS{get_random_string(5)}/U/dummy_001.fits'
     with patch('os.path.getsize', return_value=10), \
-         patch.object(UploadPack, '_find_fits_filedate', return_value=datetime.now()), \
-         patch.object(UploadPack, '_find_xisf_filedate', return_value=datetime.now()):
+            patch.object(UploadPack, '_find_fits_filedate', return_value=datetime.now()), \
+            patch.object(UploadPack, '_find_xisf_filedate', return_value=datetime.now()):
         pack = UploadPack(root_path, path, identity)
         assert pack is not None
         # Check detection of FITS or XISF is OK
@@ -94,8 +94,8 @@ def test_packer_calibs_flat_with_filter():
 def test_packer_observation_no_filter():
     path = '/Users/onekiloparsec/data/HD5980/dummy_010.fits'
     with patch('os.path.getsize', return_value=10), \
-         patch.object(UploadPack, '_find_fits_filedate', return_value=datetime.now()), \
-         patch.object(UploadPack, '_find_xisf_filedate', return_value=datetime.now()):
+            patch.object(UploadPack, '_find_fits_filedate', return_value=datetime.now()), \
+            patch.object(UploadPack, '_find_xisf_filedate', return_value=datetime.now()):
         pack = UploadPack(root_path, path, identity)
         assert pack is not None
         # Check detection of FITS or XISF is OK
@@ -113,8 +113,8 @@ def test_packer_observation_no_filter():
 def test_packer_observation_with_filter():
     path = '/Users/onekiloparsec/data/HD5980/Halpha/dummy_010.fits'
     with patch('os.path.getsize', return_value=10), \
-         patch.object(UploadPack, '_find_fits_filedate', return_value=datetime.now()), \
-         patch.object(UploadPack, '_find_xisf_filedate', return_value=datetime.now()):
+            patch.object(UploadPack, '_find_fits_filedate', return_value=datetime.now()), \
+            patch.object(UploadPack, '_find_xisf_filedate', return_value=datetime.now()):
         pack = UploadPack(root_path, path, identity)
         assert pack is not None
         # Check detection of FITS or XISF is OK
@@ -132,8 +132,8 @@ def test_packer_observation_with_filter():
 def test_packer_observation_with_double_filter():
     path = '/Users/onekiloparsec/data/Tests/HD5980/Halpha/dummy_010.fits'
     with patch('os.path.getsize', return_value=10), \
-         patch.object(UploadPack, '_find_fits_filedate', return_value=datetime.now()), \
-         patch.object(UploadPack, '_find_xisf_filedate', return_value=datetime.now()):
+            patch.object(UploadPack, '_find_fits_filedate', return_value=datetime.now()), \
+            patch.object(UploadPack, '_find_xisf_filedate', return_value=datetime.now()):
         pack = UploadPack(root_path, path, identity)
         assert pack is not None
         # Check detection of FITS or XISF is OK
@@ -152,8 +152,8 @@ def test_packer_observation_with_double_filter():
 def test_packer_calibration_no_date_obs():
     path = '/Users/onekiloparsec/data/Biases/dummy_010.fits'
     with patch('os.path.getsize', return_value=10), \
-         patch.object(UploadPack, '_find_fits_filedate', return_value=None), \
-         patch.object(UploadPack, '_find_xisf_filedate', return_value=None):
+            patch.object(UploadPack, '_find_fits_filedate', return_value=None), \
+            patch.object(UploadPack, '_find_xisf_filedate', return_value=None):
         pack = UploadPack(root_path, path, identity)
         assert pack is not None
         # Check detection of FITS or XISF is OK
@@ -172,8 +172,8 @@ def test_packer_calibration_no_date_obs():
 def test_packer_calibration_no_fits_no_xisf():
     path = '/Users/onekiloparsec/data/Biases/dummy_010.csv'
     with patch('os.path.getsize', return_value=10), \
-         patch.object(UploadPack, '_find_fits_filedate', return_value=None), \
-         patch.object(UploadPack, '_find_xisf_filedate', return_value=None):
+            patch.object(UploadPack, '_find_fits_filedate', return_value=None), \
+            patch.object(UploadPack, '_find_xisf_filedate', return_value=None):
         pack = UploadPack(root_path, path, identity)
         assert pack is not None
         # Check detection of FITS or XISF is OK
@@ -191,10 +191,10 @@ def test_packer_calibration_no_fits_no_xisf():
 @use_test_database
 def test_packer_no_telescope_date_after_noon():
     path = '/Users/onekiloparsec/data/Biases/dummy_010.fits'
-    obs_date = datetime.fromisoformat('2020-03-21T20:56:35.450686')
+    obs_date = datetime(2020, 3, 21, hour=20, minute=56, second=35)
     with patch('os.path.getsize', return_value=10), \
-         patch.object(UploadPack, '_find_fits_filedate', return_value=obs_date), \
-         patch.object(UploadPack, '_find_xisf_filedate', return_value=None):
+            patch.object(UploadPack, '_find_fits_filedate', return_value=obs_date), \
+            patch.object(UploadPack, '_find_xisf_filedate', return_value=None):
         pack = UploadPack(root_path, path, identity)
         assert pack.night_log_date_string == '2020-03-21'
 
@@ -202,9 +202,9 @@ def test_packer_no_telescope_date_after_noon():
 @use_test_database
 def test_packer_no_telescope_date_before_noon():
     path = '/Users/onekiloparsec/data/Biases/dummy_010.fits'
-    obs_date = datetime.fromisoformat('2020-03-21T07:56:35.450686')
+    obs_date = datetime(2020, 3, 21, hour=7, minute=56, second=35)
     with patch('os.path.getsize', return_value=10), \
-         patch.object(UploadPack, '_find_fits_filedate', return_value=obs_date), \
-         patch.object(UploadPack, '_find_xisf_filedate', return_value=None):
+            patch.object(UploadPack, '_find_fits_filedate', return_value=obs_date), \
+            patch.object(UploadPack, '_find_xisf_filedate', return_value=None):
         pack = UploadPack(root_path, path, identity)
         assert pack.night_log_date_string == '2020-03-20'
