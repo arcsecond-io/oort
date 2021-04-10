@@ -19,7 +19,8 @@ def check_local_astronomer(debug: bool):
     username = ArcsecondAPI.username(debug=debug, test=test)
     if username is None:
         raise InvalidAstronomerOortCloudError('')
-    return username
+    api_key = ArcsecondAPI.api_key(debug=debug, test=test)
+    return username, api_key
 
 
 def check_remote_organisation(org_subdomain: str, debug: bool):
@@ -145,7 +146,7 @@ def parse_upload_watch_options(o: Optional[str] = None,
     # No custom astronomer for uploading. If no org, fine. If an org, one need the telescope.
     if astronomer == (None, None):
         # Fetch the username of the currently logged in astronomer.
-        username = check_local_astronomer(debug)
+        username, api_key = check_local_astronomer(debug)
 
         # If we have an organisation and no telescope UUID, we list the one available
         # and then raise an error
