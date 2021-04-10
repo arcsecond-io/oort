@@ -204,7 +204,7 @@ def watch(state, folders, o=None, organisation=None, t=None, telescope=None, ast
         return
 
     click.echo(" --- Folder(s) watch summary --- ")
-    click.echo(f" • Account username: @{username}")
+    click.echo(f" • Arcsecond username: @{username} (API key: {api_key[:4]}...)")
     if org_subdomain:
         click.echo(f" • Uploading for organisation: {org_subdomain} (role: {org_role})")
     else:
