@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 OORT_FILENAME = '__oort__'
 
 # We use a custom socket filename because we may need to grep it.
@@ -21,3 +23,17 @@ OORT_FITS_EXTENSIONS = [
     '.rsp',
     '.pi'
 ]
+
+
+def _extend_list(extensions):
+    for zip in ['.zip', '.gz', '.gzip', '.bz2']:
+        extensions += [e + zip for e in extensions]
+    return extensions
+
+
+def get_all_xisf_extensions():
+    return _extend_list(deepcopy(['.xisf', ]))
+
+
+def get_all_fits_extensions():
+    return _extend_list(deepcopy(OORT_FITS_EXTENSIONS))

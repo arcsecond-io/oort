@@ -1,4 +1,7 @@
+import bz2
+import gzip
 import os
+import pathlib
 import warnings
 import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta
@@ -12,7 +15,7 @@ from astropy.io.votable.exceptions import VOTableSpecWarning
 from astropy.utils.exceptions import AstropyWarning
 
 from oort.shared.config import get_logger
-from oort.shared.constants import OORT_FITS_EXTENSIONS
+from oort.shared.constants import get_all_fits_extensions, get_all_xisf_extensions
 from oort.shared.identity import Identity
 from oort.shared.models import (
     Calibration,
@@ -163,8 +166,8 @@ class UploadPack(object):
 
     @property
     def is_fits_or_xisf(self) -> bool:
-        _, extension = os.path.splitext(self._file_path)
-        return extension.lower() in ['.xisf'] + OORT_FITS_EXTENSIONS
+        extension = ''.join(pathlib.Path(self._file_path).suffixes)
+        return extension.lower() in get_all_fits_extensions() + get_all_xisf_extensions()
 
     @property
     def night_log_date_string(self) -> str:
@@ -199,29 +202,38 @@ class UploadPack(object):
 
     def _find_date(self, path):
         _, extension = os.path.splitext(path)
-        if extension.lower() == '.xisf':
+        if extension.lower() in get_all_xisf_extensions():
             return self._find_xisf_filedate(path)
-        elif extension.lower() in OORT_FITS_EXTENSIONS:
+        elif extension.lower() in get_all_fits_extensions():
             return self._find_fits_filedate(path)
 
     def _find_fits_filedate(self, path):
         file_date = None
         try:
-            with pyfits.open(path) as hdulist:
+            with pyfits.open(path, mode='readonly', memmap=True, ignore_missing_end=True) as hdulist:
                 for hdu in hdulist:
                     date_header = hdu.header.get('DATE') or hdu.header.get('DATE-OBS') or hdu.header.get('DATE_OBS')
                     if not date_header:
                         continue
                     file_date = dateparser.parse(date_header)
                     if file_date:
+                        hdulist.close()
                         break
         except Exception as error:
+            hdulist.close()
             self._logger.debug(str(error))
         return file_date
 
     def _find_xisf_filedate(self, path):
         header = b''
-        with open(path, 'rb') as f:
+        _, extension = os.path.splitext(self._file_path)
+        open_method = open
+        if extension in ['.gzip', '.gz']:
+            open_method = gzip.open
+        elif extension in ['.bzip2', '.bz2']:
+            open_method = bz2.open
+
+        with open_method(path, 'rb') as f:
             bytes = b''
             while b'</xisf>' not in bytes:
                 bytes = f.read(500)
