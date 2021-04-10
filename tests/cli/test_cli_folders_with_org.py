@@ -109,7 +109,7 @@ def test_cli_folders_custom_astronomer_with_o_and_t_options_and_valid_upload_key
                             True)
 
         for folder_section in get_config_upload_folder_sections():
-            identity = Identity.from_folder_section(folder_section, True)
+            identity = Identity.from_folder_section(folder_section)
             assert identity.username == username
             assert identity.api_key == api_key
             assert identity.subdomain == org_subdomain
