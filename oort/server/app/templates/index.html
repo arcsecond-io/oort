@@ -148,7 +148,7 @@
             <div class="table-block">
               <div class="table-title">
                 <input id="toggle-error" type="checkbox" v-model="show_tables.error" class="">
-                Failed Uploads ({{ error_uploads.length }})
+                <span style="margin-right: 5px;">Failed Uploads ({{ error_uploads.length }})</span>
                 <button class="btn btn-sm btn-primary-black" @click="retryAllFailed">Retry All</button>
               </div>
               <div v-if="show_tables.error">
