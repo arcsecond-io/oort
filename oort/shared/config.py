@@ -35,7 +35,7 @@ def get_log_file_path():
 
 
 def get_db_file_path():
-    suffix = '-tests' if os.environ.get('OORT_TESTS') == 'True' else ''
+    suffix = '-tests' if os.environ.get('OORT_TESTS') == '1' else ''
     return os.path.join(get_directory_path(), f'uploads{suffix}.db')
 
 
@@ -44,7 +44,7 @@ def get_supervisor_conf_file_path():
 
 
 def get_logger(debug=False):
-    suffix = '-tests' if os.environ.get('OORT_TESTS') == 'True' else ''
+    suffix = '-tests' if os.environ.get('OORT_TESTS') == '1' else ''
     logger = logging.getLogger('oort-cloud' + suffix)
     logger.setLevel(logging.DEBUG if debug else logging.INFO)
 
