@@ -41,14 +41,18 @@ var app = new Vue({
       self.current_uploads = json_data.current.filter(u => u.file_path.startsWith(self.selectButtonTitle))
       self.error_uploads = json_data.errors.filter(u => u.file_path.startsWith(self.selectButtonTitle))
 
-      self.finished_count = json_data.finished.length
-      self.skipped_count = json_data.finished.filter(u => u.substatus.toLowerCase().startsWith('skipped')).length
-
       self.finished_uploads = json_data.finished
         .filter(u => u.file_path.startsWith(self.selectButtonTitle))
         .filter(u => (u.substatus.toLowerCase().startsWith('skipped') && self.show_tables.finished_skipped) || (!u.substatus.toLowerCase().startsWith('skipped') && self.show_tables.finished_done))
 
+      self.finished_count = self.finished_uploads.length
+      self.skipped_count = self.finished_uploads.filter(u => u.substatus.toLowerCase().startsWith('skipped')).length
       self.progresses = self.current_uploads.map(u => u.progress)
+    }
+  },
+  methods: {
+    retryAllFailed () {
+      fetch('/retries?ids=' + this.error_uploads.reduce((acc, value) => acc + value.id.toString() + ',', ''))
     }
   }
 })
