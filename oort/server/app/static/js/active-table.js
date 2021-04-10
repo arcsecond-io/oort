@@ -14,7 +14,6 @@ Vue.component('active-table', {
     <th>Started</th>
     <th>Ended</th>
     <th>Duration</th>
-    <th>Error</th>
   </tr>
   </thead>
   <tbody>
@@ -75,7 +74,6 @@ Vue.component('active-table', {
     <td>{{ upload.started }}</td>
     <td>{{ upload.ended }}</td>
     <td>{{ upload.duration.toFixed(1) }} s</td>
-    <td>{{ upload.error }}</td>
   </tr>
   </tbody>
 </table>
