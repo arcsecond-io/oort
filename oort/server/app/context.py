@@ -55,6 +55,7 @@ class Context:
 
         def _ff(u):
             # fill and flatten
+            u['night_log'] = {}
             if u.get('dataset', None) is not None:
                 ds = Dataset.get(Dataset.uuid == u['dataset']['uuid'])
                 if ds.observation is not None:
@@ -62,9 +63,8 @@ class Context:
                 if ds.calibration is not None:
                     u['calibration'] = model_to_dict(ds.calibration, recurse=False)
                 obs_or_calib = ds.observation or ds.calibration
-                u['night_log'] = model_to_dict(obs_or_calib.night_log, recurse=False)
-            else:
-                u['night_log'] = {}
+                if obs_or_calib:
+                    u['night_log'] = model_to_dict(obs_or_calib.night_log, recurse=False)
             return u
 
         state = self.to_dict()

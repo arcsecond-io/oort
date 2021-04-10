@@ -9,6 +9,7 @@ from oort.server.errors import InvalidOrganisationTelescopeOortCloudError, Inval
 from oort.shared.config import get_config_upload_folder_sections
 from oort.shared.identity import Identity
 from tests.utils import (
+    TEST_LOGIN_API_KEY,
     TEST_LOGIN_ORG_ROLE,
     TEST_LOGIN_ORG_SUBDOMAIN,
     TEST_LOGIN_USERNAME,
@@ -71,7 +72,7 @@ def test_cli_folders_with_options_org_as_o_and_t():
         # Assert
         assert mock_read.call_count == 2
         assert username == TEST_LOGIN_USERNAME
-        assert api_key == ''
+        assert api_key == TEST_LOGIN_API_KEY
         assert org_subdomain == TEST_LOGIN_ORG_SUBDOMAIN
         assert org_role == TEST_LOGIN_ORG_ROLE
         assert TEL_DETAILS == tel_details
@@ -109,9 +110,10 @@ def test_cli_folders_custom_astronomer_with_o_and_t_options_and_valid_upload_key
                             True)
 
         for folder_section in get_config_upload_folder_sections():
-            identity = Identity.from_folder_section(folder_section, True)
+            identity = Identity.from_folder_section(folder_section)
             assert identity.username == username
             assert identity.api_key == api_key
             assert identity.subdomain == org_subdomain
             assert identity.role == org_role
-            assert identity.telescope == TEL_DETAILS
+            assert identity.telescope == TEL_UUID
+            assert identity.debug is True

@@ -104,10 +104,21 @@ These processes are **managed**, that is, they are automatically restarted if
 they crash. Use the command `oort logs` to get the latest logs of these 
 processes.
 
-### File organisations
+### File extensions
 
-**Oort is using the folder structure to infer the type and organisation
-of files.**
+**Oort support XISF and FITS files, zipped or not.** Oort will accept files with the following FITS filename extensions:
+
+`.fits`, `.fit`, `.fts`, `.ft`, `.mt`, `.imfits`, `.imfit`, `.uvfits`, 
+`.uvfit`, `.pha`, `.rmf`, `.arf`, `.rsp`, `.pi`
+
+as well as `.xisf` ones.
+
+Moreover, these extensions can be augmented with the following zipped file
+extensions: `.zip`, `.gz`, `.gzip`, `.bz2`, `.bzip2`.
+
+### Folder structure
+
+**Oort is using the folder structure to infer the type and organisation of files.**
 
 Structure is as follow: Night Logs contain multiple Observation and/or
 Calibrations taken the same night. To each Observation and Calibration is 
@@ -172,9 +183,14 @@ Will not be uploaded (not FITS nor XISF)
 
 <br/>
 
-#### `<root>/GRO_J1655-40.FITS` without any date
+#### `<root>/GRO_J1655-40.FITS` but no `DATE`, not `DATE-OBS` nor `DATE_OBS` found
 
-Will not be uploaded (no `DATE`, not `DATE-OBS` nor `DATE_OBS` found)
+| NL Date | Type | Dataset | Filename | Format |
+ ---- | ---- | ------------ | --- | --- |
+| (none) | (None) | `(folder <root>)` | `NGC3603_V_2x2.fit` | FITS |
+
+There will be no Observation or Calibration created when there is 
+no Night Log present, for which the date is mandatory. 
 
 <br/>
 

@@ -204,7 +204,7 @@ def watch(state, folders, o=None, organisation=None, t=None, telescope=None, ast
         return
 
     click.echo(" --- Folder(s) watch summary --- ")
-    click.echo(f" • Account username: @{username}")
+    click.echo(f" • Arcsecond username: @{username} (API key: {api_key[:4]}...)")
     if org_subdomain:
         click.echo(f" • Uploading for organisation: {org_subdomain} (role: {org_role})")
     else:
@@ -253,7 +253,7 @@ def folders(state):
     else:
         for index, section in enumerate(sections):
             click.echo(f" • Folder #{index + 1}:")
-            click.echo(f"   username     = {section.get('username')}")
+            click.echo(f"   username     = @{section.get('username')}")
             click.echo(f"   api_key      = {section.get('api_key')[0:4]}•••••••")
             if section.get('subdomain'):
                 click.echo(f"   organisation = {section.get('subdomain')} (role: {section.get('role')})")

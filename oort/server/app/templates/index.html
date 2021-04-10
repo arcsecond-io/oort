@@ -111,7 +111,7 @@
             <span v-if="selected_folder.telescope">
               <span class="subtitle">telescope:</span> {{ selected_folder.telescope }}
             </span>
-            <span class="subtitle" v-if="selected_folder.debug">(Debug)</span>
+            <span class="subtitle" v-if="selected_folder.debug === 'True'">(Debug)</span>
           </div>
         </div>
         <div v-else class="instruction text-small small">

@@ -1,4 +1,5 @@
 import hashlib
+import os
 from typing import Optional
 
 from oort.shared.config import write_config_section_values
@@ -6,14 +7,14 @@ from oort.shared.config import write_config_section_values
 
 class Identity(object):
     @classmethod
-    def from_folder_section(cls, folder_section, debug=False):
+    def from_folder_section(cls, folder_section):
         return cls(folder_section.get('username'),
                    folder_section.get('api_key'),
                    folder_section.get('subdomain', ''),
                    folder_section.get('role', ''),
                    folder_section.get('telescope', ''),
                    folder_section.get('longitude', ''),
-                   debug)
+                   folder_section.get('debug', 'False').lower() == 'true')
 
     def __init__(self,
                  username: str,
@@ -64,7 +65,8 @@ class Identity(object):
 
     def save_with_folder(self, upload_folder_path: str):
         folder_hash = hashlib.shake_128(upload_folder_path.encode('utf8')).hexdigest(3)
-        write_config_section_values(f'watch-folder-{folder_hash}',
+        suffix = '-tests' if os.environ.get('OORT_TESTS') == '1' else ''
+        write_config_section_values(f'watch-folder-{folder_hash}{suffix}',
                                     username=self._username,
                                     api_key=self._api_key,
                                     subdomain=self.subdomain or '',

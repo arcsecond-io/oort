@@ -10,6 +10,7 @@ from oort.server.errors import (InvalidAstronomerOortCloudError, InvalidOrgMembe
                                 InvalidOrganisationTelescopeOortCloudError,
                                 InvalidOrganisationUploadKeyOortCloudError, InvalidWatchOptionsOortCloudError,
                                 UnknownOrganisationOortCloudError)
+from oort.shared.config import get_logger
 from oort.shared.identity import Identity
 from oort.shared.models import Organisation
 
@@ -19,7 +20,8 @@ def check_local_astronomer(debug: bool):
     username = ArcsecondAPI.username(debug=debug, test=test)
     if username is None:
         raise InvalidAstronomerOortCloudError('')
-    return username
+    api_key = ArcsecondAPI.api_key(debug=debug, test=test)
+    return username, api_key
 
 
 def check_remote_organisation(org_subdomain: str, debug: bool):
@@ -145,7 +147,9 @@ def parse_upload_watch_options(o: Optional[str] = None,
     # No custom astronomer for uploading. If no org, fine. If an org, one need the telescope.
     if astronomer == (None, None):
         # Fetch the username of the currently logged in astronomer.
-        username = check_local_astronomer(debug)
+        username, api_key = check_local_astronomer(debug)
+        if not username or not api_key:
+            raise InvalidWatchOptionsOortCloudError('Missing username or api_key.')
 
         # If we have an organisation and no telescope UUID, we list the one available
         # and then raise an error
@@ -176,10 +180,12 @@ def save_upload_folders(folders: list,
                         org_role: Optional[str],
                         telescope_details: Optional[dict],
                         debug: bool) -> list:
+    logger = get_logger(debug=debug)
     prepared_folders = []
     for raw_folder in folders:
         upload_folder = os.path.expanduser(os.path.realpath(raw_folder))
-        if not os.path.exists(upload_folder):
+        if not os.path.exists(upload_folder) and os.environ.get('OORT_TESTS') != '1':
+            logger.warn(f'Upload folder "{upload_folder}" does not exists. Skipping.')
             continue
         if os.path.isfile(upload_folder):
             upload_folder = os.path.dirname(upload_folder)

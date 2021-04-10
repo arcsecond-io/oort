@@ -10,13 +10,8 @@ from oort.server.errors import (
     InvalidOrganisationTelescopeOortCloudError,
     InvalidWatchOptionsOortCloudError
 )
-from tests.utils import (
-    TEST_LOGIN_ORG_ROLE,
-    TEST_LOGIN_ORG_SUBDOMAIN,
-    TEST_LOGIN_USERNAME,
-    save_test_credentials,
-    use_test_database
-)
+from tests.utils import (TEST_LOGIN_API_KEY, TEST_LOGIN_ORG_ROLE, TEST_LOGIN_ORG_SUBDOMAIN, TEST_LOGIN_USERNAME,
+                         save_test_credentials, use_test_database)
 
 TELESCOPE_UUID = str(uuid.uuid4())
 TELESCOPE_DETAILS = {'uuid': TELESCOPE_UUID, 'name': 'telescope name', 'coordinates': {}}
@@ -41,7 +36,7 @@ def test_cli_folders_no_options_org_nor_telescope():
 
     # Assert
     assert username == TEST_LOGIN_USERNAME
-    assert api_key == ''
+    assert api_key == TEST_LOGIN_API_KEY
     assert org_subdomain == ''
     assert org_role == ''
     assert telescope_details is None
@@ -101,7 +96,7 @@ def test_cli_folders_with_options_telescope_as_t():
         # Assert
         assert mock_method_read.call_count == 1
         assert username == TEST_LOGIN_USERNAME
-        assert api_key == ''
+        assert api_key == TEST_LOGIN_API_KEY
         assert org_subdomain == ''
         assert org_role == ''
         assert telescope_details == TELESCOPE_DETAILS
@@ -123,7 +118,7 @@ def test_cli_folders_with_options_telescope_as_telescope():
         # Assert
         assert mock_method_read.call_count == 1
         assert username == TEST_LOGIN_USERNAME
-        assert api_key == ''
+        assert api_key == TEST_LOGIN_API_KEY
         assert org_subdomain == ''
         assert org_role == ''
         assert telescope_details == TELESCOPE_DETAILS
