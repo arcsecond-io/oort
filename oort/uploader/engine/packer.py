@@ -62,6 +62,7 @@ class UploadPack(object):
 
     def __init__(self, root_path, file_path, identity: Identity, upload=None):
         self._logger = get_logger(debug=True)
+        self._logger.info(f'Packing {file_path}...')
         self._identity = identity
 
         self._root_path = root_path
