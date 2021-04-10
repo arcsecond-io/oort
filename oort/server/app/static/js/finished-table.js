@@ -34,7 +34,7 @@ Vue.component('finished-table', {
       </div>
     </td>
     <td>
-      <div v-if="upload.night_log">
+      <div v-if="upload.night_log && upload.night_log.date">
         <a v-if="upload.organisation" :href='getOrganisationNightLogURL(upload)' target="_blank">
           {{ upload.night_log.date }}
         </a>
