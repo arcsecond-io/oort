@@ -70,6 +70,6 @@ def test_cli_watch_with_org_telescope():
             patch('builtins.input', return_value='Nope'):
         result = runner.invoke(watch, ['.', '-o', TEST_LOGIN_ORG_SUBDOMAIN, '-t', telescope_uuid])
         assert result.exit_code == 0
-        assert f"account username: @{TEST_LOGIN_USERNAME}" in result.output.lower()
+        assert f"arcsecond username: @{TEST_LOGIN_USERNAME}" in result.output.lower()
         assert f"uploading for organisation: {TEST_LOGIN_ORG_SUBDOMAIN}" in result.output.lower()
         mock_method_read.assert_called_once()
