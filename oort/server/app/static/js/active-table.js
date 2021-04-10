@@ -14,13 +14,12 @@ Vue.component('active-table', {
     <th>Started</th>
     <th>Ended</th>
     <th>Duration</th>
-    <th>Error</th>
   </tr>
   </thead>
   <tbody>
   <tr v-for="upload in uploads">
     <td>
-      <span class="subtitle">&lt;root&gt;</span><span><strong>{{ getFilePath(upload, root_path) }}</strong></span>
+      <span class="subtitle">&lt;root&gt;/</span><span><strong>{{ getFilePath(upload, root_path) }}</strong></span>
       <div><span class="subtitle">Obs Date:</span> {{ upload.file_date }}</div>
     </td>
     <td>
@@ -33,13 +32,18 @@ Vue.component('active-table', {
       <div class="subtitle">{{ upload.dataset.uuid }}</div>
     </td>
     <td>
-      <a v-if="upload.organisation" :href='getOrganisationNightLogURL(upload)' target="_blank">
+      <div v-if="upload.night_log">
+        <a v-if="upload.organisation" :href='getOrganisationNightLogURL(upload)' target="_blank">
+          {{ upload.night_log.date }}
+        </a>
+        <a v-else :href='getNightLogURL(upload)' target="_blank">
         {{ upload.night_log.date }}
-      </a>
-      <a v-else :href='getNightLogURL(upload)' target="_blank">
-        {{ upload.night_log.date }}
-      </a>
-      <div class="subtitle">{{ upload.night_log.uuid }}</div>
+        </a>
+        <div class="subtitle">{{ upload.night_log.uuid }}</div>
+      </div>
+      <div v-else>
+        <span class="subtitle">(no night log)</span>
+      </div>
     </td>
     <td>
       <div v-if="upload.telescope">
@@ -75,7 +79,6 @@ Vue.component('active-table', {
     <td>{{ upload.started }}</td>
     <td>{{ upload.ended }}</td>
     <td>{{ upload.duration.toFixed(1) }} s</td>
-    <td>{{ upload.error }}</td>
   </tr>
   </tbody>
 </table>

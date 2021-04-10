@@ -19,7 +19,7 @@ Vue.component('finished-table', {
   <tbody>
   <tr v-for="upload in uploads">
     <td>
-      <span class="subtitle">&lt;root&gt;</span><span><strong>{{ getFilePath(upload, root_path) }}</strong></span>
+      <span class="subtitle">&lt;root&gt;/</span><span><strong>{{ getFilePath(upload, root_path) }}</strong></span>
       <div><span class="subtitle">Obs Date:</span> {{ upload.file_date }}</div>
     </td>
     <td>
@@ -34,7 +34,7 @@ Vue.component('finished-table', {
       </div>
     </td>
     <td>
-      <div v-if="upload.night_log && upload.night_log.date">
+      <div v-if="upload.night_log">
         <a v-if="upload.organisation" :href='getOrganisationNightLogURL(upload)' target="_blank">
           {{ upload.night_log.date }}
         </a>
@@ -42,6 +42,9 @@ Vue.component('finished-table', {
           {{ upload.night_log.date }}
         </a>
         <div class="subtitle">{{ upload.night_log.uuid }}</div>
+      </div>
+      <div v-else>
+        <span class="subtitle">(no night log)</span>
       </div>
     </td>
     <td>
