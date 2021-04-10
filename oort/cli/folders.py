@@ -147,6 +147,8 @@ def parse_upload_watch_options(o: Optional[str] = None,
     if astronomer == (None, None):
         # Fetch the username of the currently logged in astronomer.
         username, api_key = check_local_astronomer(debug)
+        if not username or not api_key:
+            raise InvalidWatchOptionsOortCloudError('Missing username or api_key.')
 
         # If we have an organisation and no telescope UUID, we list the one available
         # and then raise an error
