@@ -78,6 +78,8 @@ class UploadPack(object):
         else:
             self._upload = upload
 
+        self._upload.smart_update(astronomer=self._identity.username)
+
     def _parse(self):
         self._segments = [s for s in self._file_path[len(self._root_path):].split(os.sep) if s != '']
         self._filename = self._segments.pop()
