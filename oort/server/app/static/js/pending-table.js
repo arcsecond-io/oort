@@ -17,7 +17,7 @@ Vue.component('pending-table', {
     </td>
     <td>
       <a v-if="upload.organisation" :href='getOrganisationURL(upload)' target="_blank">{{ upload.organisation.subdomain }}</a>
-      <a v-else :href='getProfileURL(upload)' target="_blank">@{{ upload.astronomer }}</a>
+      <a v-else-if="upload.astronomer" :href='getProfileURL(upload)' target="_blank">@{{ upload.astronomer }}</a>
     </td>
     <td>
       {{ getFormattedSize(upload.file_size) }}
