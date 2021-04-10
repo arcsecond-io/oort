@@ -18,7 +18,7 @@ if __name__ == "__main__":
     paths_observer.start()
 
     for folder_section in get_config_upload_folder_sections():
-        identity = Identity.from_folder_section(folder_section, debug)
+        identity = Identity.from_folder_section(folder_section)
 
         # Prepare for initial_walk
         script_path = os.path.join(os.path.dirname(__file__), 'engine', 'initial_walk.py')
