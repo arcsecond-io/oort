@@ -208,7 +208,9 @@ class UploadPreparator(object):
 
     def _sync_observation_or_calibration(self):
         resources_api = getattr(ArcsecondAPI, self._pack.remote_resources_name)(**self.api_kwargs)
-        kwargs = {'night_log': str(self._night_log.uuid), 'name': self._pack.dataset_name}
+        kwargs = {'name': self._pack.dataset_name}
+        if self._night_log:
+            kwargs.update(night_log=str(self._night_log.uuid))
         if self._pack.resource_type == 'observation':
             kwargs.update(target_name=self._pack.dataset_name)
         self._logger.info(f'{self.prefix} Syncing {self._pack.remote_resources_name}: {kwargs}...')
@@ -219,7 +221,9 @@ class UploadPreparator(object):
     def _sync_dataset(self):
         self._logger.info(f'{self.prefix} Syncing Dataset {self._pack.dataset_name}...')
         datasets_api = ArcsecondAPI.datasets(**self.api_kwargs)
-        kwargs = {'name': self._pack.dataset_name, self._pack.resource_type: str(self._obs_or_calib.uuid)}
+        kwargs = {'name': self._pack.dataset_name}
+        if self._obs_or_calib:
+            kwargs.update(**{self._pack.resource_type: str(self._obs_or_calib.uuid)})
         self._dataset = self._sync_resource(Dataset, datasets_api, **kwargs)
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -233,11 +237,13 @@ class UploadPreparator(object):
             if self._telescope:
                 self._pack.upload.smart_update(telescope=self._telescope)
 
-            self._pack.upload.smart_update(substatus=Substatus.SYNC_NIGHTLOG.value)
-            self._sync_night_log()
+            if self._pack.night_log_date_string:
+                self._pack.upload.smart_update(substatus=Substatus.SYNC_NIGHTLOG.value)
+                self._sync_night_log()
 
-            self._pack.upload.smart_update(substatus=Substatus.SYNC_OBS_OR_CALIB.value)
-            self._sync_observation_or_calibration()  # observation or calibration
+                # No night log, no observation not calib possible.
+                self._pack.upload.smart_update(substatus=Substatus.SYNC_OBS_OR_CALIB.value)
+                self._sync_observation_or_calibration()  # observation or calibration
 
             self._pack.upload.smart_update(substatus=Substatus.SYNC_DATASET.value)
             self._sync_dataset()

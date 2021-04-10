@@ -115,10 +115,10 @@ class UploadPack(object):
             self._archive(Substatus.SKIPPED_NOT_FITS_OR_XISF.value)
             return
 
-        if not self.has_date_obs:
-            self._logger.info(f'{self.file_path} has no date we could find. Upload skipped.')
-            self._archive(Substatus.SKIPPED_NO_DATE_OBS.value)
-            return
+        # if not self.has_date_obs:
+        #     self._logger.info(f'{self.file_path} has no date we could find. Upload skipped.')
+        #     self._archive(Substatus.SKIPPED_NO_DATE_OBS.value)
+        #     return
 
         if self.should_prepare:
             upload_preparator = preparator.UploadPreparator(self, debug=self._identity.debug)
