@@ -33,7 +33,8 @@ def start(debug=False):
         write_config_value('server', 'host', host)
         write_config_value('server', 'port', str(port))
 
-    logger.info(f'Starting Oort web server (http://{host}:{port}) ...')
+    d = 'debug ' if debug else ' '
+    logger.info(f'Starting Oort {d}web server (http://{host}:{port})...')
     app.run(debug=debug, host=host, port=port)
 
 
