@@ -32,13 +32,18 @@ Vue.component('active-table', {
       <div class="subtitle">{{ upload.dataset.uuid }}</div>
     </td>
     <td>
-      <a v-if="upload.organisation" :href='getOrganisationNightLogURL(upload)' target="_blank">
+      <div v-if="upload.night_log">
+        <a v-if="upload.organisation" :href='getOrganisationNightLogURL(upload)' target="_blank">
+          {{ upload.night_log.date }}
+        </a>
+        <a v-else :href='getNightLogURL(upload)' target="_blank">
         {{ upload.night_log.date }}
-      </a>
-      <a v-else :href='getNightLogURL(upload)' target="_blank">
-        {{ upload.night_log.date }}
-      </a>
-      <div class="subtitle">{{ upload.night_log.uuid }}</div>
+        </a>
+        <div class="subtitle">{{ upload.night_log.uuid }}</div>
+      </div>
+      <div v-else>
+        <span class="subtitle">(no night log)</span>
+      </div>
     </td>
     <td>
       <div v-if="upload.telescope">
