@@ -114,4 +114,6 @@ def test_cli_folders_custom_astronomer_with_o_and_t_options_and_valid_upload_key
             assert identity.api_key == api_key
             assert identity.subdomain == org_subdomain
             assert identity.role == org_role
-            assert identity.telescope == TEL_DETAILS
+            assert identity.telescope == TEL_UUID
+            assert identity.debug is True
+
