@@ -10,6 +10,7 @@ from oort.server.errors import (InvalidAstronomerOortCloudError, InvalidOrgMembe
                                 InvalidOrganisationTelescopeOortCloudError,
                                 InvalidOrganisationUploadKeyOortCloudError, InvalidWatchOptionsOortCloudError,
                                 UnknownOrganisationOortCloudError)
+from oort.shared.config import get_logger
 from oort.shared.identity import Identity
 from oort.shared.models import Organisation
 
@@ -179,10 +180,12 @@ def save_upload_folders(folders: list,
                         org_role: Optional[str],
                         telescope_details: Optional[dict],
                         debug: bool) -> list:
+    logger = get_logger(debug=debug)
     prepared_folders = []
     for raw_folder in folders:
         upload_folder = os.path.expanduser(os.path.realpath(raw_folder))
-        if not os.path.exists(upload_folder):
+        if not os.path.exists(upload_folder) and os.environ.get('OORT_TESTS') != '1':
+            logger.warn(f'Upload folder "{upload_folder}" does not exists. Skipping.')
             continue
         if os.path.isfile(upload_folder):
             upload_folder = os.path.dirname(upload_folder)
