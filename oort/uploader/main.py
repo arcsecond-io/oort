@@ -19,15 +19,8 @@ if __name__ == "__main__":
 
     for folder_section in get_config_upload_folder_sections():
         identity = Identity.from_folder_section(folder_section)
-
-        # Prepare for initial_walk
-        script_path = os.path.join(os.path.dirname(__file__), 'engine', 'initial_walk.py')
         folder_path = folder_section.get('path')
-
-        # Using run instead of Popen(close_fds=True) will run the initial_walk in a synchronous way.
-        subprocess.run(["python3", script_path, folder_path, identity.get_args_string()])
-
-        # Once initial_walk is done, start observing folder.
+        # paths_observer.observe_folder will deal with the initial walk.
         paths_observer.observe_folder(folder_path, identity)
 
     try:

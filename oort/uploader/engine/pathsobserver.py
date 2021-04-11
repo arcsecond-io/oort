@@ -1,5 +1,8 @@
+import os
 from typing import List
+from pathlib import Path
 
+from watchdog.events import FileCreatedEvent
 from watchdog.observers import Observer
 
 from oort.shared.config import get_logger
@@ -25,9 +28,29 @@ class PathsObserver(Observer):
         for folder_path in self._mapping.keys():
             self._mapping[folder_path]['handler'].debug = self._debug
 
+    def _perform_initial_walk(self, folder_path, event_handler):
+        root_path = Path(folder_path)
+        # Just in case we pass a file...
+        if root_path.is_file():
+            root_path = root_path.parent
+
+        count = 0
+        for path in root_path.glob('**/*.*'):
+            # Skipping both hidden files and hidden directories.
+            if any([part for part in path.parts if len(part) > 0 and part[0] == '.']):
+                continue
+            if path.is_file():
+                count += 1
+                event = FileCreatedEvent(str(path))
+                event_handler.dispatch(event)
+
+        self._logger.info(f'Initial walk inside folder {folder_path} dispatched {count} events.')
+
     def observe_folder(self, folder_path: str, identity: Identity, tick=5.0) -> None:
-        self._logger.info(f'Starting to observe folder {folder_path}')
         event_handler = eventhandler.DataFileHandler(path=folder_path, identity=identity, tick=tick, debug=self._debug)
+        self._logger.info(f'Starting initial walk inside folder {folder_path}')
+        self._perform_initial_walk(folder_path, event_handler)
+        self._logger.info(f'Starting to observe folder {folder_path}')
         watch = self.schedule(event_handler, folder_path, recursive=True)
         self._mapping[folder_path] = {'watcher': watch, 'handler': event_handler}
 
