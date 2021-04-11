@@ -185,11 +185,13 @@
 
             <div class="table-block">
               <div class="table-title">
-                <div>Finished Uploads {{ finished_count }}.</div>
+                <div style="margin-right:5px;">
+                  Finished Uploads {{ finished_count }}.
+                </div>
                 <div>
-                  <span>Show Done ({{ finished_count - skipped_count }}): </span>
+                  <span style="margin-left:5px;">Show Done ({{ finished_count - skipped_count }}): </span>
                   <input id="toggle-finished-done" type="checkbox" v-model="show_tables.finished_done" class="">
-                  <span>Show Skipped ({{ skipped_count }}): </span>
+                  <span style="margin-left:5px;">Show Skipped ({{ skipped_count }}): </span>
                   <input id="toggle-finished-skipped" type="checkbox" v-model="show_tables.finished_skipped" class="">
                 </div>
               </div>
