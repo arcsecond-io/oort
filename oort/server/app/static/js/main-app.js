@@ -64,6 +64,8 @@ var app = new Vue({
       this.finished_uploads = []
       this.error_uploads = []
       this.progresses = []
+      this.finished_count = 0
+      this.skipped_count = 0
     },
     retryAllFailed () {
       fetch('/retries?ids=' + this.error_uploads.reduce((acc, value) => acc + value.id.toString() + ',', ''))
