@@ -209,6 +209,15 @@ class Upload(BaseModel):
     astronomer = CharField(default='')
     organisation = ForeignKeyField(Organisation, backref='uploads', null=True)
 
+    @classmethod
+    def is_ok(cls, file_path):
+        try:
+            u = cls.get(file_path=file_path)
+        except DoesNotExist:
+            return False
+        else:
+            return u.status == Status.OK.value
+
 
 db.connect()
 db.create_tables([Organisation, Telescope, NightLog, Observation, Calibration, Dataset, Upload])
