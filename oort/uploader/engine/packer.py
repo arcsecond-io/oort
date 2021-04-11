@@ -110,11 +110,11 @@ class UploadPack(object):
         self._upload.smart_update(file_date=_file_date, file_size=_file_size)
 
     def do_upload(self):
-        if not self.is_fits_or_xisf:
-            self._logger.info(f'{self.file_path} not a FITS or XISF. Upload skipped.')
-            self._archive(Substatus.SKIPPED_NOT_FITS_OR_XISF.value)
             return
 
+        # if not self.is_fits_or_xisf:
+        #     self._logger.info(f'{self.file_path} not a FITS or XISF. Upload skipped.')
+        #     self._archive(Substatus.SKIPPED_NOT_FITS_OR_XISF.value)
         # if not self.has_date_obs:
         #     self._logger.info(f'{self.file_path} has no date we could find. Upload skipped.')
         #     self._archive(Substatus.SKIPPED_NO_DATE_OBS.value)
