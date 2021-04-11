@@ -1,3 +1,4 @@
+import time
 from datetime import datetime
 from enum import Enum
 
@@ -10,17 +11,21 @@ from peewee import (
     ForeignKeyField,
     IntegerField,
     Model,
+    OperationalError,
     SqliteDatabase,
     UUIDField
 )
 from playhouse.signals import Signal
 
 from oort.shared.config import get_db_file_path
+from oort.shared.config import get_logger
 from oort.uploader.engine.errors import MultipleDBInstanceError
 
 db = SqliteDatabase(get_db_file_path())
 
 upload_post_save_signal = Signal()
+
+logger = get_logger()
 
 
 class BaseModel(Model):
@@ -93,7 +98,12 @@ class BaseModel(Model):
         with db.atomic('IMMEDIATE'):
             for k, v in kwargs.items():
                 setattr(self, k, v)
-            self.save()
+            try:
+                self.save()
+            except OperationalError:
+                logger.warn('Operational error on DB save. retrying in 0.1 sec...')
+                time.sleep(0.1)
+                self.smart_update(**kwargs)
         upload_post_save_signal.send(self)
 
 
