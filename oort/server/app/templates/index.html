@@ -85,7 +85,7 @@
     <!-- **** STARTING FROM HERE, VUE.JS 'state.js' HAS CONTROL **** -->
     <div id="vuejs" class="main-content">
 
-      <div class="row row-select" v-if="state">
+      <div class="row row-select" v-if="has_state">
         <div v-if="state.folders.length > 0">
           <div class="h3">
             {{ state.folders.length }}
@@ -120,13 +120,16 @@
         </div>
       </div>
       <div v-else>
-        <i class="fa fa-spin fa-spinner">Loading...</i>
+        <div class="h3 label-centered">
+          <i class="fa fa-spin fa-spinner"></i>
+          Loading...
+        </div>
       </div>
 
       <div class="row row-tables text-small" v-if="selected_folder">
         <div class="col-xs-12">
 
-          <div id="uploads" v-if="state">
+          <div id="uploads" v-if="has_state">
             <div class="table-block">
               <div class="table-title">
                 <input id="toggle-current" type="checkbox" v-model="show_tables.current" class="">
