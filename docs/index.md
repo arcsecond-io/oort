@@ -187,7 +187,7 @@ Will not be uploaded (not FITS nor XISF)
 
 | NL Date | Type | Dataset | Filename | Format |
  ---- | ---- | ------------ | --- | --- |
-| (none) | (None) | `(folder <root>)` | `NGC3603_V_2x2.fit` | FITS |
+| (none) | (None) | `(folder <root>)` | `GRO_J1655-40.FITS` | FITS |
 
 There will be no Observation or Calibration created when there is 
 no Night Log present, for which the date is mandatory. 
