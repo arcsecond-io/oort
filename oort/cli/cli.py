@@ -1,6 +1,5 @@
 import builtins
 import os
-import subprocess
 import webbrowser
 
 import click
@@ -238,8 +237,7 @@ def watch(state, folders, o=None, organisation=None, t=None, telescope=None, ast
                                                state.debug)
 
         for (folder_path, identity) in prepared_folders:
-            script_path = os.path.join(oort_folder, 'uploader', 'engine', 'initial_walk.py')
-            subprocess.Popen(["python3", script_path, folder_path, identity.get_args_string()], close_fds=True)
+            # paths_observer.observe_folder will deal with the initial walk.
             paths_observer.observe_folder(folder_path, identity)
 
 
