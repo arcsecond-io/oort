@@ -110,10 +110,15 @@ class UploadPack(object):
         self._upload.smart_update(file_date=_file_date, file_size=_file_size)
 
     def do_upload(self):
-        if not self.is_fits_or_xisf:
-            self._logger.info(f'{self.file_path} not a FITS or XISF. Upload skipped.')
-            self._archive(Substatus.SKIPPED_NOT_FITS_OR_XISF.value)
+        if self.is_hidden_file:
+            self._logger.info(f'{self.file_path} is an hidden file. Upload skipped.')
+            self._archive(Substatus.SKIPPED_HIDDEN_FILE.value)
             return
+
+        # if not self.is_fits_or_xisf:
+        #     self._logger.info(f'{self.file_path} not a FITS or XISF. Upload skipped.')
+        #     self._archive(Substatus.SKIPPED_NOT_FITS_OR_XISF.value)
+        #     return
 
         # if not self.has_date_obs:
         #     self._logger.info(f'{self.file_path} has no date we could find. Upload skipped.')
@@ -168,9 +173,20 @@ class UploadPack(object):
         return self._upload.file_date is not None
 
     @property
+    def file_full_extension(self) -> str:
+        return ''.join(pathlib.Path(self._file_path).suffixes)
+
+    @property
+    def file_last_extension(self) -> str:
+        return pathlib.Path(self._file_path).suffix
+
+    @property
     def is_fits_or_xisf(self) -> bool:
-        extension = ''.join(pathlib.Path(self._file_path).suffixes)
-        return extension.lower() in get_all_fits_extensions() + get_all_xisf_extensions()
+        return self.file_full_extension.lower().lower() in get_all_fits_extensions() + get_all_xisf_extensions()
+
+    @property
+    def is_hidden_file(self) -> bool:
+        return os.path.basename(self._file_path)[0] == '.'
 
     @property
     def night_log_date_string(self) -> str:
@@ -204,10 +220,9 @@ class UploadPack(object):
         return self._upload.substatus in FINISHED_SUBSTATUSES
 
     def _find_date(self, path):
-        _, extension = os.path.splitext(path)
-        if extension.lower() in get_all_xisf_extensions():
+        if self.file_full_extension.lower() in get_all_xisf_extensions():
             return self._find_xisf_filedate(path)
-        elif extension.lower() in get_all_fits_extensions():
+        elif self.file_full_extension.lower() in get_all_fits_extensions():
             return self._find_fits_filedate(path)
 
     def _find_fits_filedate(self, path):
@@ -229,11 +244,10 @@ class UploadPack(object):
 
     def _find_xisf_filedate(self, path):
         header = b''
-        _, extension = os.path.splitext(self._file_path)
         open_method = open
-        if extension in ['.gzip', '.gz']:
+        if self.file_last_extension in ['.gzip', '.gz']:
             open_method = gzip.open
-        elif extension in ['.bzip2', '.bz2']:
+        elif self.file_last_extension in ['.bzip2', '.bz2']:
             open_method = bz2.open
 
         with open_method(path, 'rb') as f:

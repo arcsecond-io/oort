@@ -160,6 +160,7 @@ class Substatus(Enum):
     SKIPPED_NO_DATE_OBS = 'skipped (no date obs found)'
     SKIPPED_NOT_FITS_OR_XISF = 'skipped (not fits or xisf)'
     SKIPPED_NO_DATASET = 'skipped (no dataset)'
+    SKIPPED_HIDDEN_FILE = 'skipped (hidden file)'
 
 
 FINISHED_SUBSTATUSES = [Substatus.DONE.value,

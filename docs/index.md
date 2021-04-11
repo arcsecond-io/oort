@@ -177,9 +177,17 @@ with Local time `Oct. 15, 2020, 04am` will give:
 
 <br/>
 
-#### `<root>/passwords.csv`
+#### `<root>/folder1/passwords.csv`
 
-Will not be uploaded (not FITS nor XISF)
+| NL Date | Type | Dataset | Filename | Format |
+ ---- | ---- | ------------ | --- | --- |
+| (none) | (None) | `folder1` | `passwords.csv` | csv |
+
+<br/>
+
+#### `<root>/folder2/subfolder/.config`
+
+Will not be uploaded because it is an hidden file (starting with a `.`).
 
 <br/>
 
@@ -187,7 +195,7 @@ Will not be uploaded (not FITS nor XISF)
 
 | NL Date | Type | Dataset | Filename | Format |
  ---- | ---- | ------------ | --- | --- |
-| (none) | (None) | `(folder <root>)` | `NGC3603_V_2x2.fit` | FITS |
+| (none) | (None) | `(folder <root>)` | `GRO_J1655-40.FITS` | FITS |
 
 There will be no Observation or Calibration created when there is 
 no Night Log present, for which the date is mandatory. 
