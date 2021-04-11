@@ -64,7 +64,8 @@ class FileUploader(object):
                 # Remote file resource doesn't exists remotely. self._api.create method is fine.
                 _remote_resource_exists = False
             else:
-                self._logger.info(f'{self.prefix} Check remote file: {str(error)}')
+                # If for some reason the resource is duplicated, we end up here.
+                self._logger.info(f'{self.prefix} Check remote file failed with error: {str(error)}')
                 raise errors.UploadRemoteFileCheckError(str(error))
         else:
             _remote_resource_exists = True
