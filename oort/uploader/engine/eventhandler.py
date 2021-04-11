@@ -38,6 +38,7 @@ class DataFileHandler(FileSystemEventHandler):
         if os.path.isfile(event.src_path) and not os.path.basename(event.src_path).startswith('.'):
             self._logger.info(f'Created event for path : {event.src_path}')
 
+            # Protection against large files currently being written, and whose filesize isn't complete yet.
             file_size = -1
             while file_size != os.path.getsize(event.src_path):
                 file_size = os.path.getsize(event.src_path)
