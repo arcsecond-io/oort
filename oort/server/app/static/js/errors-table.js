@@ -48,7 +48,7 @@ Vue.component('errors-table', {
   },
   methods: {
     sendRetryCommand (upload) {
-      fetch('/retries?ids=' + upload.id.toString())
+      fetch('/retry?ids=' + upload.id.toString())
     }
   }
 })

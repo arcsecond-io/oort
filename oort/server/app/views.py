@@ -44,8 +44,8 @@ def uploads():
     return Response(generate(), mimetype='text/event-stream')
 
 
-@main.route('/retries')
-def retries():
+@main.route('/retry')
+def retry():
     ids = request.args.get("ids", '').split(',')
     for upload_id in ids:
         u = Upload.get_by_id(upload_id)
