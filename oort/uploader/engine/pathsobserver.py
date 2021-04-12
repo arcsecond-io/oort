@@ -53,6 +53,7 @@ class PathsObserver(Observer):
         self._logger.info(f'Starting to observe folder {folder_path}')
         watch = self.schedule(event_handler, folder_path, recursive=True)
         self._mapping[folder_path] = {'watcher': watch, 'handler': event_handler}
+        event_handler.launch_restart_loop()
 
     def forget_folder(self, folder_path: str) -> None:
         if folder_path in self._mapping.keys():
