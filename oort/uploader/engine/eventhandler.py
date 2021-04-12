@@ -6,7 +6,7 @@ from watchdog.events import FileSystemEventHandler
 
 from oort.shared.config import get_logger
 from oort.shared.identity import Identity
-from oort.shared.models import Substatus, Upload
+from oort.shared.models import Substatus, Upload, db
 from . import packer
 
 
@@ -29,9 +29,10 @@ class DataFileHandler(FileSystemEventHandler):
         self._logger = get_logger(debug=self._debug)
 
     def _restart_uploads(self):
-        for upload in Upload.select().where(Upload.substatus == Substatus.RESTART.value):
-            pack = packer.UploadPack(self._root_path, upload.file_path, self._identity, upload=upload)
-            pack.do_upload()
+        with db.atomic():
+            for upload in Upload.select().where(Upload.substatus == Substatus.RESTART.value):
+                pack = packer.UploadPack(self._root_path, upload.file_path, self._identity, upload=upload)
+                pack.do_upload()
         threading.Timer(5.0, self._restart_uploads).start()
 
     def on_created(self, event):
