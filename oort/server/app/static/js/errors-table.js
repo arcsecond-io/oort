@@ -28,6 +28,8 @@ Vue.component('errors-table', {
     </td>
     <td>
       <button class="btn btn-sm btn-primary-black" @click="sendRetryCommand(upload)">Retry</button>
+      <span>&nbsp;</span>
+      <button class="btn btn-sm btn-primary-black" @click="sendIgnoreCommand(upload)">Ignore</button>
     </td>
   </tr>
   </tbody>
@@ -48,7 +50,10 @@ Vue.component('errors-table', {
   },
   methods: {
     sendRetryCommand (upload) {
-      fetch('/retries?ids=' + upload.id.toString())
+      fetch('/retry?ids=' + upload.id.toString())
+    },
+    sendIgnoreCommand (upload) {
+      fetch('/ignore?ids=' + upload.id.toString())
     }
   }
 })

@@ -68,7 +68,7 @@ var app = new Vue({
       this.skipped_count = 0
     },
     retryAllFailed () {
-      fetch('/retries?ids=' + this.error_uploads.reduce((acc, value) => acc + value.id.toString() + ',', ''))
+      fetch('/retry?ids=' + this.error_uploads.reduce((acc, value) => acc + value.id.toString() + ',', ''))
     }
   }
 })

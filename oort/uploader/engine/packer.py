@@ -61,12 +61,13 @@ class UploadPack(object):
      the observations/calibrations from filepath."""
 
     def __init__(self, root_path, file_path, identity: Identity, upload=None):
-        self._logger = get_logger(debug=True)
-        self._logger.info(f'Packing {file_path}...')
-        self._identity = identity
-
         self._root_path = root_path
         self._file_path = file_path
+        self._identity = identity
+
+        self._logger = get_logger(debug=True)
+        self._logger.info(f'{self.prefix} Packing {file_path}...')
+
         self._parse()
 
         # If the Upload DB object for this file_path doesn't exist yet in DB,
@@ -79,49 +80,27 @@ class UploadPack(object):
             self._upload = upload
 
         self._upload.smart_update(astronomer=self._identity.username)
+        self._logger.info(f'{self.prefix} Done packing {file_path}...')
 
-    def _parse(self):
-        self._segments = [s for s in self._file_path[len(self._root_path):].split(os.sep) if s != '']
-        self._filename = self._segments.pop()
-
-        self._type = ResourceType.OBSERVATION
-        self._dataset_name = None
-
-        for i in range(1, min(len(self._segments), 2) + 1):
-            if any([c for c in CALIB_PREFIXES if c in self._segments[-i].lower()]):
-                self._type = ResourceType.CALIBRATION
-                if i == 1:
-                    self._dataset_name = self._segments[-i]
-                else:  # i = 2
-                    self._dataset_name = f'{self._segments[-i]}/{self._segments[-1]}'
-                break
-
-        if self._type == ResourceType.OBSERVATION:
-            self._dataset_name = '/'.join(self._segments)
-
-        if len(self._dataset_name.strip()) == 0:
-            self._dataset_name = f'(folder {os.path.basename(self._root_path)})'
-
-        # What happens when rules change: dataset will change -> new upload...
-
-    def _find_date_and_size(self):
-        _file_date = self._find_date(self._file_path)
-        _file_size = os.path.getsize(self._file_path)
-        self._upload.smart_update(file_date=_file_date, file_size=_file_size)
 
     def do_upload(self):
         if self.is_hidden_file:
-            self._logger.info(f'{self.file_path} is an hidden file. Upload skipped.')
+            self._logger.info(f'{self.prefix} {self.file_path} is an hidden file. Upload skipped.')
             self._archive(Substatus.SKIPPED_HIDDEN_FILE.value)
             return
 
+        if self.is_empty_file:
+            self._logger.info(f'{self.prefix} {self.file_path} is an empty file. Upload skipped.')
+            self._archive(Substatus.SKIPPED_EMPTY_FILE.value)
+            return
+
         # if not self.is_fits_or_xisf:
-        #     self._logger.info(f'{self.file_path} not a FITS or XISF. Upload skipped.')
+        #     self._logger.info(f'{self.prefix} {self.file_path} not a FITS or XISF. Upload skipped.')
         #     self._archive(Substatus.SKIPPED_NOT_FITS_OR_XISF.value)
         #     return
 
         # if not self.has_date_obs:
-        #     self._logger.info(f'{self.file_path} has no date we could find. Upload skipped.')
+        #     self._logger.info(f'{self.prefix} {self.file_path} has no date we could find. Upload skipped.')
         #     self._archive(Substatus.SKIPPED_NO_DATE_OBS.value)
         #     return
 
@@ -129,20 +108,20 @@ class UploadPack(object):
             upload_preparator = preparator.UploadPreparator(self, debug=self._identity.debug)
             upload_preparator.prepare()
         else:
-            self._logger.info(f'Preparation already done for {self.file_path}.')
+            self._logger.info(f'{self.prefix} Preparation already done for {self.file_path}.')
 
         if self.is_already_finished:
-            self._logger.info(f'Upload already finished for {self.file_path}.')
+            self._logger.info(f'{self.prefix} Upload already finished for {self.file_path}.')
         elif self._upload.dataset is not None:
             file_uploader = uploader.FileUploader(self)
             file_uploader.upload()
         else:
-            logger = get_logger(debug=self._identity.debug)
-            logger.info(f'Missing dataset, upload skipped for {self.file_path}.')
+            self._logger.info(f'{self.prefix} Missing dataset, upload skipped for {self.file_path}.')
             self._archive(Substatus.SKIPPED_NO_DATASET.value)
 
-    def _archive(self, substatus):
-        self._upload.smart_update(status=Status.OK.value, substatus=substatus, ended=datetime.now())
+    @property
+    def prefix(self) -> str:
+        return '[UploadPack: ' + '/'.join(self._file_path.split(os.sep)[-2:]) + ']'
 
     @property
     def identity(self) -> Identity:
@@ -189,6 +168,10 @@ class UploadPack(object):
         return os.path.basename(self._file_path)[0] == '.'
 
     @property
+    def is_empty_file(self):
+        return self.file_size == 0
+
+    @property
     def night_log_date_string(self) -> str:
         if not self.has_date_obs:
             return ''
@@ -219,6 +202,35 @@ class UploadPack(object):
     def is_already_finished(self) -> bool:
         return self._upload.substatus in FINISHED_SUBSTATUSES
 
+    def _parse(self):
+        self._segments = [s for s in self._file_path[len(self._root_path):].split(os.sep) if s != '']
+        self._filename = self._segments.pop()
+
+        self._type = ResourceType.OBSERVATION
+        self._dataset_name = None
+
+        for i in range(1, min(len(self._segments), 2) + 1):
+            if any([c for c in CALIB_PREFIXES if c in self._segments[-i].lower()]):
+                self._type = ResourceType.CALIBRATION
+                if i == 1:
+                    self._dataset_name = self._segments[-i]
+                else:  # i = 2
+                    self._dataset_name = f'{self._segments[-i]}/{self._segments[-1]}'
+                break
+
+        if self._type == ResourceType.OBSERVATION:
+            self._dataset_name = '/'.join(self._segments)
+
+        if len(self._dataset_name.strip()) == 0:
+            self._dataset_name = f'(folder {os.path.basename(self._root_path)})'
+
+        # What happens when rules change: dataset will change -> new upload...
+
+    def _find_date_and_size(self):
+        _file_date = self._find_date(self._file_path)
+        _file_size = os.path.getsize(self._file_path)
+        self._upload.smart_update(file_date=_file_date, file_size=_file_size)
+
     def _find_date(self, path):
         if self.file_full_extension.lower() in get_all_xisf_extensions():
             return self._find_xisf_filedate(path)
@@ -239,7 +251,7 @@ class UploadPack(object):
                         break
         except Exception as error:
             hdulist.close()
-            self._logger.debug(str(error))
+            self._logger.debug(f'{self.prefix} {str(error)}')
         return file_date
 
     def _find_xisf_filedate(self, path):
@@ -281,7 +293,10 @@ class UploadPack(object):
             if tag is not None:
                 file_date = dateparser.parse(tag.get('value'))
         except Exception as error:
-            self._logger.debug(str(error))
+            self._logger.debug(f'{self.prefix} {str(error)}')
             return None
         else:
             return file_date
+
+    def _archive(self, substatus):
+        self._upload.smart_update(status=Status.OK.value, substatus=substatus, ended=datetime.now())
