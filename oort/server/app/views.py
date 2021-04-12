@@ -6,7 +6,7 @@ from flask import Blueprint, Response, render_template, request
 from flask import current_app as app, redirect, url_for
 
 from oort.shared.config import get_logger
-from oort.shared.models import Upload, Substatus, Status
+from oort.shared.models import Status, Substatus, Upload
 from .context import Context
 
 logger = get_logger()
@@ -50,4 +50,13 @@ def retry():
     for upload_id in ids:
         u = Upload.get_by_id(upload_id)
         u.smart_update(status=Status.UPLOADING.value, substatus=Substatus.RESTART.value, error='')
+    return Response({}, mimetype='application/json')
+
+
+@main.route('/ignore')
+def ignore():
+    ids = request.args.get("ids", '').split(',')
+    for upload_id in ids:
+        u = Upload.get_by_id(upload_id)
+        u.smart_update(status=Status.OK.value, substatus=Substatus.IGNORED.value, error='')
     return Response({}, mimetype='application/json')

@@ -172,6 +172,7 @@ class Substatus(Enum):
     SKIPPED_NO_DATASET = 'skipped (no dataset)'
     SKIPPED_HIDDEN_FILE = 'skipped (hidden file)'
     SKIPPED_EMPTY_FILE = 'skipped (empty file)'
+    IGNORED = 'ignored'
 
 
 FINISHED_SUBSTATUSES = [Substatus.DONE.value,
