@@ -115,6 +115,11 @@ class UploadPack(object):
             self._archive(Substatus.SKIPPED_HIDDEN_FILE.value)
             return
 
+        if self.is_empty_file:
+            self._logger.info(f'{self.file_path} is an empty file. Upload skipped.')
+            self._archive(Substatus.SKIPPED_EMPTY_FILE.value)
+            return
+
         # if not self.is_fits_or_xisf:
         #     self._logger.info(f'{self.file_path} not a FITS or XISF. Upload skipped.')
         #     self._archive(Substatus.SKIPPED_NOT_FITS_OR_XISF.value)
@@ -187,6 +192,10 @@ class UploadPack(object):
     @property
     def is_hidden_file(self) -> bool:
         return os.path.basename(self._file_path)[0] == '.'
+
+    @property
+    def is_empty_file(self):
+        return self.file_size == 0
 
     @property
     def night_log_date_string(self) -> str:
