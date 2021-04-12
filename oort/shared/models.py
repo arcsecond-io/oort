@@ -1,4 +1,3 @@
-import time
 from datetime import datetime
 from enum import Enum
 
@@ -11,7 +10,6 @@ from peewee import (
     ForeignKeyField,
     IntegerField,
     Model,
-    OperationalError,
     SqliteDatabase,
     UUIDField
 )
@@ -21,7 +19,7 @@ from oort.shared.config import get_db_file_path
 from oort.shared.config import get_logger
 from oort.uploader.engine.errors import MultipleDBInstanceError
 
-db = SqliteDatabase(get_db_file_path())
+db = SqliteDatabase(get_db_file_path(), pragmas={'journal_mode': 'wal', 'cache_size': -1024 * 64})
 
 upload_post_save_signal = Signal()
 
@@ -95,15 +93,10 @@ class BaseModel(Model):
         return instance
 
     def smart_update(self, **kwargs):
-        with db.atomic('IMMEDIATE'):
+        with db.atomic():
             for k, v in kwargs.items():
                 setattr(self, k, v)
-            try:
-                self.save()
-            except OperationalError:
-                logger.warn('Operational error on DB save. retrying in 0.1 sec...')
-                time.sleep(0.1)
-                self.smart_update(**kwargs)
+            self.save()
         upload_post_save_signal.send(self)
 
 
