@@ -26,7 +26,7 @@ def login():
                                        request.form.get('password'),
                                        request.form.get('subdomain'),
                                        debug=app.config['context'].debug)
-    app.config['login_error'] = json.loads(error) if error else None
+    app.config['context']['login_error'] = json.loads(error) if error else None
     return redirect(url_for('main.index'))
 
 
