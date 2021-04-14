@@ -81,4 +81,4 @@ class Context:
         }
         json_data = json.dumps(data, cls=BoostedJSONEncoder)
         # print(json_data)
-        return f"data:{json_data}\n\n"
+        return f"data:{json_data}\n\n"  ## having 2 line returns is key to distinguish response streams packets.
