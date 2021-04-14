@@ -2,7 +2,7 @@ import logging
 import os
 import tempfile
 from configparser import ConfigParser
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from oort.shared.constants import OORT_SUPERVISOR_SOCK_FILENAME
 
@@ -110,3 +110,13 @@ def get_config_upload_folder_sections() -> List[Dict]:
 
     return [dict(config[section], **{'section': section}) for section in sections]
 
+
+def get_config_folder_section(section_name) -> Optional[Dict]:
+    conf_file_path = get_oort_config_file_path()
+    if not os.path.exists(conf_file_path):
+        return None
+    config = ConfigParser()
+    config.read(conf_file_path)
+    if config.has_section(section_name):
+        return dict(config[section_name], **{'section': section_name})
+    return None
