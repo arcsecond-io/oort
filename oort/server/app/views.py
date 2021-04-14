@@ -5,7 +5,7 @@ from arcsecond import ArcsecondAPI
 from flask import Blueprint, Response, render_template, request
 from flask import current_app as app, redirect, url_for
 
-from oort.shared.config import get_logger
+from oort.shared.config import get_logger, write_config_value
 from oort.shared.models import Status, Substatus, Upload
 from .context import Context
 
@@ -28,6 +28,13 @@ def login():
                                        debug=app.config['context'].debug)
     app.config['context']['login_error'] = json.loads(error) if error else None
     return redirect(url_for('main.index'))
+
+
+@main.route('/update')
+def update():
+    write_config_value('server', 'selected_section', request.args.get("folderSection", ''))
+    print('--pyth', request.args.get("folderSection", ''))
+    return Response({}, mimetype='application/json')
 
 
 @main.route('/uploads')
