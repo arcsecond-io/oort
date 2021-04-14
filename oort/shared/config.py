@@ -1,7 +1,7 @@
 import logging
 import os
 import tempfile
-from configparser import ConfigParser
+from configparser import ConfigParser, NoOptionError
 from typing import Dict, List, Optional
 
 from oort.shared.constants import OORT_SUPERVISOR_SOCK_FILENAME
@@ -90,7 +90,10 @@ def get_config_value(section: str, key: str):
         return None
     if section not in config.sections():
         return None
-    return config.get(section, key)
+    try:
+        return config.get(section, key)
+    except NoOptionError:
+        return None
 
 
 def get_config_upload_folder_sections() -> List[Dict]:
