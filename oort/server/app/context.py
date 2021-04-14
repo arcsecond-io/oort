@@ -24,7 +24,7 @@ class Context:
     logged in user, not a potential custom astronomer."""
 
     def __init__(self, config):
-        self.debug = config['debug']
+        self.debug = bool(config.get('debug', 'False'))
         self.start_time = datetime.datetime.utcnow()
         self.login_error = config.get('login_error')
         self.username = ArcsecondAPI.username(debug=self.debug)
