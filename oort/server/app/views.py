@@ -32,8 +32,7 @@ def login():
 
 @main.route('/update')
 def update():
-    write_config_value('server', 'selected_section', request.args.get("folderSection", ''))
-    print('--pyth', request.args.get("folderSection", ''))
+    write_config_value('server', 'selected_folder', request.args.get("selectedFolder", ''))
     return Response({}, mimetype='application/json')
 
 
