@@ -108,11 +108,9 @@ class Context:
         }
 
     def get_yield_string(self) -> str:
-        selected_folder = get_config_value('server', 'selected_folder')
-        selected_path = self._sections_paths_mapping.get(selected_folder)
-        print(selected_folder, selected_path)
-
         data = {'state': self.to_dict()}
+
+        selected_path = self._sections_paths_mapping.get(get_config_value('server', 'selected_folder'))
         if selected_path:
             data.update(**self._get_queries_dicts(selected_path))
 
