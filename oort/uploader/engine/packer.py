@@ -28,6 +28,7 @@ from oort.shared.models import (
 )
 from . import preparator
 from . import uploader
+from . import zipper
 
 warnings.simplefilter('ignore', category=AstropyWarning)
 warnings.simplefilter('ignore', category=VOTableSpecWarning)
@@ -75,38 +76,38 @@ class UploadPack(object):
 
         self._find_date_and_sizes()
 
-    @property
-    def should_zip(self) -> bool:
-        return self.is_data_file and self.clear_file_exists and not self.clear_file_exists
+    def do_zip(self):
+        if not self.should_zip:
+            return
+
+        self._logger.info(f'{self.log_prefix} Start zipping {self.clear_file_path}...')
+        zip = zipper.AsyncZipper(self.clear_file_path)
+        zip.start()
 
     def do_upload(self):
-        return
+        if self.is_data_file and self._upload.file_size_zipped == 0 and self._upload.substatus == Substatus.READY.value:
+            self._logger.info(f'{self.log_prefix} {self.zipped_file_path} is zipped but size is zero?')
+            return
 
         if self.is_hidden_file:
-            self._logger.info(f'{self.log_prefix} {self.file_path} is an hidden file. Upload skipped.')
+            self._logger.info(f'{self.log_prefix} {self.final_file_path} is an hidden file. Upload skipped.')
             self._archive(Substatus.SKIPPED_HIDDEN_FILE.value)
             return
 
         if self.is_empty_file:
-            self._logger.info(f'{self.log_prefix} {self.file_path} is an empty file. Upload skipped.')
+            self._logger.info(f'{self.log_prefix} {self.final_file_path} is an empty file. Upload skipped.')
             self._archive(Substatus.SKIPPED_EMPTY_FILE.value)
             return
-
-        # if not self.is_data_file:
-        #     self._logger.info(f'{self.log_prefix} {self.file_path} not a FITS or XISF. Upload skipped.')
-        #     self._archive(Substatus.SKIPPED_NOT_FITS_OR_XISF.value)
-        #     return
-
-        # if not self.has_date_obs:
-        #     self._logger.info(f'{self.log_prefix} {self.file_path} has no date we could find. Upload skipped.')
-        #     self._archive(Substatus.SKIPPED_NO_DATE_OBS.value)
-        #     return
 
         if self.should_prepare:
             upload_preparator = preparator.UploadPreparator(self, debug=self._identity.debug)
             upload_preparator.prepare()
         else:
-            self._logger.info(f'{self.log_prefix} Preparation already done for {self.file_path}.')
+            self._logger.info(
+                f'{self.log_prefix} Preparation already done for {self.final_file_path} ({self._upload.substatus}).'
+            )
+
+        print(self._upload.dataset)
 
         if self.is_already_finished:
             self._logger.info(f'{self.log_prefix} Upload already finished for {self.final_file_path}.')
@@ -116,6 +117,12 @@ class UploadPack(object):
         else:
             self._logger.info(f'{self.log_prefix} Missing dataset, upload skipped for {self.final_file_path}.')
             self._archive(Substatus.SKIPPED_NO_DATASET.value)
+
+    def remove_zipped_file(self):
+        # Do NOT delete zipped file if clear one does not exist (assuming clear file is the original).
+        if self.clear_file_exists:
+            self._logger.info(f'{self.log_prefix} Deleting zipped file {self.final_file_path} (non-zipped file exists).')
+            pathlib.Path(self.zipped_file_path).unlink(missing_ok=True)
 
     @property
     def log_prefix(self) -> str:
@@ -128,6 +135,20 @@ class UploadPack(object):
     @property
     def upload(self) -> Optional[Upload]:
         return self._upload
+
+    @property
+    def should_zip(self) -> bool:
+        return self.is_data_file and self.clear_file_exists and not self.zipped_file_exists
+
+    @property
+    def final_file_path(self):
+        if self.should_zip or self.zipped_file_exists:
+            return self.zipped_file_path
+        return self.clear_file_path
+
+    @property
+    def final_file_name(self):
+        return pathlib.Path(self.final_file_path).name
 
     @property
     def has_date_obs(self) -> bool:
@@ -153,6 +174,7 @@ class UploadPack(object):
 
     @property
     def zipped_file_exists(self) -> bool:
+        return pathlib.Path(self.zipped_file_path).exists()
 
     @property
     def is_hidden_file(self) -> bool:
@@ -160,7 +182,7 @@ class UploadPack(object):
 
     @property
     def is_empty_file(self):
-        return self.file_size == 0
+        return self._upload.file_size == 0 and self._upload.file_size_zipped == 0
 
     @property
     def night_log_date_string(self) -> str:
