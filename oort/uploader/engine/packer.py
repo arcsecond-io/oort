@@ -70,8 +70,8 @@ class UploadPack(object):
 
         # Will work whatever the raw file path extension (zipped or not), and
         # whatever the current state of the two files (exists or not).
-        self._upload, created = Upload.get_or_create(file_path=self.clear_filepath)
-        self._upload.smart_update(astronomer=self._identity.username, file_path_zipped=self.zipped_filepath)
+        self._upload, created = Upload.get_or_create(file_path=self.clear_file_path)
+        self._upload.smart_update(astronomer=self._identity.username, file_path_zipped=self.zipped_file_path)
 
         self._find_date_and_sizes()
 
@@ -109,12 +109,12 @@ class UploadPack(object):
             self._logger.info(f'{self.log_prefix} Preparation already done for {self.file_path}.')
 
         if self.is_already_finished:
-            self._logger.info(f'{self.log_prefix} Upload already finished for {self.file_path}.')
+            self._logger.info(f'{self.log_prefix} Upload already finished for {self.final_file_path}.')
         elif self._upload.dataset is not None:
             file_uploader = uploader.FileUploader(self)
             file_uploader.upload()
         else:
-            self._logger.info(f'{self.log_prefix} Missing dataset, upload skipped for {self.file_path}.')
+            self._logger.info(f'{self.log_prefix} Missing dataset, upload skipped for {self.final_file_path}.')
             self._archive(Substatus.SKIPPED_NO_DATASET.value)
 
     @property
@@ -138,22 +138,21 @@ class UploadPack(object):
         return ''.join(self._raw_file_path.suffixes).lower() in get_all_fits_extensions() + get_all_xisf_extensions()
 
     @property
-    def clear_filepath(self) -> str:
+    def clear_file_path(self) -> str:
         return str(self._raw_file_path.with_suffix('')) if self._raw_file_path.suffix in ZIP_EXTENSIONS \
             else str(self._raw_file_path)
 
     @property
-    def zipped_filepath(self) -> str:
+    def zipped_file_path(self) -> str:
         return str(self._raw_file_path) + '.gz' if self._raw_file_path.suffix not in ZIP_EXTENSIONS \
             else str(self._raw_file_path)
 
     @property
     def clear_file_exists(self) -> bool:
-        return pathlib.Path(self.clear_filepath).exists()
+        return pathlib.Path(self.clear_file_path).exists()
 
     @property
     def zipped_file_exists(self) -> bool:
-        return pathlib.Path(self.zipped_filepath).exists()
 
     @property
     def is_hidden_file(self) -> bool:
@@ -228,10 +227,10 @@ class UploadPack(object):
     def _find_sizes(self):
         _file_size = 0
         if self.clear_file_exists:
-            _file_size = pathlib.Path(self.clear_filepath).stat().st_size
+            _file_size = pathlib.Path(self.clear_file_path).stat().st_size
         _zipped_file_size = 0
         if self.zipped_file_exists:
-            _zipped_file_size = pathlib.Path(self.zipped_filepath).stat().st_size
+            _zipped_file_size = pathlib.Path(self.zipped_file_path).stat().st_size
         return _file_size, _zipped_file_size
 
     def _find_date(self):
