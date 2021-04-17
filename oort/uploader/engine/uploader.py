@@ -31,8 +31,8 @@ class FileUploader(object):
                                                organisation=pack.identity.subdomain)
 
     @property
-    def prefix(self) -> str:
         return '[FileUploader: ' + '/'.join(self._upload.file_path.split(os.sep)[-2:]) + ']'
+    def log_prefix(self) -> str:
 
     def _prepare_file_uploader(self, remote_resource_exists):
         def update_upload_progress(event, progress_percent):
@@ -44,14 +44,14 @@ class FileUploader(object):
 
         self._async_file_uploader: AsyncFileUploader
         if remote_resource_exists:
-            self._logger.info(f"{self.prefix} Remote resource exists. Preparing 'Update' APIs.")
             self._async_file_uploader, _ = self._api.update(os.path.basename(self._upload.file_path),
                                                             {'file': self._upload.file_path},
+            self._logger.info(f"{self.log_prefix} Remote resource exists. Preparing 'Update' APIs.")
                                                             callback=update_upload_progress)
         else:
-            self._logger.info(f"{self.prefix} Remote resource does not exist. Preparing 'Create' APIs.")
             self._async_file_uploader, _ = self._api.create({'file': self._upload.file_path},
                                                             callback=update_upload_progress)
+            self._logger.info(f"{self.log_prefix} Remote resource does not exist. Preparing 'Create' APIs.")
 
     def _check_remote_resource_and_file(self):
         _remote_resource_exists = False
@@ -65,7 +65,7 @@ class FileUploader(object):
                 _remote_resource_exists = False
             else:
                 # If for some reason the resource is duplicated, we end up here.
-                self._logger.info(f'{self.prefix} Check remote file failed with error: {str(error)}')
+                self._logger.info(f'{self.log_prefix} Check remote file failed with error: {str(error)}')
                 raise errors.UploadRemoteFileCheckError(str(error))
         else:
             _remote_resource_exists = True
@@ -83,7 +83,7 @@ class FileUploader(object):
             exists_remotely = self._check_remote_resource_and_file()
 
         except errors.UploadRemoteFileCheckError as error:
-            self._logger.info(f'{self.prefix} {str(error)}')
+            self._logger.info(f'{self.log_prefix} {str(error)}')
             self._upload.smart_update(status=Status.ERROR.value,
                                       substatus=Substatus.ERROR.value,
                                       error=str(error),
@@ -92,7 +92,7 @@ class FileUploader(object):
                                       duration=0)
 
         except Exception as error:
-            self._logger.info(f'{self.prefix} {str(error)}')
+            self._logger.info(f'{self.log_prefix} {str(error)}')
             self._upload.smart_update(status=Status.ERROR.value,
                                       substatus=Substatus.ERROR.value,
                                       error=str(error),
@@ -102,7 +102,7 @@ class FileUploader(object):
 
         else:
             if exists_remotely:
-                self._logger.info(f'{self.prefix} Already synced.')
+                self._logger.info(f'{self.log_prefix} Already synced.')
                 self._upload.smart_update(status=Status.OK.value,
                                           substatus=Substatus.ALREADY_SYNCED.value,
                                           error='',
@@ -119,7 +119,7 @@ class FileUploader(object):
             return
 
         self._upload.smart_update(status=Status.OK.value, substatus=Substatus.STARTING.value, error='')
-        self._logger.info(f'{self.prefix} Starting upload.')
+        self._logger.info(f'{self.log_prefix} Starting upload.')
 
         self._async_file_uploader.start()
         _, upload_error = self._async_file_uploader.finish()
@@ -128,10 +128,10 @@ class FileUploader(object):
         self._upload.smart_update(ended=ended, progress=0, duration=(ended - self._upload.started).total_seconds())
 
         if upload_error:
-            self._logger.info(f'{self.prefix} {str(upload_error)}')
+            self._logger.info(f'{self.log_prefix} {str(upload_error)}')
             self._process_error(upload_error)
         else:
-            self._logger.info(f'{self.prefix} successfully uploaded in {self._upload.duration} seconds.')
+            self._logger.info(f'{self.log_prefix} successfully uploaded in {self._upload.duration} seconds.')
             self._upload.smart_update(status=Status.OK.value, substatus=Substatus.DONE.value, error='')
 
     def _process_error(self, error):
@@ -151,9 +151,9 @@ class FileUploader(object):
         self._upload.smart_update(status=status, substatus=substatus, error=error)
 
     def upload(self):
-        self._logger.info(f'{self.prefix} Starting file upload....')
+        self._logger.info(f'{self.log_prefix} Starting file upload....')
         self._perform()
-        self._logger.info(f'{self.prefix} Closing file upload.')
+        self._logger.info(f'{self.log_prefix} Closing file upload.')
 
     @property
     def is_started(self):
