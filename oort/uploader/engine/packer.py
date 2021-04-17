@@ -15,7 +15,7 @@ from astropy.io.votable.exceptions import VOTableSpecWarning
 from astropy.utils.exceptions import AstropyWarning
 
 from oort.shared.config import get_logger
-from oort.shared.constants import get_all_fits_extensions, get_all_xisf_extensions
+from oort.shared.constants import ZIP_EXTENSIONS, get_all_fits_extensions, get_all_xisf_extensions
 from oort.shared.identity import Identity
 from oort.shared.models import (
     Calibration,
@@ -60,30 +60,28 @@ class UploadPack(object):
     """Class containing the logic to determine the dataset, the night_log and
      the observations/calibrations from filepath."""
 
-    def __init__(self, root_path, file_path, identity: Identity, upload=None):
-        self._root_path = root_path
-        self._file_path = file_path
+    def __init__(self, root_path: str, file_path: str, identity: Identity):
         self._identity = identity
+        self._root_path = root_path
+        self._raw_file_path = pathlib.Path(file_path)
 
         self._logger = get_logger(debug=True)
-        self._logger.info(f'{self.prefix} Packing {file_path}...')
-
         self._parse()
 
-        # If the Upload DB object for this file_path doesn't exist yet in DB,
-        # then, create it.
-        if upload is None:
-            self._upload, created = Upload.get_or_create(file_path=self.file_path)
-            if created:
-                self._find_date_and_size()
-        else:
-            self._upload = upload
+        # Will work whatever the raw file path extension (zipped or not), and
+        # whatever the current state of the two files (exists or not).
+        self._upload, created = Upload.get_or_create(file_path=self.clear_filepath)
+        self._upload.smart_update(astronomer=self._identity.username, file_path_zipped=self.zipped_filepath)
 
-        self._upload.smart_update(astronomer=self._identity.username)
-        self._logger.info(f'{self.prefix} Done packing {file_path}...')
+        self._find_date_and_sizes()
 
+    @property
+    def should_zip(self) -> bool:
+        return self.is_data_file and self.clear_file_exists and not self.clear_file_exists
 
     def do_upload(self):
+        return
+
         if self.is_hidden_file:
             self._logger.info(f'{self.log_prefix} {self.file_path} is an hidden file. Upload skipped.')
             self._archive(Substatus.SKIPPED_HIDDEN_FILE.value)
@@ -94,7 +92,7 @@ class UploadPack(object):
             self._archive(Substatus.SKIPPED_EMPTY_FILE.value)
             return
 
-        # if not self.is_fits_or_xisf:
+        # if not self.is_data_file:
         #     self._logger.info(f'{self.log_prefix} {self.file_path} not a FITS or XISF. Upload skipped.')
         #     self._archive(Substatus.SKIPPED_NOT_FITS_OR_XISF.value)
         #     return
@@ -132,40 +130,34 @@ class UploadPack(object):
         return self._upload
 
     @property
-    def file_path(self) -> str:
-        return self._file_path
-
-    @property
-    def file_date(self) -> Optional[datetime]:
-        return self._upload.file_date
-
-    @property
-    def file_name(self) -> str:
-        return os.sep.join(self._segments)
-
-    @property
-    def file_size(self) -> int:
-        return self._upload.file_size
-
-    @property
     def has_date_obs(self) -> bool:
         return self._upload.file_date is not None
 
     @property
-    def file_full_extension(self) -> str:
-        return ''.join(pathlib.Path(self._file_path).suffixes)
+    def is_data_file(self) -> bool:
+        return ''.join(self._raw_file_path.suffixes).lower() in get_all_fits_extensions() + get_all_xisf_extensions()
 
     @property
-    def file_last_extension(self) -> str:
-        return pathlib.Path(self._file_path).suffix
+    def clear_filepath(self) -> str:
+        return str(self._raw_file_path.with_suffix('')) if self._raw_file_path.suffix in ZIP_EXTENSIONS \
+            else str(self._raw_file_path)
 
     @property
-    def is_fits_or_xisf(self) -> bool:
-        return self.file_full_extension.lower().lower() in get_all_fits_extensions() + get_all_xisf_extensions()
+    def zipped_filepath(self) -> str:
+        return str(self._raw_file_path) + '.gz' if self._raw_file_path.suffix not in ZIP_EXTENSIONS \
+            else str(self._raw_file_path)
+
+    @property
+    def clear_file_exists(self) -> bool:
+        return pathlib.Path(self.clear_filepath).exists()
+
+    @property
+    def zipped_file_exists(self) -> bool:
+        return pathlib.Path(self.zipped_filepath).exists()
 
     @property
     def is_hidden_file(self) -> bool:
-        return os.path.basename(self._file_path)[0] == '.'
+        return self._raw_file_path.name[0] == '.'
 
     @property
     def is_empty_file(self):
@@ -203,39 +195,55 @@ class UploadPack(object):
         return self._upload.substatus in FINISHED_SUBSTATUSES
 
     def _parse(self):
-        self._segments = [s for s in self._file_path[len(self._root_path):].split(os.sep) if s != '']
-        self._filename = self._segments.pop()
+        # Remove all parts belonging to root path
+        _segments = [s for s in str(self._raw_file_path)[len(self._root_path):].split(os.sep) if s != '']
+        # Removing file name part
+        _segments.pop()
 
         self._type = ResourceType.OBSERVATION
         self._dataset_name = None
 
-        for i in range(1, min(len(self._segments), 2) + 1):
-            if any([c for c in CALIB_PREFIXES if c in self._segments[-i].lower()]):
+        for i in range(1, min(len(_segments), 2) + 1):
+            if any([c for c in CALIB_PREFIXES if c in _segments[-i].lower()]):
                 self._type = ResourceType.CALIBRATION
                 if i == 1:
-                    self._dataset_name = self._segments[-i]
+                    self._dataset_name = _segments[-i]
                 else:  # i = 2
-                    self._dataset_name = f'{self._segments[-i]}/{self._segments[-1]}'
+                    self._dataset_name = f'{_segments[-i]}/{_segments[-1]}'
                 break
 
         if self._type == ResourceType.OBSERVATION:
-            self._dataset_name = '/'.join(self._segments)
+            self._dataset_name = '/'.join(_segments)
 
         if len(self._dataset_name.strip()) == 0:
             self._dataset_name = f'(folder {os.path.basename(self._root_path)})'
 
         # What happens when rules change: dataset will change -> new upload...
 
-    def _find_date_and_size(self):
-        _file_date = self._find_date(self._file_path)
-        _file_size = os.path.getsize(self._file_path)
-        self._upload.smart_update(file_date=_file_date, file_size=_file_size)
+    def _find_date_and_sizes(self):
+        _file_date = self._find_date()
+        _file_size, _zipped_file_size = self._find_sizes()
+        self._upload.smart_update(file_date=_file_date, file_size=_file_size, file_size_zipped=_zipped_file_size)
 
-    def _find_date(self, path):
-        if self.file_full_extension.lower() in get_all_xisf_extensions():
-            return self._find_xisf_filedate(path)
-        elif self.file_full_extension.lower() in get_all_fits_extensions():
-            return self._find_fits_filedate(path)
+    def _find_sizes(self):
+        _file_size = 0
+        if self.clear_file_exists:
+            _file_size = pathlib.Path(self.clear_filepath).stat().st_size
+        _zipped_file_size = 0
+        if self.zipped_file_exists:
+            _zipped_file_size = pathlib.Path(self.zipped_filepath).stat().st_size
+        return _file_size, _zipped_file_size
+
+    def _find_date(self):
+        _file_date = self._upload.file_date or None
+        if _file_date is not None:
+            return _file_date
+        file_full_extension = ''.join(self._raw_file_path.suffixes).lower()
+        file_full_path = str(self._raw_file_path)
+        if file_full_extension in get_all_xisf_extensions():
+            return self._find_xisf_filedate(file_full_path)
+        elif file_full_extension in get_all_fits_extensions():
+            return self._find_fits_filedate(file_full_path)
 
     def _find_fits_filedate(self, path):
         file_date = None
@@ -257,9 +265,10 @@ class UploadPack(object):
     def _find_xisf_filedate(self, path):
         header = b''
         open_method = open
-        if self.file_last_extension in ['.gzip', '.gz']:
+        file_last_extension = self._raw_file_path.suffix
+        if file_last_extension in ['.gzip', '.gz']:
             open_method = gzip.open
-        elif self.file_last_extension in ['.bzip2', '.bz2']:
+        elif file_last_extension in ['.bzip2', '.bz2']:
             open_method = bz2.open
 
         with open_method(path, 'rb') as f:
