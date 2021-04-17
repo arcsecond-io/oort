@@ -119,7 +119,7 @@ class UploadPack(object):
 
     @property
     def log_prefix(self) -> str:
-        return '[UploadPack: ' + '/'.join(self.file_path.split(os.sep)[-2:]) + ']'
+        return '[UploadPack: ' + '/'.join(self._raw_file_path.parts[-2:]) + ']'
 
     @property
     def identity(self) -> Identity:
@@ -247,6 +247,7 @@ class UploadPack(object):
 
     def _find_fits_filedate(self, path):
         file_date = None
+        hdulist = None
         try:
             with pyfits.open(path, mode='readonly', memmap=True, ignore_missing_end=True) as hdulist:
                 for hdu in hdulist:
@@ -258,7 +259,8 @@ class UploadPack(object):
                         hdulist.close()
                         break
         except Exception as error:
-            hdulist.close()
+            if hdulist:
+                hdulist.close()
             self._logger.debug(f'{self.log_prefix} {str(error)}')
         return file_date
 
