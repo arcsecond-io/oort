@@ -28,6 +28,10 @@ class PathsObserver(Observer):
         for folder_path in self._mapping.keys():
             self._mapping[folder_path]['handler'].debug = self._debug
 
+    @property
+    def log_prefix(self) -> str:
+        return '[PathsObserver]'
+
     def _perform_initial_walk(self, folder_path, event_handler):
         root_path = Path(folder_path)
         # Just in case we pass a file...
@@ -44,20 +48,20 @@ class PathsObserver(Observer):
                 event = FileCreatedEvent(str(path))
                 event_handler.dispatch(event)
 
-        self._logger.info(f'Initial walk inside folder {folder_path} dispatched {count} events.')
+        self._logger.info(f'{self.log_prefix} Initial walk inside folder {folder_path} dispatched {count} events.')
 
     def observe_folder(self, folder_path: str, identity: Identity, tick=5.0) -> None:
         event_handler = eventhandler.DataFileHandler(path=folder_path, identity=identity, tick=tick, debug=self._debug)
-        self._logger.info(f'Starting initial walk inside folder {folder_path}')
+        self._logger.info(f'{self.log_prefix} Starting initial walk inside folder {folder_path}')
         self._perform_initial_walk(folder_path, event_handler)
-        self._logger.info(f'Starting to observe folder {folder_path}')
+        self._logger.info(f'{self.log_prefix} Starting to observe folder {folder_path}')
         watch = self.schedule(event_handler, folder_path, recursive=True)
         self._mapping[folder_path] = {'watcher': watch, 'handler': event_handler}
         event_handler.launch_restart_loop()
 
     def forget_folder(self, folder_path: str) -> None:
         if folder_path in self._mapping.keys():
-            self._logger.info(f'Forgetting to observe folder {folder_path}')
+            self._logger.info(f'{self.log_prefix} Forgetting to observe folder {folder_path}')
             self.unschedule(self._mapping[folder_path]['watcher'])
             del self._mapping[folder_path]
 
