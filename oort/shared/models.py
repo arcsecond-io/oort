@@ -148,15 +148,18 @@ class Status(Enum):
 
 class Substatus(Enum):
     PENDING = 'pending'
+    ZIPPING = 'zipping...'
+    CHECKING = 'checking remote file...'
+    READY = 'ready'
+    RESTART = 'restart'
+
+    STARTING = 'starting...'
     SYNC_TELESCOPE = 'syncing telescope...'
     SYNC_NIGHTLOG = 'syncing night log...'
     SYNC_OBS_OR_CALIB = 'syncing obs or calib...'
     SYNC_DATASET = 'syncing dataset...'
-    CHECKING = 'checking remote file...'
-    READY = 'ready'
-    RESTART = 'restart'
-    STARTING = 'starting...'
     UPLOADING = 'uploading...'
+
     DONE = 'done'
     ERROR = 'error'
     ALREADY_SYNCED = 'already synced'
