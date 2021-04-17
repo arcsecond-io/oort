@@ -39,7 +39,7 @@ class PathsObserver(Observer):
             # Skipping both hidden files and hidden directories.
             if any([part for part in path.parts if len(part) > 0 and part[0] == '.']):
                 continue
-            if path.is_file() and not Upload.is_ok(str(path)):
+            if path.is_file() and not Upload.has_ok_status(str(path)):
                 count += 1
                 event = FileCreatedEvent(str(path))
                 event_handler.dispatch(event)

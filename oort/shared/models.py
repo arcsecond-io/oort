@@ -207,7 +207,7 @@ class Upload(BaseModel):
     organisation = ForeignKeyField(Organisation, backref='uploads', null=True)
 
     @classmethod
-    def is_ok(cls, file_path):
+    def has_ok_status(cls, file_path):
         try:
             u = cls.get(file_path=file_path)
         except DoesNotExist:
