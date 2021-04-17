@@ -156,7 +156,7 @@ class UploadPreparator(object):
     # ------------------------------------------------------------------------------------------------------------------
 
     def _create_remote_resource(self, api: ArcsecondAPI, **kwargs) -> Optional[dict]:
-        self._logger.info(f'{self.prefix} Creating remote resource.')
+        self._logger.info(f'{self.prefix} Creating remote resource...')
 
         remote_resource, error = api.create(kwargs)
 
@@ -170,7 +170,7 @@ class UploadPreparator(object):
     # ------------------------------------------------------------------------------------------------------------------
 
     def _create_local_resource(self, db_class: Type[Model], **kwargs):
-        self._logger.info(f'{self.prefix} Creating local resource.')
+        self._logger.info(f'{self.prefix} Creating local resource...')
 
         fields = {k: v for k, v in kwargs.items() if k in db_class._meta.sorted_field_names and v is not None}
 
