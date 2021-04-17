@@ -85,22 +85,22 @@ class UploadPack(object):
 
     def do_upload(self):
         if self.is_hidden_file:
-            self._logger.info(f'{self.prefix} {self.file_path} is an hidden file. Upload skipped.')
+            self._logger.info(f'{self.log_prefix} {self.file_path} is an hidden file. Upload skipped.')
             self._archive(Substatus.SKIPPED_HIDDEN_FILE.value)
             return
 
         if self.is_empty_file:
-            self._logger.info(f'{self.prefix} {self.file_path} is an empty file. Upload skipped.')
+            self._logger.info(f'{self.log_prefix} {self.file_path} is an empty file. Upload skipped.')
             self._archive(Substatus.SKIPPED_EMPTY_FILE.value)
             return
 
         # if not self.is_fits_or_xisf:
-        #     self._logger.info(f'{self.prefix} {self.file_path} not a FITS or XISF. Upload skipped.')
+        #     self._logger.info(f'{self.log_prefix} {self.file_path} not a FITS or XISF. Upload skipped.')
         #     self._archive(Substatus.SKIPPED_NOT_FITS_OR_XISF.value)
         #     return
 
         # if not self.has_date_obs:
-        #     self._logger.info(f'{self.prefix} {self.file_path} has no date we could find. Upload skipped.')
+        #     self._logger.info(f'{self.log_prefix} {self.file_path} has no date we could find. Upload skipped.')
         #     self._archive(Substatus.SKIPPED_NO_DATE_OBS.value)
         #     return
 
@@ -108,20 +108,20 @@ class UploadPack(object):
             upload_preparator = preparator.UploadPreparator(self, debug=self._identity.debug)
             upload_preparator.prepare()
         else:
-            self._logger.info(f'{self.prefix} Preparation already done for {self.file_path}.')
+            self._logger.info(f'{self.log_prefix} Preparation already done for {self.file_path}.')
 
         if self.is_already_finished:
-            self._logger.info(f'{self.prefix} Upload already finished for {self.file_path}.')
+            self._logger.info(f'{self.log_prefix} Upload already finished for {self.file_path}.')
         elif self._upload.dataset is not None:
             file_uploader = uploader.FileUploader(self)
             file_uploader.upload()
         else:
-            self._logger.info(f'{self.prefix} Missing dataset, upload skipped for {self.file_path}.')
+            self._logger.info(f'{self.log_prefix} Missing dataset, upload skipped for {self.file_path}.')
             self._archive(Substatus.SKIPPED_NO_DATASET.value)
 
     @property
-    def prefix(self) -> str:
-        return '[UploadPack: ' + '/'.join(self._file_path.split(os.sep)[-2:]) + ']'
+    def log_prefix(self) -> str:
+        return '[UploadPack: ' + '/'.join(self.file_path.split(os.sep)[-2:]) + ']'
 
     @property
     def identity(self) -> Identity:
@@ -251,7 +251,7 @@ class UploadPack(object):
                         break
         except Exception as error:
             hdulist.close()
-            self._logger.debug(f'{self.prefix} {str(error)}')
+            self._logger.debug(f'{self.log_prefix} {str(error)}')
         return file_date
 
     def _find_xisf_filedate(self, path):
@@ -293,7 +293,7 @@ class UploadPack(object):
             if tag is not None:
                 file_date = dateparser.parse(tag.get('value'))
         except Exception as error:
-            self._logger.debug(f'{self.prefix} {str(error)}')
+            self._logger.debug(f'{self.log_prefix} {str(error)}')
             return None
         else:
             return file_date
