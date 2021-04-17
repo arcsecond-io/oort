@@ -13,26 +13,29 @@ from . import errors
 class FileUploader(object):
     def __init__(self, pack):
         self._logger = get_logger(debug=True)
-        self._upload = pack.upload
+        self._pack = pack
+        self._upload = self._pack.upload
+        self._final_file_path = self._pack.final_file_path
+        self._dataset_uuid = self._upload.dataset.uuid
 
         self._stalled_progress = 0
         test = os.environ.get('OORT_TESTS') == '1'
 
         # If we have an api_key, hence it is an oort_key, hence we upload for a custom astronomer.
-        if pack.identity.api_key:
-            self._api = ArcsecondAPI.datafiles(dataset=str(self._upload.dataset.uuid),
+        if self._pack.identity.api_key:
+            self._api = ArcsecondAPI.datafiles(dataset=str(self._dataset_uuid),
                                                debug=pack.identity.debug,
                                                test=test,
                                                api_key=pack.identity.api_key)
         else:
-            self._api = ArcsecondAPI.datafiles(dataset=str(self._upload.dataset.uuid),
+            self._api = ArcsecondAPI.datafiles(dataset=str(self._dataset_uuid),
                                                debug=pack.identity.debug,
                                                test=test,
                                                organisation=pack.identity.subdomain)
 
     @property
-        return '[FileUploader: ' + '/'.join(self._upload.file_path.split(os.sep)[-2:]) + ']'
     def log_prefix(self) -> str:
+        return '[FileUploader: ' + '/'.join(self._final_file_path.split(os.sep)[-2:]) + ']'
 
     def _prepare_file_uploader(self, remote_resource_exists):
         def update_upload_progress(event, progress_percent):
@@ -44,20 +47,20 @@ class FileUploader(object):
 
         self._async_file_uploader: AsyncFileUploader
         if remote_resource_exists:
-            self._async_file_uploader, _ = self._api.update(os.path.basename(self._upload.file_path),
-                                                            {'file': self._upload.file_path},
             self._logger.info(f"{self.log_prefix} Remote resource exists. Preparing 'Update' APIs.")
+            self._async_file_uploader, _ = self._api.update(os.path.basename(self._final_file_path),
+                                                            {'file': self._final_file_path},
                                                             callback=update_upload_progress)
         else:
-            self._async_file_uploader, _ = self._api.create({'file': self._upload.file_path},
-                                                            callback=update_upload_progress)
             self._logger.info(f"{self.log_prefix} Remote resource does not exist. Preparing 'Create' APIs.")
+            self._async_file_uploader, error = self._api.create({'file': self._final_file_path},
+                                                                callback=update_upload_progress)
 
     def _check_remote_resource_and_file(self):
         _remote_resource_exists = False
         _remote_resource_has_file = False
 
-        response, error = self._api.read(os.path.basename(self._upload.file_path))
+        response, error = self._api.read(os.path.basename(self._final_file_path))
 
         if error:
             if 'not found' in error.lower():
@@ -109,6 +112,7 @@ class FileUploader(object):
                                           ended=datetime.now(),
                                           progress=0,
                                           duration=0)
+                self._pack.remove_zipped_file()
             else:
                 _should_perform = True
 

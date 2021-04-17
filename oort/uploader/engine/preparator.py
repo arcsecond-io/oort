@@ -76,7 +76,7 @@ class UploadPreparator(object):
 
     @property
     def prefix(self) -> str:
-        return '[UploadPreparator: ' + '/'.join(self._pack.file_path.split(os.sep)[-2:]) + ']'
+        return '[UploadPreparator: ' + '/'.join(self._pack.final_file_path.split(os.sep)[-2:]) + ']'
 
     # ------ SYNC ------------------------------------------------------------------------------------------------------
 
@@ -229,7 +229,7 @@ class UploadPreparator(object):
     # ------------------------------------------------------------------------------------------------------------------
 
     def prepare(self):
-        self._logger.info(f'{self.prefix} Preparation started for {self._pack.file_path}')
+        self._logger.info(f'{self.prefix} Preparation started for {self._pack.final_file_path}')
         try:
             self._pack.upload.smart_update(status=Status.PREPARING.value, substatus=Substatus.SYNC_TELESCOPE.value)
             self._sync_telescope()
@@ -252,18 +252,18 @@ class UploadPreparator(object):
                 self._pack.upload.smart_update(dataset=self.dataset)
 
         except errors.UploadPreparationFatalError as e:
-            self._logger.info(f'{self.prefix} Preparation failed for {self._pack.file_path} with error: {str(e)}')
+            self._logger.info(f'{self.prefix} Preparation failed for {self._pack.final_file_path} with error: {str(e)}')
             self._pack.upload.smart_update(status=Status.ERROR.value, substatus=Substatus.ERROR.value, error=str(e))
             self._preparation_succeeded = False
             self._preparation_can_be_restarted = False
 
         except errors.UploadPreparationError as e:
-            self._logger.info(f'{self.prefix} Preparation failed for {self._pack.file_path} with error: {str(e)}')
+            self._logger.info(f'{self.prefix} Preparation failed for {self._pack.final_file_path} with error: {str(e)}')
             self._pack.upload.smart_update(status=Status.ERROR.value, substatus=Substatus.ERROR.value, error=str(e))
             self._preparation_succeeded = False
             self._preparation_can_be_restarted = True
 
         else:
-            self._logger.info(f'{self.prefix} Preparation succeeded for {self._pack.file_path}')
+            self._logger.info(f'{self.prefix} Preparation succeeded for {self._pack.final_file_path}')
             self._pack.upload.smart_update(status=Status.UPLOADING.value, substatus=Substatus.READY.value)
             self._preparation_succeeded = True
