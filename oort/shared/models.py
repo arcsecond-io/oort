@@ -187,9 +187,12 @@ PREPARATION_DONE_SUBSTATUSES = [Substatus.CHECKING.value,
 class Upload(BaseModel):
     created = DateTimeField(default=datetime.now)
 
-    file_path = CharField(unique=True)
+    file_path = CharField(unique=True, null=True)
     file_date = DateTimeField(null=True)
     file_size = IntegerField(default=0)
+
+    file_path_zipped = CharField(null=True)
+    file_size_zipped = IntegerField(default=0)
 
     status = CharField(default=Status.NEW.value)
     substatus = CharField(default=Substatus.PENDING.value)
