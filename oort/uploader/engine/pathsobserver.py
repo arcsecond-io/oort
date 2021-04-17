@@ -35,7 +35,7 @@ class PathsObserver(Observer):
             root_path = root_path.parent
 
         count = 0
-        for path in root_path.glob('**/*.*'):
+        for path in root_path.glob('**/**'):
             # Skipping both hidden files and hidden directories.
             if any([part for part in path.parts if len(part) > 0 and part[0] == '.']):
                 continue
