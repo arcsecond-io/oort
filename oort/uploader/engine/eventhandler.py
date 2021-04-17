@@ -46,14 +46,22 @@ class DataFileHandler(FileSystemEventHandler):
         if os.path.isfile(event.src_path) and not os.path.basename(event.src_path).startswith('.'):
             self._logger.info(f'{self.log_prefix} Created event for path : {event.src_path}')
 
-            # Protection against large files currently being written, and whose filesize isn't complete yet.
+            # Protection against large files currently being written, or files being zipped.
+            # In both cases, the file size isn't stable yet.
             file_size = -1
             while file_size != os.path.getsize(event.src_path):
                 file_size = os.path.getsize(event.src_path)
                 time.sleep(0.1)
 
+            # Pack will be identical for file and its zipped counter-part.
             pack = packer.UploadPack(self._root_path, event.src_path, self._identity)
-            pack.do_upload()
+
+            # Hence if the zipped file is created and being filled, at that point, thanks
+            # to the above protection, there is a clear situation: either zip, or upload.
+            if pack.should_zip:
+                pack.do_zip()
+            else:
+                pack.do_upload()
 
     def on_moved(self, event):
         self._logger.info(f'{self.log_prefix} {event.event_type}: {event.src_path}')
