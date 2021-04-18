@@ -129,7 +129,10 @@ class UploadPack(object):
 
     @property
     def should_zip(self) -> bool:
-        return self.is_data_file and self.clear_file_exists and not self.zipped_file_exists
+        return self.is_data_file and \
+               self.clear_file_exists and \
+               not self.zipped_file_exists and \
+               self._upload.substatus != Substatus.ZIPPING.value
 
     @property
     def final_file_path(self):
