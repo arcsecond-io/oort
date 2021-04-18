@@ -109,7 +109,10 @@ def get_config_upload_folder_sections() -> List[Dict]:
             section.startswith('watch-folder-') and section.endswith('-tests')
         ]
     else:
-        sections = [section for section in config.sections() if section.startswith('watch-folder-')]
+        sections = [
+            section for section in config.sections() if
+            section.startswith('watch-folder-') and not section.endswith('-tests')
+        ]
 
     return [dict(config[section], **{'section': section}) for section in sections]
 
