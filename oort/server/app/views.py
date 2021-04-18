@@ -44,7 +44,7 @@ def uploads():
     def generate():
         while True:
             yield context.get_yield_string()
-            time.sleep(1)
+            time.sleep(0.5)
 
     # Using Server-Side Events. See https://blog.easyaspy.org/post/10/2019-04-30-creating-real-time-charts-with-flask
     return Response(generate(), mimetype='text/event-stream')
