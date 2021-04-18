@@ -22,7 +22,9 @@ def handle_ctrl_c(signum, frame):
 
 # Beware only the main thread of the main interpreter is allowed to set a new signal handler.
 # https://docs.python.org/3/library/signal.html
-signal.signal(signal.SIGINT, handle_ctrl_c)  # Handle Ctrl-C
+signal.signal(signal.SIGINT, handle_ctrl_c)  # Handle ctrl-c
+signal.signal(signal.SIGQUIT, handle_ctrl_c)  # Handle ctrl-\
+signal.signal(signal.SIGTERM, handle_ctrl_c)
 
 if __name__ == "__main__":
     debug = len(sys.argv) > 1 and sys.argv[1] in ['-d', '--debug']
