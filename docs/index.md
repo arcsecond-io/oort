@@ -8,8 +8,9 @@ files that are inside a folder.
 for astronomical observations, for individual astronomers, collaborations and 
 observatories.
 
-Cloud storage backend is Amazon's S3, and Oort has been thorough tested on 
-recent Linux and macOS operating systems (it may need some tweaks on Windows).
+Cloud storage backend is [Amazon's S3](https://aws.amazon.com/s3/), 
+and Oort has been thorough tested on recent Linux and macOS operating systems 
+(it may need some tweaks on Windows).
 
 Oort can be used by individual astronomers who want to store data in
 a cloud dedicated to astronomical data. Or by an observatory, to store data
@@ -111,7 +112,11 @@ processes.
 
 ### File extensions
 
-**Oort support XISF and FITS files, zipped or not.** Oort will accept files with the following FITS filename extensions:
+All non-hidden files found in the watch folder or one of its subfolder will be uploaded.
+Files can have an extension or not (for instance `README` files will also be uploaded).
+
+As for the data, **Oort support XISF and FITS files, zipped or not.** 
+Oort will accept files with the following FITS filename extensions:
 
 `.fits`, `.fit`, `.fts`, `.ft`, `.mt`, `.imfits`, `.imfit`, `.uvfits`, 
 `.uvfit`, `.pha`, `.rmf`, `.arf`, `.rsp`, `.pi`
