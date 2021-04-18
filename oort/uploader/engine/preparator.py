@@ -195,35 +195,34 @@ class UploadPreparator(object):
     # ------------------------------------------------------------------------------------------------------------------
 
     def _sync_night_log(self):
-        self._logger.info(f'{self.prefix} Syncing night log {self._pack.night_log_date_string}...')
-
+        nightlogs_api = ArcsecondAPI.nightlogs(**self.api_kwargs)
         kwargs = {'date': self._pack.night_log_date_string}
         if self._identity.telescope:
             kwargs.update(telescope=self._identity.telescope)
-
-        api = ArcsecondAPI.nightlogs(**self.api_kwargs)
-        self._night_log = self._sync_resource(NightLog, api, **kwargs)
+        self._logger.info(f'{self.prefix} Syncing NIGHT_LOG {self._pack.night_log_date_string}...')
+        self._night_log = self._sync_resource(NightLog, nightlogs_api, **kwargs)
 
     # ------------------------------------------------------------------------------------------------------------------
 
     def _sync_observation_or_calibration(self):
+        # self._pack.remote_resources_name is either 'observations' or 'calibrations'
         resources_api = getattr(ArcsecondAPI, self._pack.remote_resources_name)(**self.api_kwargs)
         kwargs = {'name': self._pack.dataset_name}
         if self._night_log:
             kwargs.update(night_log=str(self._night_log.uuid))
         if self._pack.resource_type == 'observation':
             kwargs.update(target_name=self._pack.dataset_name)
-        self._logger.info(f'{self.prefix} Syncing {self._pack.remote_resources_name}: {kwargs}...')
+        self._logger.info(f'{self.prefix} Syncing {self._pack.remote_resources_name[:-1].upper()}: {kwargs}...')
         self._obs_or_calib = self._sync_resource(self._pack.resource_db_class, resources_api, **kwargs)
 
     # ------------------------------------------------------------------------------------------------------------------
 
     def _sync_dataset(self):
-        self._logger.info(f'{self.prefix} Syncing Dataset {self._pack.dataset_name}...')
         datasets_api = ArcsecondAPI.datasets(**self.api_kwargs)
         kwargs = {'name': self._pack.dataset_name}
         if self._obs_or_calib:
             kwargs.update(**{self._pack.resource_type: str(self._obs_or_calib.uuid)})
+        self._logger.info(f'{self.prefix} Syncing DATASET {self._pack.dataset_name}...')
         self._dataset = self._sync_resource(Dataset, datasets_api, **kwargs)
 
     # ------------------------------------------------------------------------------------------------------------------
