@@ -80,7 +80,6 @@ class UploadPack(object):
         if not self.should_zip:
             return
 
-        self._logger.info(f'{self.log_prefix} Start zipping {self.clear_file_path}...')
         zip = zipper.AsyncZipper(self.clear_file_path)
         zip.start()
 
@@ -106,8 +105,6 @@ class UploadPack(object):
             self._logger.info(
                 f'{self.log_prefix} Preparation already done for {self.final_file_path} ({self._upload.substatus}).'
             )
-
-        print(self._upload.dataset)
 
         if self.is_already_finished:
             self._logger.info(f'{self.log_prefix} Upload already finished for {self.final_file_path}.')
