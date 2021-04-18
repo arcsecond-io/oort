@@ -68,7 +68,12 @@ Oort will summarize the settings associated with the new watched folder, and ask
 confirmation before proceeding.   
 
 After a `oort watch` command is issued, oort will first walk through the whole folder
-tree and upload existing files. 
+tree and upload existing files. Then it will detect and upload any new file being added
+inside the watch folder (or in one of its subfolder).
+
+**All non-hidden files will be uploaded.** 
+<span style='color: red;'>And data files will be compressed automatically before upload.</span> 
+See below for details.
 
 ## Manage and Monitor
 
@@ -114,9 +119,25 @@ processes.
 as well as `.xisf` ones.
 
 Moreover, these extensions can be augmented with the following zipped file
-extensions: `.zip`, `.gz`, `.gzip`, `.bz2`, `.bzip2`.
+extensions: `.zip`, `.gz`, `.bz2`
 
-### Folder structure
+### File compression
+
+Files to be uploaded can be already compressed or not, oort is able to deal with
+any of them transparently.
+
+However, if a XISF or FITS file is being detected, it will be zipped (with standard)
+`gzip` compression before being uploaded. The compression is made locally just beside the
+original file, which will be deleting once zip is done (as would a normal `gzip` command
+do in the terminal).
+
+**Oort includes an interruption handler that will stop any zip process running**, would
+any problem occurs preventing the process to complete. More precisely it will stop
+zip processes on `SIGINT`, `SIGQUIT` and `SIGTERM`.
+
+<span style='color: red;'>Oort is a compressor tool for data files too.</span>
+
+### Folder structure and Data organisation
 
 **Oort is using the folder structure to infer the type and organisation of files.**
 
@@ -139,14 +160,22 @@ will be put in an Observation (not a Calibration, since there is no special
 keyword found), and its Dataset will be named identically
 `NGC3603/mosaic/Halpha`.
 
-Below are detailed examples.
+To determine the Night Log date, Oort reads the FITS or XISF header and look for
+any of the following keywords: `DATE`, `DATE-OBS` and `DATE_OBS`. Dates are 
+assumed to be local ones.
+
+**"Nights" run from local noon to local noon.** That is, all data files whose
+date is in the morning, until 12am, is considered as part of the night that
+just finished. The Night Log date is that of the starting noon.
+
+### Folder structure examples
 
 #### `<root>/NGC3603/Halpha/Mosaic1.fits` 
 with Local time `Sep. 9, 2020, 2pm` will give:
     
 | NL Date | Type | Dataset | Filename | Format |
  ---- | ---- | ------------ | --- | --- |
-| `2020-09-09` | Obs | `NGC3603/Halpha` | `Mosaic1.fits` | FITS |
+| `2020-09-09` | Obs | `NGC3603/Halpha` | `Mosaic1.fits.gz` | FITS |
 
 <br/>
 
@@ -159,12 +188,12 @@ with Local time `Sep. 21, 2020, 9am` will give:
 
 <br/>
 
-#### `<root>/Tests/Flats/U/U1.fit` 
+#### `<root>/Tests/Flats/U/U1.fit.gz` 
 with Local time `Sep. 30, 2020, 01am` will give:
     
 | NL Date | Type | Dataset | Filename | Format |
  ---- | ---- | ------------ | --- | --- |
-| `2020-09-30` | Calib | `Tests/Flats/U` | `U1.fit` | FITS |
+| `2020-09-30` | Calib | `Tests/Flats/U` | `U1.fit.gz` | FITS |
 
 <br/>
 
@@ -174,20 +203,6 @@ with Local time `Oct. 15, 2020, 04am` will give:
 | NL Date | Type | Dataset | Filename | Format |
  ---- | ---- | ------------ | --- | --- |
 | `2020-10-15` | Obs | `(folder <root>)` | `NGC3603_V_2x2.fit` | FITS |
-
-<br/>
-
-#### `<root>/folder1/passwords.csv`
-
-| NL Date | Type | Dataset | Filename | Format |
- ---- | ---- | ------------ | --- | --- |
-| (none) | (None) | `folder1` | `passwords.csv` | csv |
-
-<br/>
-
-#### `<root>/folder2/subfolder/.config`
-
-Will not be uploaded because it is an hidden file (starting with a `.`).
 
 <br/>
 
@@ -202,8 +217,31 @@ no Night Log present, for which the date is mandatory.
 
 <br/>
 
-For the last two cases, feel free to contact us, or make a Pull Request to adapt 
-to your situation.
+#### `<root>/folder1/passwords.csv`
+
+| NL Date | Type | Dataset | Filename | Format |
+ ---- | ---- | ------------ | --- | --- |
+| (none) | (None) | `folder1` | `passwords.csv` | csv |
+
+<br/>
+
+#### `<root>/folder1/folder2/folder3/README`
+
+| NL Date | Type | Dataset | Filename | Format |
+ ---- | ---- | ------------ | --- | --- |
+| (none) | (None) | `folder1/folder2/folder3` | `README` | (None) |
+
+<br/>
+
+#### `<root>/subfolder/.svn/revision.log`
+
+Will not be uploaded because it is inside a hidden folder (starting with a `.`).
+
+<br/>
+
+#### `<root>/folder2/subfolder/.config`
+
+Will not be uploaded because it is an hidden file (starting with a `.`).
 
 ## Key things you must be aware of
 
@@ -211,9 +249,3 @@ to your situation.
 * One must login first before uploading, with the command `oort login`. It will 
 locally store the necessary credentials used for uploading. **Keep these credentials safe**.
 * If uploading for an organisation, Oort must necessarily be run someone who is a member of it.
-* To determine the Night Log date, Oort reads the FITS or XISF header and look for
- any of the following keywords: `DATE`, `DATE-OBS` and `DATE_OBS`. Dates are
- assumed to be local ones.
-* **"Nights" run from local noon to local noon.** That is, all data files whose
-date is in the morning, until 12am, is considered as part of the night that
-just finished. The Night Log date is that of the starting noon.
