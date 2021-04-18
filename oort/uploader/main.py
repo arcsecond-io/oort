@@ -10,11 +10,13 @@ from oort.uploader.engine.zipper import zipper_stop_event
 
 paths_observer = PathsObserver()
 
+logger = get_logger()
 
-def handle_ctrl_c(self, signum, frame):
-    self._logger.info(f'Interrupt received: {signum}. Cancelling all zips.')
+
+def handle_ctrl_c(signum, frame):
+    logger.info(f'Interrupt received: {signum}. Cancelling all zips.')
     zipper_stop_event.set()
-    time.sleep(1)
+    time.sleep(0.1)
     sys.exit(0)
 
 
@@ -24,7 +26,6 @@ signal.signal(signal.SIGINT, handle_ctrl_c)  # Handle Ctrl-C
 
 if __name__ == "__main__":
     debug = len(sys.argv) > 1 and sys.argv[1] in ['-d', '--debug']
-    logger = get_logger(debug=debug)
     paths_observer.debug = debug
 
     logger.info('Starting infinite loop of PathsObserver...')
