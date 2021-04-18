@@ -118,12 +118,6 @@ class UploadPack(object):
             self._logger.info(f'{self.log_prefix} Missing dataset, upload skipped for {self.final_file_path}.')
             self._archive(Substatus.SKIPPED_NO_DATASET.value)
 
-    def remove_zipped_file(self):
-        # Do NOT delete zipped file if clear one does not exist (assuming clear file is the original).
-        if self.clear_file_exists:
-            self._logger.info(f'{self.log_prefix} Deleting zipped file {self.final_file_path} (non-zipped file exists).')
-            pathlib.Path(self.zipped_file_path).unlink(missing_ok=True)
-
     @property
     def log_prefix(self) -> str:
         return '[UploadPack: ' + '/'.join(self._raw_file_path.parts[-2:]) + ']'

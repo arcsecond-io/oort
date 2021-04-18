@@ -112,7 +112,6 @@ class FileUploader(object):
                                           ended=datetime.now(),
                                           progress=0,
                                           duration=0)
-                self._pack.remove_zipped_file()
             else:
                 _should_perform = True
 
