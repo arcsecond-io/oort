@@ -33,16 +33,20 @@ class DataFileHandler(FileSystemEventHandler):
         return '[EventHandler: ' + '/'.join(self._root_path.split(os.sep)[-2:]) + ']'
 
     def launch_restart_loop(self):
+        self._logger.info(f'{self.log_prefix} Launching the restart uploads loop (tick = {self._tick} sec).')
         threading.Timer(self._tick, self._restart_uploads).start()
 
     def _restart_uploads(self):
         with db.atomic():
+            count = 0
             for upload in Upload.select() \
                     .where(Upload.substatus == Substatus.RESTART.value | Upload.substatus == Substatus.PENDING.value) \
                     .limit(20):
+                count += 1
                 pack = packer.UploadPack(self._root_path, upload.file_path, self._identity)
                 pack.do_upload()
-        threading.Timer(5.0, self._restart_uploads).start()
+        self._logger.info(f'{self.log_prefix} Found {count} uploads to restart.')
+        threading.Timer(self._tick, self._restart_uploads).start()
 
     def on_created(self, event):
         if os.path.isfile(event.src_path) and not os.path.basename(event.src_path).startswith('.'):
