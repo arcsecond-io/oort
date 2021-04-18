@@ -67,7 +67,7 @@ class Context:
             .where(Upload.status == Status.OK.value) \
             .where(Upload.ended < one_day_back)
 
-        hidden_count = hidden_query.count(),
+        hidden_count = hidden_query.count()
         pending_count = pending_query.count()
         current_count = current_query.count()
         error_count = error_query.count()
