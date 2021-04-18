@@ -121,7 +121,7 @@ class FileUploader(object):
         if not self._check():
             return
 
-        self._upload.smart_update(status=Status.OK.value, substatus=Substatus.STARTING.value, error='')
+        self._upload.smart_update(status=Status.UPLOADING.value, substatus=Substatus.STARTING.value, error='')
         self._logger.info(f'{self.log_prefix} Starting upload.')
 
         self._async_file_uploader.start()
