@@ -38,12 +38,9 @@
 
     {% if context.isAuthenticated %}
       <span class="right">@{$ context.username $}</span>
-      {% if context.memberships|length > 0 %}
+      {% if context.membership %}
         <span class="right">
-        &nbsp;
-          {% for subdomain, role in context.memberships.items() %}
-            ({$ subdomain $}: {$ role $})
-          {% endfor %}
+        &nbsp; ({$ context.membership[0] $}: {$ context.membership[1] $})
         </span>
       {% endif %}
     {% endif %}

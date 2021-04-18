@@ -29,14 +29,12 @@ class Context:
         self.login_error = config.get('login_error')
         self.username = ArcsecondAPI.username(debug=self.debug)
         self.is_authenticated = ArcsecondAPI.is_logged_in(debug=self.debug)
-        self.memberships = ArcsecondAPI.memberships(debug=self.debug)
-        self._sections_paths_mapping = {f.get('section'): f.get('path') for f in get_config_upload_folder_sections()}
+        self._memberships = ArcsecondAPI.memberships(debug=self.debug)
 
     def to_dict(self):
         return {
             'username': self.username,
             'isAuthenticated': self.is_authenticated,
-            'memberships': self.memberships,
             'loginError': self.login_error,
             'debug': self.debug,
             'startTime': self.start_time.isoformat(),
@@ -110,9 +108,15 @@ class Context:
     def get_yield_string(self) -> str:
         data = {'state': self.to_dict()}
 
-        selected_path = self._sections_paths_mapping.get(get_config_value('server', 'selected_folder'))
-        if selected_path:
-            data.update(**self._get_queries_dicts(selected_path))
+        selected_folder = get_config_value('server', 'selected_folder')
+        selected_section = get_config_folder_section(selected_folder)
+        if selected_section:
+            data.update(**self._get_queries_dicts(selected_section.get('path')))
+            subdomain = selected_section.get('subdomain')
+            if subdomain:
+                role = self._memberships.get(subdomain)
+                if role:
+                    data['state'].update(membership=(subdomain, role))
 
         json_data = json.dumps(data, cls=BoostedJSONEncoder)
         # print(json_data)
