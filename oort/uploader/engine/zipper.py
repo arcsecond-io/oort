@@ -2,14 +2,15 @@ import gzip
 import os
 import pathlib
 import shutil
-import signal
 import sys
 import time
 from stat import S_IREAD, S_IRGRP, S_IROTH, S_IWUSR
-from threading import Thread
+from threading import Event, Thread
 
 from oort.shared.config import get_logger
 from oort.shared.models import Substatus, Upload
+
+zipper_stop_event = Event()
 
 
 class AsyncZipper(Thread):
@@ -19,21 +20,12 @@ class AsyncZipper(Thread):
         self._file_path = file_path
         self._zipped_file_path = file_path + '.gz'
         self._upload, created = Upload.get_or_create(file_path=file_path)
+        self._initial_substatus = self._upload.substatus
         self._logger = get_logger(debug=debug)
-
-        # Beware only the main thread of the main interpreter is allowed to set a new signal handler.
-        # https://docs.python.org/3/library/signal.html
-        signal.signal(signal.SIGINT, self.handle_ctrl_c)  # Handle Ctrl-C
 
     @property
     def log_prefix(self) -> str:
         return '[AsyncZipper: ' + '/'.join(self._file_path.split(os.sep)[-2:]) + ']'
-
-    def handle_ctrl_c(self, signum, frame):
-        self._logger.info(f'{self.log_prefix} Interrupt received {signum}. Cancelling gzip of file: {self._file_path}.')
-        self._upload.smart_update(substatus=Substatus.PENDING.value)
-        pathlib.Path(self._zipped_file_path).unlink(missing_ok=True)
-        sys.exit(0)
 
     def run(self):
         self._upload.smart_update(substatus=Substatus.ZIPPING.value)
@@ -43,12 +35,18 @@ class AsyncZipper(Thread):
         try:
             with open(self._file_path, 'rb') as f_in:
                 with gzip.open(self._zipped_file_path, 'wb') as f_out:
-                    shutil.copyfileobj(f_in, f_out)
-                    if self._debug:
-                        time.sleep(10)
+                    if zipper_stop_event.is_set():
+                        raise Exception('Zipper stop Event is set.')
+                    else:
+                        shutil.copyfileobj(f_in, f_out)
+                        if self._debug:  # used for manually testing
+                            time.sleep(10)
+
         except Exception as e:
-            self._logger.error(f'{self.log_prefix} [{str(e)}] Cancelling gzip of file: {self._file_path}.')
+            self._upload.smart_update(substatus=self._initial_substatus)
             pathlib.Path(self._zipped_file_path).unlink(missing_ok=True)
+            self._logger.error(f'{self.log_prefix} [{str(e)}] Cancelling gzip of file: {self._file_path}.')
+
         else:
             # Make zipped file read-only
             os.chmod(self._zipped_file_path, S_IREAD | S_IRGRP | S_IROTH)
