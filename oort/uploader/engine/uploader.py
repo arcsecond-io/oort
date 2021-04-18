@@ -74,7 +74,9 @@ class FileUploader(object):
             _remote_resource_exists = True
             _remote_resource_has_file = 's3.amazonaws.com' in response.get('file', '')
 
-        self._prepare_file_uploader(_remote_resource_exists)
+        if _remote_resource_has_file is False:
+            self._prepare_file_uploader(_remote_resource_exists)
+
         return _remote_resource_has_file
 
     def _check(self):
