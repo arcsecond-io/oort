@@ -24,9 +24,13 @@ OORT_FITS_EXTENSIONS = [
     '.pi'
 ]
 
+DATA_EXTENSIONS = OORT_FITS_EXTENSIONS + ['.xisf', ]
+
+ZIP_EXTENSIONS = ['.zip', '.gz', '.bz2']
+
 
 def _extend_list(extensions):
-    for zip in ['.zip', '.gz', '.gzip', '.bz2']:
+    for zip in ZIP_EXTENSIONS:
         extensions += [e + zip for e in extensions]
     return extensions
 

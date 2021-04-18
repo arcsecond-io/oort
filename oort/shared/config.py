@@ -1,8 +1,8 @@
 import logging
 import os
 import tempfile
-from configparser import ConfigParser
-from typing import Dict, List
+from configparser import ConfigParser, NoOptionError
+from typing import Dict, List, Optional
 
 from oort.shared.constants import OORT_SUPERVISOR_SOCK_FILENAME
 
@@ -90,7 +90,10 @@ def get_config_value(section: str, key: str):
         return None
     if section not in config.sections():
         return None
-    return config.get(section, key)
+    try:
+        return config.get(section, key)
+    except NoOptionError:
+        return None
 
 
 def get_config_upload_folder_sections() -> List[Dict]:
@@ -106,7 +109,20 @@ def get_config_upload_folder_sections() -> List[Dict]:
             section.startswith('watch-folder-') and section.endswith('-tests')
         ]
     else:
-        sections = [section for section in config.sections() if section.startswith('watch-folder-')]
+        sections = [
+            section for section in config.sections() if
+            section.startswith('watch-folder-') and not section.endswith('-tests')
+        ]
 
     return [dict(config[section], **{'section': section}) for section in sections]
 
+
+def get_config_folder_section(section_name) -> Optional[Dict]:
+    conf_file_path = get_oort_config_file_path()
+    if not os.path.exists(conf_file_path):
+        return None
+    config = ConfigParser()
+    config.read(conf_file_path)
+    if config.has_section(section_name):
+        return dict(config[section_name], **{'section': section_name})
+    return None

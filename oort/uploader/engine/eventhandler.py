@@ -29,37 +29,51 @@ class DataFileHandler(FileSystemEventHandler):
         self._logger = get_logger(debug=self._debug)
 
     @property
-    def prefix(self) -> str:
+    def log_prefix(self) -> str:
         return '[EventHandler: ' + '/'.join(self._root_path.split(os.sep)[-2:]) + ']'
 
     def launch_restart_loop(self):
+        self._logger.info(f'{self.log_prefix} Launching the restart uploads loop (tick = {self._tick} sec).')
         threading.Timer(self._tick, self._restart_uploads).start()
 
     def _restart_uploads(self):
         with db.atomic():
-            for upload in Upload.select().where(Upload.substatus == Substatus.RESTART.value):
-                pack = packer.UploadPack(self._root_path, upload.file_path, self._identity, upload=upload)
+            count = 0
+            for upload in Upload.select() \
+                    .where(Upload.substatus == Substatus.RESTART.value | Upload.substatus == Substatus.PENDING.value) \
+                    .limit(20):
+                count += 1
+                pack = packer.UploadPack(self._root_path, upload.file_path, self._identity)
                 pack.do_upload()
-        threading.Timer(5.0, self._restart_uploads).start()
+        self._logger.info(f'{self.log_prefix} Found {count} uploads to restart.')
+        threading.Timer(self._tick, self._restart_uploads).start()
 
     def on_created(self, event):
         if os.path.isfile(event.src_path) and not os.path.basename(event.src_path).startswith('.'):
-            self._logger.info(f'Created event for path : {event.src_path}')
+            self._logger.info(f'{self.log_prefix} Created event for path : {event.src_path}')
 
-            # Protection against large files currently being written, and whose filesize isn't complete yet.
+            # Protection against large files currently being written, or files being zipped.
+            # In both cases, the file size isn't stable yet.
             file_size = -1
             while file_size != os.path.getsize(event.src_path):
                 file_size = os.path.getsize(event.src_path)
                 time.sleep(0.1)
 
+            # Pack will be identical for file and its zipped counter-part.
             pack = packer.UploadPack(self._root_path, event.src_path, self._identity)
-            pack.do_upload()
+
+            # Hence if the zipped file is created and being filled, at that point, thanks
+            # to the above protection, there is a clear situation: either zip, or upload.
+            if pack.should_zip:
+                pack.do_zip()
+            else:
+                pack.do_upload()
 
     def on_moved(self, event):
-        self._logger.info(f'{event.event_type}: {event.src_path}')
+        self._logger.info(f'{self.log_prefix} {event.event_type}: {event.src_path}')
 
     def on_deleted(self, event):
-        self._logger.info(f'{event.event_type}: {event.src_path}')
+        self._logger.info(f'{self.log_prefix} {event.event_type}: {event.src_path}')
 
     def on_modified(self, event):
-        self._logger.info(f'{event.event_type}: {event.src_path}')
+        self._logger.info(f'{self.log_prefix} {event.event_type}: {event.src_path}')

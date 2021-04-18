@@ -148,24 +148,29 @@ class Status(Enum):
 
 class Substatus(Enum):
     PENDING = 'pending'
+    ZIPPING = 'zipping...'
+    CHECKING = 'checking remote file...'
+    READY = 'ready'
+    RESTART = 'restart'
+
+    STARTING = 'starting...'
     SYNC_TELESCOPE = 'syncing telescope...'
     SYNC_NIGHTLOG = 'syncing night log...'
     SYNC_OBS_OR_CALIB = 'syncing obs or calib...'
     SYNC_DATASET = 'syncing dataset...'
-    CHECKING = 'checking remote file...'
-    READY = 'ready'
-    RESTART = 'restart'
-    STARTING = 'starting...'
     UPLOADING = 'uploading...'
+
     DONE = 'done'
     ERROR = 'error'
     ALREADY_SYNCED = 'already synced'
+    IGNORED = 'ignored'
+    # --- SKIPPED: MUST STARTED WITH THE SAME 'skipped' LOWERCASE WORD. See Context.py ---
     SKIPPED_NO_DATE_OBS = 'skipped (no date obs found)'
     SKIPPED_NOT_FITS_OR_XISF = 'skipped (not fits or xisf)'
     SKIPPED_NO_DATASET = 'skipped (no dataset)'
     SKIPPED_HIDDEN_FILE = 'skipped (hidden file)'
     SKIPPED_EMPTY_FILE = 'skipped (empty file)'
-    IGNORED = 'ignored'
+    # ---
 
 
 FINISHED_SUBSTATUSES = [Substatus.DONE.value,
@@ -185,9 +190,12 @@ PREPARATION_DONE_SUBSTATUSES = [Substatus.CHECKING.value,
 class Upload(BaseModel):
     created = DateTimeField(default=datetime.now)
 
-    file_path = CharField(unique=True)
+    file_path = CharField(unique=True, null=True)
     file_date = DateTimeField(null=True)
     file_size = IntegerField(default=0)
+
+    file_path_zipped = CharField(null=True)
+    file_size_zipped = IntegerField(default=0)
 
     status = CharField(default=Status.NEW.value)
     substatus = CharField(default=Substatus.PENDING.value)
@@ -205,7 +213,7 @@ class Upload(BaseModel):
     organisation = ForeignKeyField(Organisation, backref='uploads', null=True)
 
     @classmethod
-    def is_ok(cls, file_path):
+    def has_ok_status(cls, file_path):
         try:
             u = cls.get(file_path=file_path)
         except DoesNotExist:

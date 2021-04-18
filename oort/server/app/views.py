@@ -5,7 +5,7 @@ from arcsecond import ArcsecondAPI
 from flask import Blueprint, Response, render_template, request
 from flask import current_app as app, redirect, url_for
 
-from oort.shared.config import get_logger
+from oort.shared.config import get_logger, write_config_value
 from oort.shared.models import Status, Substatus, Upload
 from .context import Context
 
@@ -26,8 +26,14 @@ def login():
                                        request.form.get('password'),
                                        request.form.get('subdomain'),
                                        debug=app.config['context'].debug)
-    app.config['login_error'] = json.loads(error) if error else None
+    app.config['context']['login_error'] = json.loads(error) if error else None
     return redirect(url_for('main.index'))
+
+
+@main.route('/update')
+def update():
+    write_config_value('server', 'selected_folder', request.args.get("selectedFolder", ''))
+    return Response({}, mimetype='application/json')
 
 
 @main.route('/uploads')
@@ -38,7 +44,7 @@ def uploads():
     def generate():
         while True:
             yield context.get_yield_string()
-            time.sleep(1)
+            time.sleep(0.5)
 
     # Using Server-Side Events. See https://blog.easyaspy.org/post/10/2019-04-30-creating-real-time-charts-with-flask
     return Response(generate(), mimetype='text/event-stream')

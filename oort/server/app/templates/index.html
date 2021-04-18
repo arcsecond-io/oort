@@ -38,12 +38,9 @@
 
     {% if context.isAuthenticated %}
       <span class="right">@{$ context.username $}</span>
-      {% if context.memberships|length > 0 %}
+      {% if context.membership %}
         <span class="right">
-        &nbsp;
-          {% for subdomain, role in context.memberships.items() %}
-            ({$ subdomain $}: {$ role $})
-          {% endfor %}
+        &nbsp; ({$ context.membership[0] $}: {$ context.membership[1] $})
         </span>
       {% endif %}
     {% endif %}
@@ -85,8 +82,15 @@
     <!-- **** STARTING FROM HERE, VUE.JS 'state.js' HAS CONTROL **** -->
     <div id="vuejs" class="main-content">
 
-      <div class="row row-select" v-if="has_state">
-        <div v-if="state.folders.length > 0">
+      <div class="row row-select" v-if="state">
+        <div v-if="!has_data">
+          <div class="h3 label-centered">
+            <i class="fa fa-spin fa-spinner"></i>
+            Loading Folder(s) Data...
+          </div>
+        </div>
+
+        <div v-else-if="has_data && state.folders.length > 0">
           <div class="h3">
             {{ state.folders.length }}
             Watched Folder<span v-if="state.folders.length > 1">s</span>
@@ -94,11 +98,14 @@
           <v-select
             v-if="state.folders.length"
             :options="state.folders"
-            v-model="selected_folder"
+            :value="selected_folder"
             :clearable="false"
+            :searchable="false"
+            @input="selectFolder"
             label="path"
           >
           </v-select>
+
           <div v-if="selected_folder">
             Config:
             <span v-if="selected_folder.subdomain">
@@ -113,26 +120,29 @@
             </span>
             <span class="subtitle" v-if="selected_folder.debug === 'True'">(Debug)</span>
           </div>
+
         </div>
+
         <div v-else class="instruction text-small small">
           There is no folder to watch.
           To watch a folder, add it with the terminal command <code>oort watch [options] &lt;folder path&gt;</code>.
         </div>
+
       </div>
       <div v-else>
         <div class="h3 label-centered">
           <i class="fa fa-spin fa-spinner"></i>
-          Loading...
+          Starting...
         </div>
       </div>
 
-      <div class="row row-tables text-small" v-if="selected_folder">
+      <div class="row row-tables text-small" v-if="has_data && selected_folder && counts">
         <div class="col-xs-12">
 
-          <div id="uploads" v-if="has_state">
+          <div id="uploads">
             <div class="table-block">
               <div class="table-title">
-                <input id="toggle-current" type="checkbox" v-model="show_tables.current" class="">
+                <input id="toggle-current" type="checkbox" v-model="show_tables.current">
                 Active Uploads ({{ current_uploads.length }})
                 <i class="fa fa-spin fa-spinner"></i>
               </div>
@@ -151,7 +161,8 @@
             <div class="table-block">
               <div class="table-title">
                 <input id="toggle-error" type="checkbox" v-model="show_tables.error" class="">
-                <span style="margin-right: 5px;">Failed Uploads ({{ error_uploads.length }})</span>
+                <span style="margin-right: 5px;">Failed Uploads ({{ counts.error }})</span>
+                <span style="margin-right:5px;" v-if="counts.error > 1000">(only last 1000 shown)</span>
                 <button class="btn btn-sm btn-primary-black" @click="retryAllFailed">Retry All</button>
               </div>
               <div v-if="show_tables.error">
@@ -169,7 +180,8 @@
             <div class="table-block">
               <div class="table-title">
                 <input id="toggle-pending" type="checkbox" v-model="show_tables.pending" class="">
-                Pending Uploads ({{ pending_uploads.length }})
+                <span style="margin-right:5px;">Pending Uploads ({{ counts.pending }})</span>
+                <span style="margin-right:5px;" v-if="counts.pending > 1000">(only next 1000 shown)</span>
               </div>
               <div v-if="show_tables.pending">
                 <pending-table
@@ -185,13 +197,14 @@
 
             <div class="table-block">
               <div class="table-title">
-                <div style="margin-right:5px;">
-                  Finished Uploads {{ finished_count }}.
+                <div>
+                  <span style="margin-right:5px;">Finished Uploads {{ counts.finished }}.</span>
+                  <span style="margin-right:5px;" v-if="counts.finished > 1000">(only last 1000 shown)</span>
                 </div>
                 <div>
-                  <span style="margin-left:5px;">Show Done ({{ finished_count - skipped_count }}): </span>
+                  <span style="margin-left:5px;">Show Done ({{ counts.finished - counts.skipped }}): </span>
                   <input id="toggle-finished-done" type="checkbox" v-model="show_tables.finished_done" class="">
-                  <span style="margin-left:5px;">Show Skipped ({{ skipped_count }}): </span>
+                  <span style="margin-left:5px;">Show Skipped ({{ counts.skipped }}): </span>
                   <input id="toggle-finished-skipped" type="checkbox" v-model="show_tables.finished_skipped" class="">
                 </div>
               </div>
@@ -202,7 +215,7 @@
                   :root_path="selected_folder.path"
                 ></finished-table>
                 <div class="center-block text-center">
-                  <span class="subtitle">Uploads older than 7 days are not shown ({{ state.hiddenCount }} hidden). </span>
+                  <span class="subtitle">Uploads older than 7 days are not shown ({{ counts.hidden }} hidden). </span>
                 </div>
                 <div v-else>
                   <span class="label-centered">There are no inactive / past uploads.</span>
@@ -213,6 +226,7 @@
           </div>
         </div>
       </div>
+
     </div>
 
   {% endif %}
