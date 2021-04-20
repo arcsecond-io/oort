@@ -1,3 +1,4 @@
+import pathlib
 from datetime import datetime
 from enum import Enum
 
@@ -17,6 +18,7 @@ from playhouse.signals import Signal
 
 from oort.shared.config import get_db_file_path
 from oort.shared.config import get_logger
+from oort.shared.constants import ZIP_EXTENSIONS
 from oort.uploader.engine.errors import MultipleDBInstanceError
 
 db = SqliteDatabase(get_db_file_path(), pragmas={'journal_mode': 'wal', 'cache_size': -1024 * 64})
@@ -213,13 +215,16 @@ class Upload(BaseModel):
     organisation = ForeignKeyField(Organisation, backref='uploads', null=True)
 
     @classmethod
-    def has_ok_status(cls, file_path):
+    def is_finished(cls, file_path):
         try:
-            u = cls.get(file_path=file_path)
+            if pathlib.Path(file_path).suffix in ZIP_EXTENSIONS:
+                u = cls.get(file_path_zipped=file_path)
+            else:
+                u = cls.get(file_path=file_path)
         except DoesNotExist:
             return False
         else:
-            return u.status == Status.OK.value
+            return u.status == Status.OK.value and u.substatus in FINISHED_SUBSTATUSES
 
 
 db.connect()
