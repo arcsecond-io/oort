@@ -39,9 +39,9 @@ class DataFileHandler(FileSystemEventHandler):
     def _restart_uploads(self):
         with db.atomic():
             count = 0
-            for upload in Upload.select() \
-                    .where(Upload.substatus == Substatus.RESTART.value | Upload.substatus == Substatus.PENDING.value) \
-                    .limit(20):
+            for upload in Upload.select().where(
+                    (Upload.substatus == Substatus.RESTART.value) |
+                    (Upload.substatus == Substatus.PENDING.value)).limit(20):
                 count += 1
                 pack = packer.UploadPack(self._root_path, upload.file_path, self._identity)
                 pack.do_upload()
