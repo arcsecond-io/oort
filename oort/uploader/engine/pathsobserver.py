@@ -6,6 +6,7 @@ from watchdog.observers import Observer
 
 from oort.shared.config import get_logger
 from oort.shared.identity import Identity
+from oort.shared.models import Upload
 from . import eventhandler
 
 
@@ -42,7 +43,7 @@ class PathsObserver(Observer):
             # Skipping both hidden files and hidden directories.
             if any([part for part in path.parts if len(part) > 0 and part[0] == '.']):
                 continue
-            if path.is_file():
+            if path.is_file() and not Upload.is_finished(str(path)):
                 count += 1
                 event = FileCreatedEvent(str(path))
                 event_handler.dispatch(event)
