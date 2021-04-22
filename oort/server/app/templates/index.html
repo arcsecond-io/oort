@@ -24,17 +24,29 @@
 
 <body>
 
+<script>
+  function updateUploader (state) {
+    fetch('/update?uploader=' + state)
+  }
+</script>
+
 <div class="container-fluid">
 
   <div class="row row-header">
-    <h3 title="Oort Cloud is open-source! Find it on https://github.com/arcsecond-io">
+    <div class="h3 left" title="Oort Cloud is open-source! Find it on https://github.com/arcsecond-io">
       <img src="{$ url_for('static', filename='img/logo-circle.png') $}" width="20">
       Your <a href="https://github.com/arcsecond-io/oort" target="_blank">Oort</a> service
       <span class="small">
-          uploads local data to <a href="https://www.arcsecond.io" target="_blank">Arcsecond</a>'s cloud.
-          <a class="btn btn-primary btn-xs" href="https://github.com/arcsecond-io/oort/issues/new">Report a problem</a>
-        </span>
-    </h3>
+        uploads local data to <a href="https://www.arcsecond.io" target="_blank">Arcsecond</a>'s cloud.
+        <a class="btn btn-primary btn-xs" href="https://github.com/arcsecond-io/oort/issues/new">Report a problem</a>
+      </span>
+    </div>
+
+    <div class="small center">
+      Uploader State: {$ context.uploaderState $}
+      <a class="btn btn-sm btn-default" href="/update?uploader=stop">Stop</a>
+      <a class="btn btn-sm btn-default" href="/update?uploader=start">Start</a>
+    </div>
 
     {% if context.isAuthenticated %}
       <span class="right">@{$ context.username $}</span>
@@ -144,7 +156,7 @@
               <div class="table-title">
                 <input id="toggle-current" type="checkbox" v-model="show_tables.current">
                 Active Uploads ({{ current_uploads.length }})
-                <i class="fa fa-spin fa-spinner"></i>
+                <i class="fa fa-spin fa-spinner" v-if="state.uploaderState === 'RUNNING'"></i>
               </div>
               <div v-if="show_tables.current">
                 <active-table

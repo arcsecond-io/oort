@@ -17,7 +17,8 @@ main = Blueprint('main', __name__)
 @main.route('/')
 @main.route('/index')
 def index():
-    return render_template('index.html', context=app.config['context'].to_dict())
+    context: Context = app.config['context']
+    return render_template('index.html', context=context.to_dict())
 
 
 @main.route('/login', methods=['POST'])
@@ -32,13 +33,17 @@ def login():
 
 @main.route('/update')
 def update():
-    write_config_value('server', 'selected_folder', request.args.get("selectedFolder", ''))
-    return Response({}, mimetype='application/json')
+    if request.args.get("selectedFolder", ''):
+        write_config_value('server', 'selected_folder', request.args.get("selectedFolder", ''))
+        return Response({}, mimetype='application/json')
+    elif request.args.get("uploader", ''):
+        context: Context = app.config['context']
+        context.updateUploader(request.args.get("uploader", ''))
+        return redirect(url_for('main.index'))
 
 
 @main.route('/uploads')
 def uploads():
-    # print(app.config)
     context: Context = app.config['context']
 
     def generate():
