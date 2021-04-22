@@ -47,7 +47,7 @@ class PathsObserver(Observer):
             if Upload.is_finished(str(path)):
                 ignore_count += 1
                 if ignore_count > 0 and ignore_count % 100 == 0:
-                    self._logger.info(f'{self.log_prefix} Ignored {ignore_count} uploads already finished so far.')
+                    self._logger.info(f'{self.log_prefix} Ignored {ignore_count} uploads already finished in {folder_path}.')
             else:
                 count += 1
                 event = FileCreatedEvent(str(path))
