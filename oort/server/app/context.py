@@ -1,7 +1,9 @@
 import datetime
 import json
+from http.client import CannotSendRequest
 from json import JSONEncoder
 from uuid import UUID
+from xmlrpc.client import ServerProxy
 
 from arcsecond import ArcsecondAPI
 from playhouse.shortcuts import model_to_dict
@@ -30,6 +32,22 @@ class Context:
         self.username = ArcsecondAPI.username(debug=self.debug)
         self.is_authenticated = ArcsecondAPI.is_logged_in(debug=self.debug)
         self._memberships = ArcsecondAPI.memberships(debug=self.debug)
+        self._uploader = ServerProxy('http://localhost:9001/RPC2')
+
+    def _get_uploader_state(self):
+        try:
+            _info = self._uploader.supervisor.getProcessInfo('oort-uploader')
+        except (ConnectionRefusedError, CannotSendRequest) as e:
+            return str(e)[:30] + '...'
+        else:
+            return _info.get('statename')
+
+    def updateUploader(self, action):
+        _info = self._uploader.supervisor.getProcessInfo('oort-uploader')
+        if action == 'stop' and _info.get('statename') == 'RUNNING':
+            self._uploader.supervisor.stopProcess('oort-uploader')
+        elif action == 'start' and _info.get('statename') == 'STOPPED':
+            self._uploader.supervisor.startProcess('oort-uploader')
 
     def to_dict(self):
         return {
@@ -38,7 +56,8 @@ class Context:
             'loginError': self.login_error,
             'debug': self.debug,
             'startTime': self.start_time.isoformat(),
-            'folders': get_config_upload_folder_sections()
+            'folders': get_config_upload_folder_sections(),
+            'uploaderState': self._get_uploader_state()
         }
 
     def _get_queries_dicts(self, selected_path: str):

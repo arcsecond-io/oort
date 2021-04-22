@@ -48,13 +48,16 @@ class FileUploader(object):
         self._async_file_uploader: AsyncFileUploader
         if remote_resource_exists:
             self._logger.info(f"{self.log_prefix} Remote resource exists. Preparing 'Update' APIs.")
-            self._async_file_uploader, _ = self._api.update(os.path.basename(self._final_file_path),
-                                                            {'file': self._final_file_path},
-                                                            callback=update_upload_progress)
+            self._async_file_uploader, error = self._api.update(os.path.basename(self._final_file_path),
+                                                                {'file': self._final_file_path},
+                                                                callback=update_upload_progress)
         else:
             self._logger.info(f"{self.log_prefix} Remote resource does not exist. Preparing 'Create' APIs.")
             self._async_file_uploader, error = self._api.create({'file': self._final_file_path},
                                                                 callback=update_upload_progress)
+
+        if error:
+            self._logger.info(f'{self.log_prefix} API preparation error for {self._final_file_path}: {str(error)}')
 
     def _check_remote_resource_and_file(self):
         _remote_resource_exists = False

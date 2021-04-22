@@ -34,11 +34,14 @@ var app = new Vue({
         self.selectFolder(self.state.folders[0])
       }
 
-      self.pending_uploads = json_data.pending || []
       self.current_uploads = json_data.current || []
-      self.error_uploads = json_data.errors || []
-      self.finished_uploads = json_data.finished || []
       self.progresses = (self.current_uploads || []).map(u => u.progress)
+
+      self.pending_uploads = json_data.pending || []
+      self.error_uploads = json_data.errors || []
+      self.finished_uploads = (json_data.finished || [])
+        .filter(u => (u.substatus.toLowerCase().startsWith('skipped') && self.show_tables.finished_skipped) ||
+          (!u.substatus.toLowerCase().startsWith('skipped') && self.show_tables.finished_done))
     }
   },
   methods: {
