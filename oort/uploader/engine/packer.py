@@ -265,14 +265,18 @@ class UploadPack(object):
         hdulist = None
         try:
             with pyfits.open(path, mode='readonly', memmap=True, ignore_missing_end=True) as hdulist:
-                for hdu in hdulist:
-                    date_header = hdu.header.get('DATE') or hdu.header.get('DATE-OBS') or hdu.header.get('DATE_OBS')
-                    if not date_header:
-                        continue
-                    file_date = dateparser.parse(date_header)
-                    if file_date:
-                        hdulist.close()
+                for index, hdu in enumerate(hdulist):
+                    # Breaking after 10 HDUs as a workaround to corrupted FITS files that end up in
+                    # an infinite loop of HDU reading. Note that relying on len(hdulist) is a BAD
+                    # idea as it required to force the reading of all HDUs (lazy loaded by default).
+                    if index >= 10:
                         break
+                    date_header = hdu.header.get('DATE') or hdu.header.get('DATE-OBS') or hdu.header.get('DATE_OBS')
+                    if date_header:
+                        file_date = dateparser.parse(date_header)
+                        if file_date:
+                            hdulist.close()
+                            break
         except Exception as error:
             if hdulist:
                 hdulist.close()
