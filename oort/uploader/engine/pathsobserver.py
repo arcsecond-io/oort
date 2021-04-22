@@ -1,3 +1,4 @@
+import time
 from pathlib import Path
 from typing import List
 
@@ -38,15 +39,20 @@ class PathsObserver(Observer):
         if root_path.is_file():
             root_path = root_path.parent
 
-        count = 0
+        count, ignore_count = 0, 0
         for path in root_path.glob('**/*'):
             # Skipping both hidden files and hidden directories.
-            if any([part for part in path.parts if len(part) > 0 and part[0] == '.']):
+            if any([part for part in path.parts if len(part) > 0 and part[0] == '.']) or not path.is_file():
                 continue
-            if path.is_file() and not Upload.is_finished(str(path)):
+            if Upload.is_finished(str(path)):
+                ignore_count += 1
+                if ignore_count > 0 and ignore_count % 100 == 0:
+                    self._logger.info(f'{self.log_prefix} Ignored {ignore_count} uploads already finished so far.')
+            else:
                 count += 1
                 event = FileCreatedEvent(str(path))
                 event_handler.dispatch(event)
+            time.sleep(0.01)
 
         self._logger.info(f'{self.log_prefix} Initial walk inside folder {folder_path} dispatched {count} events.')
 
