@@ -28,7 +28,8 @@ def login():
                                        request.form.get('subdomain'),
                                        upload_key=True,
                                        debug=app.config['context'].debug)
-    app.config['context']['login_error'] = json.loads(error) if error else None
+    # No: TypeError: 'Context' object does not support item assignment
+    # app.config['context']['login_error'] = json.loads(error) if error else None
     return redirect(url_for('main.index'))
 
 
