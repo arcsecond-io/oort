@@ -9,7 +9,7 @@ from oort.shared.config import get_logger, write_config_value
 from oort.shared.models import Status, Substatus, Upload
 from .context import Context
 
-logger = get_logger()
+logger = get_logger('server')
 
 main = Blueprint('main', __name__)
 

@@ -21,7 +21,7 @@ class AsyncZipper(Thread):
         self._zipped_file_path = file_path + '.gz'
         self._upload, created = Upload.get_or_create(file_path=file_path)
         self._initial_substatus = self._upload.substatus
-        self._logger = get_logger(debug=debug)
+        self._logger = get_logger('uloader', debug=debug)
 
     @property
     def log_prefix(self) -> str:

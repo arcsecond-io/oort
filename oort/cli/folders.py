@@ -180,7 +180,7 @@ def save_upload_folders(folders: list,
                         org_role: Optional[str],
                         telescope_details: Optional[dict],
                         debug: bool) -> list:
-    logger = get_logger(debug=debug)
+    logger = get_logger('cli', debug=debug)
     prepared_folders = []
     for raw_folder in folders:
         upload_folder = os.path.expanduser(os.path.realpath(raw_folder))

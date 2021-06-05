@@ -43,13 +43,13 @@ def get_supervisor_conf_file_path():
     return os.path.join(get_directory_path(), 'supervisord.conf')
 
 
-def get_logger(debug=False):
+def get_logger(process_name, debug=False):
     suffix = '-tests' if os.environ.get('OORT_TESTS') == '1' else ''
     logger = logging.getLogger('oort-cloud' + suffix)
     logger.setLevel(logging.DEBUG if debug else logging.INFO)
 
     if len(logger.handlers) == 0:
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        formatter = logging.Formatter('%(asctime)s - %(name)s[' + process_name + '] - %(levelname)s - %(message)s')
 
         file_handler = logging.FileHandler(get_log_file_path())
         file_handler.setLevel(logging.DEBUG if debug else logging.INFO)
