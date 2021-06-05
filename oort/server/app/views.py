@@ -26,6 +26,7 @@ def login():
     result, error = ArcsecondAPI.login(request.form.get('username'),
                                        request.form.get('password'),
                                        request.form.get('subdomain'),
+                                       upload_key=True,
                                        debug=app.config['context'].debug)
     app.config['context']['login_error'] = json.loads(error) if error else None
     return redirect(url_for('main.index'))
