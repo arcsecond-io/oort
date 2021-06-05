@@ -17,21 +17,15 @@ class FileUploader(object):
         self._upload = self._pack.upload
         self._final_file_path = self._pack.final_file_path
         self._dataset_uuid = self._upload.dataset.uuid
-
         self._stalled_progress = 0
-        test = os.environ.get('OORT_TESTS') == '1'
 
-        # If we have an upload_key, hence it is an oort_key, hence we upload for a custom astronomer.
-        if self._pack.identity.upload_key:
-            self._api = ArcsecondAPI.datafiles(dataset=str(self._dataset_uuid),
-                                               debug=pack.identity.debug,
-                                               test=test,
-                                               upload_key=pack.identity.upload_key)
-        else:
-            self._api = ArcsecondAPI.datafiles(dataset=str(self._dataset_uuid),
-                                               debug=pack.identity.debug,
-                                               test=test,
-                                               organisation=pack.identity.subdomain)
+        is_test_context = os.environ.get('OORT_TESTS') == '1'
+        self._api = ArcsecondAPI.datafiles(dataset=str(self._dataset_uuid),
+                                           debug=pack.identity.debug,
+                                           test=is_test_context,
+                                           verbose=True,
+                                           upload_key=pack.identity.upload_key,
+                                           organisation=pack.identity.subdomain)
 
     @property
     def log_prefix(self) -> str:
