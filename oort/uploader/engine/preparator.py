@@ -47,10 +47,10 @@ class UploadPreparator(object):
     def api_kwargs(self) -> dict:
         test = os.environ.get('OORT_TESTS') == '1'
         kwargs = {'debug': self._identity.debug, 'test': test}
-        if self._identity.api_key:
+        if self._identity.upload_key:
             # We have an api key -> we are uploading on behalf of an astronomer, we use PERSONAL APIs.
             # It will bypass the currently logged-in astronomer credentials.
-            kwargs.update(api_key=self._identity.api_key)
+            kwargs.update(upload_key=self._identity.upload_key)
         elif self._identity.subdomain is not None and len(self._identity.subdomain) > 0:
             # We don't have an api key, but we have an organisation subdomain ->
             # we are uploading for an organisation, we use ORGANISATION APIs,

@@ -206,13 +206,13 @@ def watch(state, folders, o=None, organisation=None, t=None, telescope=None, ast
     process.
     """
     try:
-        username, api_key, org_subdomain, org_role, telescope_details = \
+        username, upload_key, org_subdomain, org_role, telescope_details = \
             parse_upload_watch_options(o, organisation, t, telescope, astronomer, state.debug)
     except InvalidWatchOptionsOortCloudError:
         return
 
     click.echo(" --- Folder(s) watch summary --- ")
-    click.echo(f" • Arcsecond username: @{username} (API key: {api_key[:4]}...)")
+    click.echo(f" • Arcsecond username: @{username} (Upload key: {upload_key[:4]}...)")
     if org_subdomain:
         click.echo(f" • Uploading for organisation: {org_subdomain} (role: {org_role})")
     else:
@@ -239,7 +239,7 @@ def watch(state, folders, o=None, organisation=None, t=None, telescope=None, ast
         oort_folder = os.path.dirname(os.path.dirname(__file__))
         prepared_folders = save_upload_folders(folders,
                                                username,
-                                               api_key,
+                                               upload_key,
                                                org_subdomain,
                                                org_role,
                                                telescope_details,

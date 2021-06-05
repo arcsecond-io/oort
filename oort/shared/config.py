@@ -131,7 +131,7 @@ def update_config_upload_folder_sections_key(upload_key) -> None:
             continue
         if section.endswith('-tests') != use_tests:
             continue
-        config.remove_option(section, 'api_key')
+        config.remove_option(section, 'upload_key')
         config.set(section, 'upload_key', upload_key)
 
     with open(conf_file_path, 'w') as f:
