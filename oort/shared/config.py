@@ -117,6 +117,27 @@ def get_config_upload_folder_sections() -> List[Dict]:
     return [dict(config[section], **{'section': section}) for section in sections]
 
 
+def update_config_upload_folder_sections_key(upload_key) -> None:
+    conf_file_path = get_oort_config_file_path()
+    if not os.path.exists(conf_file_path):
+        return
+
+    config = ConfigParser()
+    config.read(conf_file_path)
+
+    use_tests = os.environ.get('OORT_TESTS') == '1'
+    for section in config.sections():
+        if not section.startswith('watch-folder-'):
+            continue
+        if section.endswith('-tests') != use_tests:
+            continue
+        config.remove_option(section, 'api_key')
+        config.set(section, 'upload_key', upload_key)
+
+    with open(conf_file_path, 'w') as f:
+        config.write(f)
+
+
 def get_config_folder_section(section_name) -> Optional[Dict]:
     conf_file_path = get_oort_config_file_path()
     if not os.path.exists(conf_file_path):
