@@ -3,7 +3,7 @@ from oort.shared.errors import OortCloudError
 
 class NotLoggedInOortCloudError(OortCloudError):
     def __init__(self):
-        super().__init__('You must login first: `arcsecond login`')
+        super().__init__('You must login first: `oort login`')
 
 
 class InvalidWatchOptionsOortCloudError(OortCloudError):
@@ -45,5 +45,5 @@ class InvalidOrganisationTelescopeOortCloudError(OortCloudError):
 
 class InvalidOrganisationUploadKeyOortCloudError(OortCloudError):
     def __init__(self, subdomain, username, upload_key):
-        msg = f'Invalid / unknown upload key {upload_key} for @{username} and {subdomain} organisation.'
+        msg = f'Invalid / unknown upload_key {upload_key} for @{username} and {subdomain} organisation.'
         super().__init__(msg)
