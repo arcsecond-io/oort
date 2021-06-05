@@ -12,26 +12,20 @@ from . import errors
 
 class FileUploader(object):
     def __init__(self, pack):
-        self._logger = get_logger(debug=True)
+        self._logger = get_logger('uloader', debug=True)
         self._pack = pack
         self._upload = self._pack.upload
         self._final_file_path = self._pack.final_file_path
         self._dataset_uuid = self._upload.dataset.uuid
-
         self._stalled_progress = 0
-        test = os.environ.get('OORT_TESTS') == '1'
 
-        # If we have an api_key, hence it is an oort_key, hence we upload for a custom astronomer.
-        if self._pack.identity.api_key:
-            self._api = ArcsecondAPI.datafiles(dataset=str(self._dataset_uuid),
-                                               debug=pack.identity.debug,
-                                               test=test,
-                                               api_key=pack.identity.api_key)
-        else:
-            self._api = ArcsecondAPI.datafiles(dataset=str(self._dataset_uuid),
-                                               debug=pack.identity.debug,
-                                               test=test,
-                                               organisation=pack.identity.subdomain)
+        is_test_context = os.environ.get('OORT_TESTS') == '1'
+        self._api = ArcsecondAPI.datafiles(dataset=str(self._dataset_uuid),
+                                           debug=pack.identity.debug,
+                                           test=is_test_context,
+                                           verbose=True,
+                                           upload_key=pack.identity.upload_key,
+                                           organisation=pack.identity.subdomain)
 
     @property
     def log_prefix(self) -> str:

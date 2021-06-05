@@ -15,7 +15,7 @@ def is_port_in_use(port):
 
 
 def start(debug=False):
-    logger = get_logger(debug=debug)
+    logger = get_logger('server', debug=debug)
 
     app.config['folder'] = os.getcwd()
     app.config['debug'] = bool(debug)

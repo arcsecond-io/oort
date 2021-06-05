@@ -43,13 +43,13 @@ def get_supervisor_conf_file_path():
     return os.path.join(get_directory_path(), 'supervisord.conf')
 
 
-def get_logger(debug=False):
+def get_logger(process_name, debug=False):
     suffix = '-tests' if os.environ.get('OORT_TESTS') == '1' else ''
     logger = logging.getLogger('oort-cloud' + suffix)
     logger.setLevel(logging.DEBUG if debug else logging.INFO)
 
     if len(logger.handlers) == 0:
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        formatter = logging.Formatter('%(asctime)s - %(name)s[' + process_name + '] - %(levelname)s - %(message)s')
 
         file_handler = logging.FileHandler(get_log_file_path())
         file_handler.setLevel(logging.DEBUG if debug else logging.INFO)
@@ -115,6 +115,27 @@ def get_config_upload_folder_sections() -> List[Dict]:
         ]
 
     return [dict(config[section], **{'section': section}) for section in sections]
+
+
+def update_config_upload_folder_sections_key(upload_key) -> None:
+    conf_file_path = get_oort_config_file_path()
+    if not os.path.exists(conf_file_path):
+        return
+
+    config = ConfigParser()
+    config.read(conf_file_path)
+
+    use_tests = os.environ.get('OORT_TESTS') == '1'
+    for section in config.sections():
+        if not section.startswith('watch-folder-'):
+            continue
+        if section.endswith('-tests') != use_tests:
+            continue
+        config.remove_option(section, 'upload_key')
+        config.set(section, 'upload_key', upload_key)
+
+    with open(conf_file_path, 'w') as f:
+        config.write(f)
 
 
 def get_config_folder_section(section_name) -> Optional[Dict]:

@@ -9,8 +9,12 @@ for astronomical observations, for individual astronomers, collaborations and
 observatories.
 
 Cloud storage backend is [Amazon's S3](https://aws.amazon.com/s3/), 
-and Oort has been thorough tested on recent Linux and macOS operating systems 
+and Oort has been thoroughly tested on recent Linux and macOS operating systems 
 (it may need some tweaks on Windows).
+
+Oort is a pure push up tool, not a two-way syncing tool. A file that
+is deleted locally will remain in the cloud if already uploaded. Change
+of files in the cloud have no effect locally either.
 
 Oort can be used by individual astronomers who want to store data in
 a cloud dedicated to astronomical data. Or by an observatory, to store data
@@ -142,6 +146,9 @@ zip processes on `SIGINT`, `SIGQUIT` and `SIGTERM`.
 
 <span style='color: red;'>Oort is a compressor tool for data files too.</span>
 
+Oort has a limitation nonetheless: if the folder is read-only, no zipping will be
+permitted and file will not be uploaded. We are working on solving this problem.
+
 ### Folder structure and Data organisation
 
 **Oort is using the folder structure to infer the type and organisation of files.**
@@ -156,8 +163,8 @@ a Dataset whose name is that of the folder. Complete subfolder names will be
 used as Dataset and Observation / Calibration names. See below for a table of 
 examples.
 
-Keywords directing files to Calibrations containers are "Bias", "Dark", "Flat"
-and "Calib". All other folder names are considered as target names, and put
+Keywords directing files to Calibrations containers are <code>bias</code>, 
+<code>dark</code>, <code>flat</code> and <code>calib</code> (all case-insensitive). All other folder names are considered as target names, and put
 inside Observations containers.
 
 For instance, FITS or XISF files found in `<root>/NGC3603/mosaic/Halpha`
@@ -253,4 +260,7 @@ Will not be uploaded because it is an hidden file (starting with a `.`).
 * There is no need to install or run Oort as `root`.
 * One must login first before uploading, with the command `oort login`. It will 
 locally store the necessary credentials used for uploading. **Keep these credentials safe**.
-* If uploading for an organisation, Oort must necessarily be run someone who is a member of it.
+* Note that `oort login` fetches a limited-scope upload key, just enough to perform its task. 
+  To the contrary of `arcsecond login` which fetches your full API key.  
+* If uploading for an organisation, Oort must necessarily be run someone who is a 
+  member of it (quite obviously).

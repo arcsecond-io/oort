@@ -21,7 +21,7 @@ DEFAULT_PROCESSES = [SERVER_PROCESS, UPLOADER_PROCESS]
 
 # noinspection OsChmod
 def reconfigure_supervisor(debug=False):
-    logger = get_logger(debug=debug)
+    logger = get_logger('cli', debug=debug)
     logger.debug(f'Configuring supervisord debug={debug}...')
 
     conf_file_path = get_supervisor_conf_file_path()
@@ -93,7 +93,7 @@ def reconfigure_supervisor(debug=False):
 
 
 def start_supervisor_daemon(debug=False):
-    logger = get_logger(debug=debug)
+    logger = get_logger('cli', debug=debug)
     logger.info('Starting supervisord...')
 
     conf_file_path = get_supervisor_conf_file_path()
@@ -129,7 +129,7 @@ def start_supervisor_daemon(debug=False):
 
 
 def stop_supervisor_daemon(debug=False):
-    logger = get_logger(debug=debug)
+    logger = get_logger('cli', debug=debug)
     logger.info('Stopping supervisord (if any)...')
 
     conf = ConfigParser()
@@ -149,7 +149,7 @@ def stop_supervisor_daemon(debug=False):
 
 
 def start_supervisor_processes(*args, debug=True):
-    logger = get_logger(debug=debug)
+    logger = get_logger('cli', debug=debug)
     logger.debug('Starting Oort processes...')
     if len(args) == 0:
         args = DEFAULT_PROCESSES
@@ -158,7 +158,7 @@ def start_supervisor_processes(*args, debug=True):
 
 
 def stop_supervisor_processes(*args, debug=True):
-    logger = get_logger(debug=debug)
+    logger = get_logger('cli', debug=debug)
     if len(args) == 0:
         args = DEFAULT_PROCESSES
     logger.info('Stopping Oort processes (if any)...')
@@ -167,7 +167,7 @@ def stop_supervisor_processes(*args, debug=True):
 
 
 def update_supervisor_processes(*args, debug=True):
-    logger = get_logger(debug=debug)
+    logger = get_logger('cli', debug=debug)
     logger.info('(Re)Starting Oort processes.')
     if len(args) == 0:
         args = DEFAULT_PROCESSES
@@ -176,7 +176,7 @@ def update_supervisor_processes(*args, debug=True):
 
 
 def get_supervisor_processes_status(*args, debug=True):
-    logger = get_logger(debug=debug)
+    logger = get_logger('cli', debug=debug)
     logger.debug('Getting status of Oort processes...')
     subprocess.run(["supervisorctl", "-c", get_supervisor_conf_file_path(), "status"] + list(args))
     logger.debug('Getting status done.')

@@ -25,7 +25,7 @@ db = SqliteDatabase(get_db_file_path(), pragmas={'journal_mode': 'wal', 'cache_s
 
 upload_post_save_signal = Signal()
 
-logger = get_logger()
+logger = get_logger('db')
 
 
 class BaseModel(Model):

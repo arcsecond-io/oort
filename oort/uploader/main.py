@@ -10,7 +10,7 @@ from oort.uploader.engine.zipper import zipper_stop_event
 
 paths_observer = PathsObserver()
 
-logger = get_logger()
+logger = get_logger('uploader')
 
 
 def handle_ctrl_c(signum, frame):

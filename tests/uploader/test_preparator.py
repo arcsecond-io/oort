@@ -9,7 +9,7 @@ from oort.shared.identity import Identity
 from oort.shared.models import Calibration, Dataset, NightLog, Observation, Organisation, Telescope, Upload, db
 from oort.uploader.engine.packer import UploadPack
 from oort.uploader.engine.preparator import UploadPreparator
-from tests.utils import (TEST_LOGIN_API_KEY, TEST_CUSTOM_API_KEY, TEST_CUSTOM_USERNAME, TEST_LOGIN_ORG_ROLE,
+from tests.utils import (TEST_LOGIN_UPLOAD_KEY, TEST_CUSTOM_UPLOAD_KEY, TEST_CUSTOM_USERNAME, TEST_LOGIN_ORG_ROLE,
                          TEST_LOGIN_ORG_SUBDOMAIN, TEST_LOGIN_USERNAME, save_test_credentials, use_test_database)
 
 spec = importlib.util.find_spec('oort')
@@ -79,7 +79,7 @@ def test_preparator_init_with_org_and_custom_astronomer():
     save_test_credentials()
 
     identity = Identity(TEST_CUSTOM_USERNAME,
-                        TEST_CUSTOM_API_KEY,
+                        TEST_CUSTOM_UPLOAD_KEY,
                         TEST_LOGIN_ORG_SUBDOMAIN,
                         TEST_LOGIN_ORG_ROLE,
                         telescope_uuid,
@@ -112,7 +112,7 @@ def test_preparator_init_with_org_and_custom_astronomer():
 def test_preparator_prepare_no_org_no_telescope():
     save_test_credentials()
 
-    identity = Identity(TEST_LOGIN_USERNAME, TEST_LOGIN_API_KEY, debug=True)
+    identity = Identity(TEST_LOGIN_USERNAME, TEST_LOGIN_UPLOAD_KEY, debug=True)
     pack = UploadPack(folder_path, fits_file_path, identity)
     assert len(pack.night_log_date_string) > 0
     assert identity.telescope is None
@@ -132,9 +132,9 @@ def test_preparator_prepare_no_org_no_telescope():
         up = UploadPreparator(pack, identity)
         up.prepare()
 
-        mock_method_nightlogs.assert_called_with(test=True, debug=True, api_key=TEST_LOGIN_API_KEY)
-        mock_method_obs.assert_called_with(test=True, debug=True, api_key=TEST_LOGIN_API_KEY)
-        mock_method_datasets.assert_called_with(test=True, debug=True, api_key=TEST_LOGIN_API_KEY)
+        mock_method_nightlogs.assert_called_with(test=True, debug=True, upload_key=TEST_LOGIN_UPLOAD_KEY)
+        mock_method_obs.assert_called_with(test=True, debug=True, upload_key=TEST_LOGIN_UPLOAD_KEY)
+        mock_method_datasets.assert_called_with(test=True, debug=True, upload_key=TEST_LOGIN_UPLOAD_KEY)
 
         mock_method_list.assert_any_call(date=pack.night_log_date_string)
         mock_method_list.assert_any_call(name=pack.dataset_name, night_log=nl['uuid'], target_name=pack.dataset_name)
@@ -214,7 +214,7 @@ def test_preparator_prepare_with_org_and_telescope_and_custom_astronomer():
     save_test_credentials()
 
     identity = Identity(TEST_CUSTOM_USERNAME,
-                        TEST_CUSTOM_API_KEY,
+                        TEST_CUSTOM_UPLOAD_KEY,
                         TEST_LOGIN_ORG_SUBDOMAIN,
                         TEST_LOGIN_ORG_ROLE,
                         telescope_uuid,
@@ -242,10 +242,10 @@ def test_preparator_prepare_with_org_and_telescope_and_custom_astronomer():
         up = UploadPreparator(pack, identity)
         up.prepare()
 
-        # Making sure we build APIs with custom api_key and not organisation
-        mock_method_nightlogs.assert_called_with(test=True, debug=True, api_key=TEST_CUSTOM_API_KEY)
-        mock_method_obs.assert_called_with(test=True, debug=True, api_key=TEST_CUSTOM_API_KEY)
-        mock_method_datasets.assert_called_with(test=True, debug=True, api_key=TEST_CUSTOM_API_KEY)
+        # Making sure we build APIs with custom upload_key and not organisation
+        mock_method_nightlogs.assert_called_with(test=True, debug=True, upload_key=TEST_CUSTOM_UPLOAD_KEY)
+        mock_method_obs.assert_called_with(test=True, debug=True, upload_key=TEST_CUSTOM_UPLOAD_KEY)
+        mock_method_datasets.assert_called_with(test=True, debug=True, upload_key=TEST_CUSTOM_UPLOAD_KEY)
 
         mock_method_list.assert_any_call(date=pack.night_log_date_string, telescope=telescope_uuid)
         mock_method_list.assert_any_call(name=pack.dataset_name, night_log=nl['uuid'], target_name=pack.dataset_name)

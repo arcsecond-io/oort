@@ -18,7 +18,8 @@ from oort.server.errors import InvalidWatchOptionsOortCloudError
 from oort.shared.config import (get_config_upload_folder_sections,
                                 get_config_value,
                                 get_log_file_path,
-                                get_supervisor_conf_file_path)
+                                get_supervisor_conf_file_path,
+                                update_config_upload_folder_sections_key)
 from oort.shared.utils import tail
 from oort.uploader.main import paths_observer
 
@@ -40,6 +41,10 @@ def main(ctx, version=False, **kwargs):
     contained in the folder (and its subfolders). As soon a new file appears
     in the folder tree, Oort will upload it.
 
+    Oort-Cloud is a pure push up tool, not a two-way syncing tool. A file that
+    is deleted locally will remain in the cloud if already uploaded. Change
+    of files in the cloud have no effect locally either.
+
     *** Oort is using the folder structure to infer the type and organisation
     of files. ***
 
@@ -47,12 +52,13 @@ def main(ctx, version=False, **kwargs):
     Calibrations. And to each Observation and Calibration is attached a Dataset
     containing the files.
 
-    If a folder contains the word "Bias" (case-insensitive) or "Dark" or "Flat"
-    or "Calib", the files inside it will be put inside a Calibration object,
-    associated with a Dataset whose name is that of the folder.
+    If a folder contains the word "Bias" or "Dark" or "Flat" or "Calib" (all
+    case-insensitive), the files inside it will be put inside a Calibration
+    object, associated with a Dataset whose name is that of the folder.
 
-    Folders not containing these keywords are considered as target names. Their
-    files will be put inside a Dataset of that name, inside an Observation.
+    Folders not containing any of these keywords are considered as target names.
+    Their files will be put inside a Dataset of that name, inside an
+    Observation.
 
     To form the Dataset and Observation / Calibration names, Oort uses
     the complete subfolder path string, making the original filesystem structure
@@ -70,16 +76,16 @@ def main(ctx, version=False, **kwargs):
     boundaries are running from local noon to the next local noon.
 
     Oort-Cloud works by managing 2 processes:\n
-    • An uploader, which takes care of creating/syncing the right Night Logs,
-        Observations and Calibrations, as well as Datasets and Datafiles in
-        Arcsecond.io (either in your personal account, or your Organisation).
-        And then upload the files.\n
+    • An uploader, which takes care of creating/syncing the right Night Log,
+        Observation and Calibration objects, as well as Dataset and Datafile
+        objects in Arcsecond.io (either in your personal account, or your
+        Organisation). And then upload the real files.\n
     • A small web server, which allow you to monitor, control and setup what is
         happening in the uploader (and also see what happened before).
 
     The `oort` command is dedicated to start, stop and get status
     of these two processes. Once they are up and running, the only one thing
-    you jave to do is to indicate which folders `oort` should watch
+    you have to do is to indicate which folders `oort` should watch
     to find files to upload. Use `oort watch` for that.
     """
     if version:
@@ -96,11 +102,14 @@ def main(ctx, version=False, **kwargs):
 def login(state, username, password):
     """Login to your personal Arcsecond.io account.
 
-    It also fetch your personal API key. This API key is a secret token
-    you should take care. It will be stored locally on a file:
+    It also fetch your personal Upload key. This Upload key is a secret token
+    which gives just enough permission to perform the creation of Night Logs
+    Observations, Calibrations, Datasets, Datafiles and perform the upload.
+    Beware that the key will be stored locally on a file:
     ~/.arcsecond.ini
     """
-    ArcsecondAPI.login(username, password, None, debug=state.debug)
+    ArcsecondAPI.login(username, password, None, upload_key=True, debug=state.debug)
+    update_config_upload_folder_sections_key(ArcsecondAPI.upload_key())
 
 
 @main.command(help='Display current Oort processes status.')
@@ -197,13 +206,13 @@ def watch(state, folders, o=None, organisation=None, t=None, telescope=None, ast
     process.
     """
     try:
-        username, api_key, org_subdomain, org_role, telescope_details = \
+        username, upload_key, org_subdomain, org_role, telescope_details = \
             parse_upload_watch_options(o, organisation, t, telescope, astronomer, state.debug)
     except InvalidWatchOptionsOortCloudError:
         return
 
     click.echo(" --- Folder(s) watch summary --- ")
-    click.echo(f" • Arcsecond username: @{username} (API key: {api_key[:4]}...)")
+    click.echo(f" • Arcsecond username: @{username} (Upload key: {upload_key[:4]}...)")
     if org_subdomain:
         click.echo(f" • Uploading for organisation: {org_subdomain} (role: {org_role})")
     else:
@@ -230,7 +239,7 @@ def watch(state, folders, o=None, organisation=None, t=None, telescope=None, ast
         oort_folder = os.path.dirname(os.path.dirname(__file__))
         prepared_folders = save_upload_folders(folders,
                                                username,
-                                               api_key,
+                                               upload_key,
                                                org_subdomain,
                                                org_role,
                                                telescope_details,
@@ -252,7 +261,7 @@ def folders(state):
         for index, section in enumerate(sections):
             click.echo(f" • Folder #{index + 1}:")
             click.echo(f"   username     = @{section.get('username')}")
-            click.echo(f"   api_key      = {section.get('api_key')[0:4]}•••••••")
+            click.echo(f"   upload_key   = {section.get('upload_key')[0:4]}•••••••")
             if section.get('subdomain'):
                 click.echo(f"   organisation = {section.get('subdomain')} (role: {section.get('role')})")
             else:

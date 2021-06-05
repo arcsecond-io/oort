@@ -66,7 +66,7 @@ class UploadPack(object):
         self._root_path = root_path
         self._raw_file_path = pathlib.Path(file_path)
 
-        self._logger = get_logger(debug=identity.debug)
+        self._logger = get_logger('uloader', debug=identity.debug)
         self._parse()
 
         # Will work whatever the raw file path extension (zipped or not), and
@@ -76,14 +76,12 @@ class UploadPack(object):
 
         self._find_date_and_sizes()
 
-    def do_zip(self):
-        if not self.should_zip:
+    def do_upload(self):
+        if self.should_zip:
+            zip = zipper.AsyncZipper(self.clear_file_path)
+            zip.start()
             return
 
-        zip = zipper.AsyncZipper(self.clear_file_path)
-        zip.start()
-
-    def do_upload(self):
         if self.is_data_file and self._upload.file_size_zipped == 0 and self._upload.substatus == Substatus.READY.value:
             self._logger.info(f'{self.log_prefix} {self.zipped_file_path} is zipped but size is zero?')
             return

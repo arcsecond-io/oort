@@ -9,7 +9,7 @@ from oort.uploader.engine import packer
 
 
 def perform_walk(root_path: str, identity: Identity, debug: bool):
-    logger = get_logger(debug=debug)
+    logger = get_logger('uloader', debug=debug)
     logger.info(f'Running walk for {root_path}')
 
     if identity.subdomain:
@@ -29,7 +29,7 @@ def perform_walk(root_path: str, identity: Identity, debug: bool):
 
 if __name__ == '__main__':
     root_path = sys.argv[1]
-    username, api_key, subdomain, role, telescope, longitude, debug_str = sys.argv[2].split(",")
+    username, upload_key, subdomain, role, telescope, longitude, debug_str = sys.argv[2].split(",")
     debug = (debug_str == 'True')
-    identity = Identity(username, api_key, subdomain, role, telescope, longitude, debug)
+    identity = Identity(username, upload_key, subdomain, role, telescope, longitude, debug)
     perform_walk(root_path, identity, debug)

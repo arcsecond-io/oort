@@ -9,7 +9,7 @@ from oort.shared.identity import Identity
 from oort.shared.models import Calibration, Dataset, NightLog, Observation, Organisation, Telescope, Upload, db
 from oort.uploader.engine.packer import UploadPack
 from oort.uploader.engine.uploader import FileUploader
-from tests.utils import (TEST_CUSTOM_API_KEY, TEST_CUSTOM_USERNAME, TEST_LOGIN_API_KEY, TEST_LOGIN_ORG_ROLE,
+from tests.utils import (TEST_CUSTOM_UPLOAD_KEY, TEST_CUSTOM_USERNAME, TEST_LOGIN_UPLOAD_KEY, TEST_LOGIN_ORG_ROLE,
                          TEST_LOGIN_ORG_SUBDOMAIN, TEST_LOGIN_USERNAME, use_test_database)
 
 spec = importlib.util.find_spec('oort')
@@ -26,7 +26,7 @@ db.create_tables([Organisation, Telescope, NightLog, Observation, Calibration, D
 
 @use_test_database
 def test_uploader_init_no_org():
-    identity = Identity(TEST_LOGIN_USERNAME, TEST_LOGIN_API_KEY, debug=True)
+    identity = Identity(TEST_LOGIN_USERNAME, TEST_LOGIN_UPLOAD_KEY, debug=True)
     pack = UploadPack(folder_path, fits_file_path, identity)
     dataset = Dataset.smart_create(uuid=str(uuid.uuid4()))
     pack.upload.smart_update(dataset=dataset)
@@ -34,7 +34,7 @@ def test_uploader_init_no_org():
     with patch.object(ArcsecondAPI, 'datafiles') as mock_api:
         uploader = FileUploader(pack)
 
-        mock_api.assert_called_with(debug=True, test=True, api_key=TEST_LOGIN_API_KEY, dataset=dataset.uuid)
+        mock_api.assert_called_with(debug=True, test=True, upload_key=TEST_LOGIN_UPLOAD_KEY, dataset=dataset.uuid)
         assert uploader is not None
 
 
@@ -61,7 +61,7 @@ def test_uploader_init_org():
 @use_test_database
 def test_uploader_init_org_custom_astronomer():
     identity = Identity(TEST_CUSTOM_USERNAME,
-                        TEST_CUSTOM_API_KEY,
+                        TEST_CUSTOM_UPLOAD_KEY,
                         TEST_LOGIN_ORG_SUBDOMAIN,
                         TEST_LOGIN_ORG_ROLE,
                         telescope_uuid,
@@ -74,5 +74,5 @@ def test_uploader_init_org_custom_astronomer():
     with patch.object(ArcsecondAPI, 'datafiles') as mock_api:
         uploader = FileUploader(pack)
 
-        mock_api.assert_called_with(debug=True, test=True, api_key=TEST_CUSTOM_API_KEY, dataset=dataset.uuid)
+        mock_api.assert_called_with(debug=True, test=True, upload_key=TEST_CUSTOM_UPLOAD_KEY, dataset=dataset.uuid)
         assert uploader is not None

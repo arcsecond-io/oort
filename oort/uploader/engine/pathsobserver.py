@@ -16,7 +16,7 @@ class PathsObserver(Observer):
         super().__init__()
         self._mapping = {}
         self._debug = False
-        self._logger = get_logger(debug=self._debug)
+        self._logger = get_logger('uploader', debug=self._debug)
 
     @property
     def debug(self):
@@ -25,7 +25,7 @@ class PathsObserver(Observer):
     @debug.setter
     def debug(self, value):
         self._debug = value
-        self._logger = get_logger(debug=self._debug)
+        self._logger = get_logger('uploader', debug=self._debug)
         for folder_path in self._mapping.keys():
             self._mapping[folder_path]['handler'].debug = self._debug
 
