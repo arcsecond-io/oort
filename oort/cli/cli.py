@@ -18,7 +18,8 @@ from oort.server.errors import InvalidWatchOptionsOortCloudError
 from oort.shared.config import (get_config_upload_folder_sections,
                                 get_config_value,
                                 get_log_file_path,
-                                get_supervisor_conf_file_path)
+                                get_supervisor_conf_file_path,
+                                update_config_upload_folder_sections_key)
 from oort.shared.utils import tail
 from oort.uploader.main import paths_observer
 
