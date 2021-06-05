@@ -43,8 +43,10 @@ class DataFileHandler(FileSystemEventHandler):
                     (Upload.substatus == Substatus.RESTART.value) |
                     (Upload.substatus == Substatus.PENDING.value)).limit(20):
                 count += 1
+
                 pack = packer.UploadPack(self._root_path, upload.file_path, self._identity)
-                pack.do_upload()
+                pack.do_upload()  # will take care of zipping
+
         self._logger.info(f'{self.log_prefix} Found {count} uploads to restart.')
         threading.Timer(self._tick, self._restart_uploads).start()
 
@@ -61,13 +63,7 @@ class DataFileHandler(FileSystemEventHandler):
 
             # Pack will be identical for file and its zipped counter-part.
             pack = packer.UploadPack(self._root_path, event.src_path, self._identity)
-
-            # Hence if the zipped file is created and being filled, at that point, thanks
-            # to the above protection, there is a clear situation: either zip, or upload.
-            if pack.should_zip:
-                pack.do_zip()
-            else:
-                pack.do_upload()
+            pack.do_upload()  # will take care of zipping
 
     def on_moved(self, event):
         self._logger.info(f'{self.log_prefix} {event.event_type}: {event.src_path}')
