@@ -93,7 +93,7 @@ def check_remote_astronomer(username: str, upload_key: str, debug: bool):
     test = os.environ.get('OORT_TESTS') == '1'
     result, error = ArcsecondAPI.me(debug=debug, test=test).read(username)
     if error:
-        raise InvalidAstronomerOortCloudError(username, upload_key)
+        raise InvalidAstronomerOortCloudError(username, upload_key, error_string=str(error))
 
 
 def check_organisation_uploadkeys(org_subdomain: str, username: str, upload_key: str, debug: bool):
