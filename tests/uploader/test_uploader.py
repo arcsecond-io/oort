@@ -34,7 +34,11 @@ def test_uploader_init_no_org():
     with patch.object(ArcsecondAPI, 'datafiles') as mock_api:
         uploader = FileUploader(pack)
 
-        mock_api.assert_called_with(debug=True, test=True, upload_key=TEST_LOGIN_UPLOAD_KEY, dataset=dataset.uuid)
+        mock_api.assert_called_with(debug=True,
+                                    test=True,
+                                    upload_key=TEST_LOGIN_UPLOAD_KEY,
+                                    dataset=dataset.uuid,
+                                    organisation=None)
         assert uploader is not None
 
 
@@ -54,7 +58,11 @@ def test_uploader_init_org():
     with patch.object(ArcsecondAPI, 'datafiles') as mock_api:
         uploader = FileUploader(pack)
 
-        mock_api.assert_called_with(debug=True, test=True, organisation=TEST_LOGIN_ORG_SUBDOMAIN, dataset=dataset.uuid)
+        mock_api.assert_called_with(debug=True,
+                                    test=True,
+                                    upload_key='',
+                                    organisation=TEST_LOGIN_ORG_SUBDOMAIN,
+                                    dataset=dataset.uuid)
         assert uploader is not None
 
 
@@ -74,5 +82,9 @@ def test_uploader_init_org_custom_astronomer():
     with patch.object(ArcsecondAPI, 'datafiles') as mock_api:
         uploader = FileUploader(pack)
 
-        mock_api.assert_called_with(debug=True, test=True, upload_key=TEST_CUSTOM_UPLOAD_KEY, dataset=dataset.uuid)
+        mock_api.assert_called_with(debug=True,
+                                    test=True,
+                                    upload_key=TEST_CUSTOM_UPLOAD_KEY,
+                                    organisation=TEST_LOGIN_ORG_SUBDOMAIN,
+                                    dataset=dataset.uuid)
         assert uploader is not None

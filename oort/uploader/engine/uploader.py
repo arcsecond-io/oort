@@ -23,7 +23,6 @@ class FileUploader(object):
         self._api = ArcsecondAPI.datafiles(dataset=str(self._dataset_uuid),
                                            debug=pack.identity.debug,
                                            test=is_test_context,
-                                           verbose=True,
                                            upload_key=pack.identity.upload_key,
                                            organisation=pack.identity.subdomain)
 
