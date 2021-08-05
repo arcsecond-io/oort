@@ -20,6 +20,7 @@ from oort.shared.config import (get_config_upload_folder_sections,
                                 get_log_file_path,
                                 get_supervisor_conf_file_path,
                                 update_config_upload_folder_sections_key)
+from oort.shared.errors import OortCloudError
 from oort.shared.utils import tail
 from oort.uploader.main import paths_observer
 
@@ -272,3 +273,32 @@ def folders(state):
                 click.echo("   telescope    = (no telescope)")
             click.echo(f"   path         = {section.get('path')}")
             click.echo()
+
+
+@main.command(help="Display the list of (organisation) telescopes.")
+@click.option('-o', '--organisation',
+              required=False,
+              nargs=1,
+              help="The Organisation subdomain, if uploading to an organisation.")
+@basic_options
+@pass_state
+def telescopes(state, o=None, organisation=None):
+    test = os.environ.get('OORT_TESTS') == '1'
+    kwargs = {'debug': state.debug, 'test': test}
+
+    org_subdomain = o or organisation or ''
+    if org_subdomain:
+        kwargs.update(organisation=org_subdomain)
+        click.echo(f" • Fetching telescopes for organisation {org_subdomain}...")
+    else:
+        click.echo(f" • Fetching telescopes...")
+
+    telescope_list, error = ArcsecondAPI.telescopes(**kwargs).list()
+    if error:
+        raise OortCloudError(str(error))
+
+    click.echo(f" • Found {len(telescope_list)} telescope{'s' if len(telescope_list) > 1 else ''}.")
+    for telescope_dict in telescope_list:
+        s = f" 🔭 \"{telescope_dict['name']}\" (UUID: {telescope_dict['uuid']}) "
+        s += f"[ObservingSite UUID: {telescope_dict['observing_site']}]"
+        click.echo(s)
