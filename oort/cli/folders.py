@@ -73,7 +73,7 @@ def check_organisation_telescope(telescope_uuid: Optional[Union[str, UUID]],
 
     telescope_detail, error = ArcsecondAPI.telescopes(**kwargs).read(str(telescope_uuid))
     if error:
-        raise InvalidOrganisationTelescopeOortCloudError(str(error))
+        raise InvalidOrganisationTelescopeOortCloudError(str(telescope_uuid), str(error))
 
     if telescope_detail is not None and telescope_detail.get('coordinates', None) is None:
         site_uuid = telescope_detail.get('observing_site', None)
