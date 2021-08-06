@@ -113,6 +113,7 @@ def login(state, username, password):
     if error is not None:
         click.echo(error)
     else:
+        click.echo(f' • Successfully logged in as @{username}.')
         update_config_upload_folder_sections_key(ArcsecondAPI.upload_key())
 
 
