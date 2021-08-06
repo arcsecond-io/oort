@@ -109,7 +109,7 @@ def login(state, username, password):
     Beware that the key will be stored locally on a file:
     ~/.arcsecond.ini
     """
-    ArcsecondAPI.login(username, password, None, upload_key=True, debug=state.debug)
+    ArcsecondAPI.login(username, password, None, upload_key=True, debug=state.debug, verbose=state.verbose)
     update_config_upload_folder_sections_key(ArcsecondAPI.upload_key())
 
 
@@ -208,7 +208,7 @@ def watch(state, folders, o=None, organisation=None, t=None, telescope=None, ast
     """
     try:
         username, upload_key, org_subdomain, org_role, telescope_details = \
-            parse_upload_watch_options(o, organisation, t, telescope, astronomer, state.debug)
+            parse_upload_watch_options(o, organisation, t, telescope, astronomer, state.debug, state.verbose)
     except InvalidWatchOptionsOortCloudError:
         return
 
@@ -244,7 +244,8 @@ def watch(state, folders, o=None, organisation=None, t=None, telescope=None, ast
                                                org_subdomain,
                                                org_role,
                                                telescope_details,
-                                               state.debug)
+                                               state.debug,
+                                               state.verbose)
 
         for (folder_path, identity) in prepared_folders:
             # paths_observer.observe_folder will deal with the initial walk.
@@ -284,7 +285,7 @@ def folders(state):
 @pass_state
 def telescopes(state, o=None, organisation=None):
     test = os.environ.get('OORT_TESTS') == '1'
-    kwargs = {'debug': state.debug, 'test': test}
+    kwargs = {'debug': state.debug, 'test': test, 'verbose': state.verbose}
 
     org_subdomain = o or organisation or ''
     if org_subdomain:

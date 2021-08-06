@@ -36,7 +36,7 @@ def debug_option_constructor(f):
 
 
 def basic_options(f):
-    # f = verbose_option_constructor(f)
+    f = verbose_option_constructor(f)
     f = debug_option_constructor(f)
     return f
 
