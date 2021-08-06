@@ -109,8 +109,11 @@ def login(state, username, password):
     Beware that the key will be stored locally on a file:
     ~/.arcsecond.ini
     """
-    ArcsecondAPI.login(username, password, None, upload_key=True, debug=state.debug, verbose=state.verbose)
-    update_config_upload_folder_sections_key(ArcsecondAPI.upload_key())
+    _, error = ArcsecondAPI.login(username, password, None, upload_key=True, debug=state.debug, verbose=state.verbose)
+    if error is not None:
+        click.echo(error)
+    else:
+        update_config_upload_folder_sections_key(ArcsecondAPI.upload_key())
 
 
 @main.command(help='Display current Oort processes status.')
