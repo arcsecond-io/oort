@@ -88,7 +88,7 @@ def test_cli_folders_custom_astronomer_with_o_and_t_options_and_valid_upload_key
 
         o, organisation, t, telescope, astronomer = TEST_LOGIN_ORG_SUBDOMAIN, None, TEL_UUID, None, CUSTOM_ASTRONOMER
         username, upload_key, org_subdomain, org_role, tel_details = \
-            parse_upload_watch_options(o, organisation, t, telescope, astronomer, True)
+            parse_upload_watch_options(o, organisation, t, telescope, astronomer, True, False)
 
         # Assert
         assert mock_list.call_count == 1
@@ -107,7 +107,8 @@ def test_cli_folders_custom_astronomer_with_o_and_t_options_and_valid_upload_key
                             org_subdomain,
                             org_role,
                             TEL_DETAILS,
-                            True)
+                            True,
+                            False)
 
         for folder_section in get_config_upload_folder_sections():
             identity = Identity.from_folder_section(folder_section)
