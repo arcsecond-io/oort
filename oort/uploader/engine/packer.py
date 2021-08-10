@@ -269,7 +269,7 @@ class UploadPack(object):
                     # idea as it required to force the reading of all HDUs (lazy loaded by default).
                     if index >= 10:
                         break
-                    date_header = hdu.header.get('DATE') or hdu.header.get('DATE-OBS') or hdu.header.get('DATE_OBS')
+                    date_header = hdu.header.get('DATE-OBS') or hdu.header.get('DATE_OBS') or hdu.header.get('DATE')
                     if date_header:
                         file_date = dateparser.parse(date_header)
                         if file_date:
