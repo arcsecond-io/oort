@@ -1,5 +1,5 @@
 import os
-from typing import Optional, Union
+from typing import Optional, Tuple, Union
 
 import click
 from arcsecond import ArcsecondAPI
@@ -124,7 +124,7 @@ def parse_upload_watch_options(o: Optional[str] = None,
                                organisation: Optional[str] = None,
                                t: Optional[str] = None,
                                telescope: Optional[str] = None,
-                               astronomer: Union[Optional[str], Optional[str]] = (None, None),
+                               astronomer: Tuple[Optional[str], Optional[str]] = (None, None),
                                debug: Optional[bool] = False,
                                verbose: Optional[bool] = False):
     telescope_uuid = t or telescope or ''
