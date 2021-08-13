@@ -287,8 +287,7 @@ def folders(state):
 
 @main.command(help="Display the list of (organisation) telescopes.")
 @click.option('-o', '--organisation',
-              required=False,
-              nargs=1,
+              required=False, nargs=1,
               help="The Organisation subdomain, if uploading to an organisation.")
 @basic_options
 @pass_state
