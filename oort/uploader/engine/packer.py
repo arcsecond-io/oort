@@ -71,7 +71,11 @@ class UploadPack(object):
 
         # Will work whatever the raw file path extension (zipped or not), and
         # whatever the current state of the two files (exists or not).
-        self._upload, created = Upload.get_or_create(file_path=self.clear_file_path)
+        try:
+            self._upload = Upload.get(Upload.file_path == self.clear_file_path)
+        except Upload.DoesNotExist:
+            self._upload = Upload.create(file_path=self.clear_file_path)
+
         self._upload.smart_update(astronomer=self._identity.username, file_path_zipped=self.zipped_file_path)
 
         self._find_date_and_sizes()
