@@ -41,10 +41,16 @@ def check_remote_organisation(org_subdomain: str, debug: bool, verbose: bool):
 
 def check_local_astronomer_remote_organisation_membership(org_subdomain: str, debug: bool, verbose: bool) -> str:
     test = os.environ.get('OORT_TESTS') == '1'
+
+    # Reading local memberships if a org_subdomain is provided.
     memberships = ArcsecondAPI.memberships(debug=debug, test=test, verbose=verbose) if org_subdomain else None
+
+    # An org_subdomain is provided, but memberships are empty.
     if org_subdomain and memberships in [None, {}]:
         raise InvalidOrgMembershipOortCloudError(org_subdomain)
 
+    # Ok, an org_subdomain is provided and memberships are not empty. Checking for membership
+    # of that org_subdomain AND checking it is at least a member (not a visitor).
     role = memberships.get(org_subdomain, None)
     if not role or role not in ['member', 'admin', 'superadmin']:
         raise InvalidOrgMembershipOortCloudError(org_subdomain)
