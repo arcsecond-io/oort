@@ -9,8 +9,8 @@ from oort.shared.identity import Identity
 from oort.shared.models import Calibration, Dataset, NightLog, Observation, Organisation, Telescope, Upload, db
 from oort.uploader.engine.packer import UploadPack
 from oort.uploader.engine.uploader import FileUploader
-from tests.utils import (TEST_CUSTOM_UPLOAD_KEY, TEST_CUSTOM_USERNAME, TEST_LOGIN_UPLOAD_KEY, TEST_LOGIN_ORG_ROLE,
-                         TEST_LOGIN_ORG_SUBDOMAIN, TEST_LOGIN_USERNAME, use_test_database)
+from tests.utils import (TEST_CUSTOM_UPLOAD_KEY, TEST_CUSTOM_USERNAME, TEST_LOGIN_ORG_ROLE, TEST_LOGIN_ORG_SUBDOMAIN,
+                         TEST_LOGIN_UPLOAD_KEY, TEST_LOGIN_USERNAME, use_test_database)
 
 spec = importlib.util.find_spec('oort')
 
