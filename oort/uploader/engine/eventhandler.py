@@ -4,7 +4,7 @@ import time
 
 from watchdog.events import FileSystemEventHandler
 
-from oort.shared.config import get_logger
+from oort.shared.config import get_oort_logger
 from oort.shared.identity import Identity
 from oort.shared.models import Substatus, Upload
 from . import packer
@@ -16,7 +16,7 @@ class DataFileHandler(FileSystemEventHandler):
         self._root_path = path
         self._identity = identity
         self._debug = debug
-        self._logger = get_logger('uloader', debug=self._debug)
+        self._logger = get_oort_logger('uloader', debug=self._debug)
         self._tick = tick
 
     @property
@@ -26,7 +26,7 @@ class DataFileHandler(FileSystemEventHandler):
     @debug.setter
     def debug(self, value):
         self._debug = value
-        self._logger = get_logger('uloader', debug=self._debug)
+        self._logger = get_oort_logger('uloader', debug=self._debug)
 
     @property
     def log_prefix(self) -> str:

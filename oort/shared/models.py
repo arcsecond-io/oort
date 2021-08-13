@@ -18,11 +18,11 @@ from peewee import (
 from playhouse.signals import Signal
 from playhouse.sqliteq import SqliteQueueDatabase
 
-from oort.shared.config import get_db_file_path
+from oort.shared.config import get_oort_db_file_path
 from oort.shared.constants import ZIP_EXTENSIONS
 from oort.uploader.engine.errors import MultipleDBInstanceError
 
-db = SqliteQueueDatabase(get_db_file_path(),
+db = SqliteQueueDatabase(str(get_oort_db_file_path()),
                          use_gevent=False,
                          autostart=True,
                          queue_max_size=64,

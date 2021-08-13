@@ -4,7 +4,7 @@ from typing import Optional, Type, Union
 from arcsecond import ArcsecondAPI
 from peewee import DoesNotExist
 
-from oort.shared.config import get_logger
+from oort.shared.config import get_oort_logger
 from oort.shared.models import (Calibration, Dataset, Model, NightLog, Observation, Organisation, Status, Substatus,
                                 Telescope)
 from . import errors
@@ -17,7 +17,7 @@ class UploadPreparator(object):
         self._pack = pack
         self._identity = self._pack.identity
         self._debug = debug
-        self._logger = get_logger('uloader', debug=self._debug)
+        self._logger = get_oort_logger('uloader', debug=self._debug)
 
         self._preparation_succeeded = False
         self._preparation_can_be_restarted = False

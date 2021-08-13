@@ -8,7 +8,7 @@ from xmlrpc.client import ServerProxy
 from arcsecond import ArcsecondAPI
 from playhouse.shortcuts import model_to_dict
 
-from oort.shared.config import get_config_folder_section, get_config_upload_folder_sections, get_config_value
+from oort.shared.config import get_oort_config_folder_section, get_oort_config_upload_folder_sections, get_oort_config_value
 from oort.shared.models import (Dataset, Status, Upload)
 
 
@@ -56,7 +56,7 @@ class Context:
             'loginError': self.login_error,
             'debug': self.debug,
             'startTime': self.start_time.isoformat(),
-            'folders': get_config_upload_folder_sections(),
+            'folders': get_oort_config_upload_folder_sections(),
             'uploaderState': self._get_uploader_state()
         }
 
@@ -127,8 +127,8 @@ class Context:
     def get_yield_string(self) -> str:
         data = {'state': self.to_dict()}
 
-        selected_folder = get_config_value('server', 'selected_folder')
-        selected_section = get_config_folder_section(selected_folder)
+        selected_folder = get_oort_config_value('server', 'selected_folder')
+        selected_section = get_oort_config_folder_section(selected_folder)
         if selected_section:
             data.update(**self._get_queries_dicts(selected_section.get('path')))
             subdomain = selected_section.get('subdomain')

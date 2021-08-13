@@ -3,13 +3,13 @@ import sys
 import time
 
 from oort.cli.folders import check_remote_organisation
-from oort.shared.config import get_logger
+from oort.shared.config import get_oort_logger
 from oort.shared.identity import Identity
 from oort.uploader.engine import packer
 
 
 def perform_walk(root_path: str, identity: Identity, debug: bool):
-    logger = get_logger('uloader', debug=debug)
+    logger = get_oort_logger('uloader', debug=debug)
     logger.info(f'Running walk for {root_path}')
 
     if identity.subdomain:

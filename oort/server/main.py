@@ -4,7 +4,7 @@ import socket
 import os
 import sys
 
-from oort.shared.config import get_logger, write_config_value
+from oort.shared.config import get_oort_logger, write_oort_config_value
 from oort.server.app import app
 from oort.server.app.context import Context
 
@@ -15,7 +15,7 @@ def is_port_in_use(port):
 
 
 def start(debug=False):
-    logger = get_logger('server', debug=debug)
+    logger = get_oort_logger('server', debug=debug)
 
     app.config['folder'] = os.getcwd()
     app.config['debug'] = bool(debug)
@@ -30,8 +30,8 @@ def start(debug=False):
 
     if debug is False:
         # In debug, Werkzeug start 2 servers, provoking the saving of a wrong port value.
-        write_config_value('server', 'host', host)
-        write_config_value('server', 'port', str(port))
+        write_oort_config_value('server', 'host', host)
+        write_oort_config_value('server', 'port', str(port))
 
     d = 'debug ' if debug else ' '
     logger.info(f'Starting Oort {d}web server (http://{host}:{port})...')

@@ -11,7 +11,7 @@ from oort.server.errors import (InvalidAstronomerOortCloudError, InvalidOrgMembe
                                 InvalidOrganisationTelescopeOortCloudError,
                                 InvalidOrganisationUploadKeyOortCloudError, InvalidWatchOptionsOortCloudError,
                                 UnknownOrganisationOortCloudError)
-from oort.shared.config import get_logger
+from oort.shared.config import get_oort_logger
 from oort.shared.identity import Identity
 from oort.shared.models import Organisation
 
@@ -189,7 +189,7 @@ def save_upload_folders(folders: list,
                         zip: bool,
                         debug: bool,
                         verbose: bool) -> list:
-    logger = get_logger('cli', debug=debug)
+    logger = get_oort_logger('cli', debug=debug)
 
     prepared_folders = []
     for raw_folder in folders:

@@ -4,11 +4,11 @@ from arcsecond import ArcsecondAPI
 from flask import Blueprint, Response, render_template, request
 from flask import current_app as app, redirect, url_for
 
-from oort.shared.config import get_logger, write_config_value
+from oort.shared.config import get_oort_logger, write_oort_config_value
 from oort.shared.models import Status, Substatus, Upload
 from .context import Context
 
-logger = get_logger('server')
+logger = get_oort_logger('server')
 
 main = Blueprint('main', __name__)
 
@@ -35,7 +35,7 @@ def login():
 @main.route('/update')
 def update():
     if request.args.get("selectedFolder", ''):
-        write_config_value('server', 'selected_folder', request.args.get("selectedFolder", ''))
+        write_oort_config_value('server', 'selected_folder', request.args.get("selectedFolder", ''))
         return Response({}, mimetype='application/json')
     elif request.args.get("uploader", ''):
         context: Context = app.config['context']

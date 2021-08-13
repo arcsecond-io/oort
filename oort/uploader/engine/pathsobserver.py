@@ -5,7 +5,7 @@ from typing import List
 from watchdog.events import FileCreatedEvent
 from watchdog.observers import Observer
 
-from oort.shared.config import get_logger
+from oort.shared.config import get_oort_logger
 from oort.shared.identity import Identity
 from oort.shared.models import Upload
 from . import eventhandler
@@ -16,7 +16,7 @@ class PathsObserver(Observer):
         super().__init__()
         self._mapping = {}
         self._debug = False
-        self._logger = get_logger('uploader', debug=self._debug)
+        self._logger = get_oort_logger('uploader', debug=self._debug)
 
     @property
     def debug(self):
@@ -25,7 +25,7 @@ class PathsObserver(Observer):
     @debug.setter
     def debug(self, value):
         self._debug = value
-        self._logger = get_logger('uploader', debug=self._debug)
+        self._logger = get_oort_logger('uploader', debug=self._debug)
         for folder_path in self._mapping.keys():
             self._mapping[folder_path]['handler'].debug = self._debug
 

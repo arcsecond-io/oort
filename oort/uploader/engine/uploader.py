@@ -5,14 +5,14 @@ from datetime import datetime
 from arcsecond import ArcsecondAPI
 from arcsecond.api.endpoints import AsyncFileUploader
 
-from oort.shared.config import get_logger
+from oort.shared.config import get_oort_logger
 from oort.shared.models import Status, Substatus
 from . import errors
 
 
 class FileUploader(object):
     def __init__(self, pack):
-        self._logger = get_logger('uploader', debug=True)
+        self._logger = get_oort_logger('uploader', debug=True)
         self._pack = pack
         self._upload = self._pack.upload
         self._final_file_path = self._pack.final_file_path

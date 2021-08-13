@@ -7,7 +7,7 @@ import time
 from stat import S_IREAD, S_IRGRP, S_IROTH, S_IWUSR
 from threading import Event, Thread
 
-from oort.shared.config import get_logger
+from oort.shared.config import get_oort_logger
 from oort.shared.models import Substatus, Upload
 
 zipper_stop_event = Event()
@@ -21,7 +21,7 @@ class AsyncZipper(Thread):
         self._zipped_file_path = file_path + '.gz'
         self._upload, created = Upload.get_or_create(file_path=file_path)
         self._initial_substatus = self._upload.substatus
-        self._logger = get_logger('uloader', debug=debug)
+        self._logger = get_oort_logger('uloader', debug=debug)
 
     @property
     def log_prefix(self) -> str:

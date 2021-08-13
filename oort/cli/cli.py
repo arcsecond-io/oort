@@ -1,4 +1,3 @@
-import builtins
 import os
 import pathlib
 import webbrowser
@@ -16,11 +15,11 @@ from oort.cli.supervisor import (get_supervisor_processes_status,
                                  stop_supervisor_daemon,
                                  stop_supervisor_processes)
 from oort.server.errors import InvalidWatchOptionsOortCloudError
-from oort.shared.config import (get_config_upload_folder_sections,
-                                get_config_value,
-                                get_log_file_path,
-                                get_supervisor_conf_file_path,
-                                update_config_upload_folder_sections_key)
+from oort.shared.config import (get_oort_config_upload_folder_sections,
+                                get_oort_config_value,
+                                get_oort_log_file_path,
+                                get_oort_supervisor_conf_file_path,
+                                update_oort_config_upload_folder_sections_key)
 from oort.shared.errors import OortCloudError
 from oort.shared.utils import tail
 from oort.uploader.main import paths_observer
@@ -115,7 +114,7 @@ def login(state, username, password):
         click.echo(error)
     else:
         click.echo(f' • Successfully logged in as @{username}.')
-        update_config_upload_folder_sections_key(ArcsecondAPI.upload_key())
+        update_oort_config_upload_folder_sections_key(ArcsecondAPI.upload_key())
 
 
 @main.command(help='Display current Oort processes status.')
@@ -156,8 +155,8 @@ def restart(state):
 @basic_options
 @pass_state
 def open(state):
-    host = get_config_value('server', 'host')
-    port = get_config_value('server', 'port')
+    host = get_oort_config_value('server', 'host')
+    port = get_oort_config_value('server', 'port')
     webbrowser.open(f"http://{host}:{port}")
 
 
@@ -166,7 +165,7 @@ def open(state):
 @basic_options
 @pass_state
 def logs(state, n):
-    with builtins.open(get_log_file_path(), 'r') as f:
+    with get_oort_log_file_path().open('r') as f:
         print(''.join(tail(f, n or 10)))
 
 
@@ -174,7 +173,7 @@ def logs(state, n):
 @basic_options
 @pass_state
 def config(state):
-    with builtins.open(get_supervisor_conf_file_path(), 'r') as f:
+    with get_oort_supervisor_conf_file_path().open('r') as f:
         print(f.read())
 
 
@@ -261,7 +260,7 @@ def watch(state, folders, organisation=None, telescope=None, zip=False, astronom
 @basic_options
 @pass_state
 def folders(state):
-    sections = get_config_upload_folder_sections()
+    sections = get_oort_config_upload_folder_sections()
     if len(sections) == 0:
         click.echo(" • No folder watched. Use `oort watch` (or `oort watch --help` for more details).")
     else:

@@ -5,7 +5,7 @@ from arcsecond import ArcsecondAPI, ArcsecondError
 
 from oort.cli.folders import parse_upload_watch_options, save_upload_folders
 from oort.server.errors import InvalidOrganisationTelescopeOortCloudError, InvalidWatchOptionsOortCloudError
-from oort.shared.config import get_config_upload_folder_sections
+from oort.shared.config import get_oort_config_upload_folder_sections
 from oort.shared.identity import Identity
 from tests.utils import (CUSTOM_ASTRONOMER,
                          CUSTOM_ASTRONOMER_DETAILS,
@@ -105,7 +105,7 @@ def test_cli_folders_custom_astronomer_with_o_and_t_options_and_valid_upload_key
                             True,
                             False)
 
-        for folder_section in get_config_upload_folder_sections():
+        for folder_section in get_oort_config_upload_folder_sections():
             identity = Identity.from_folder_section(folder_section)
             assert identity.username == username
             assert identity.upload_key == upload_key

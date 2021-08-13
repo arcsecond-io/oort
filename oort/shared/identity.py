@@ -2,7 +2,7 @@ import hashlib
 import os
 from typing import Optional
 
-from oort.shared.config import write_config_section_values
+from oort.shared.config import write_oort_config_section_values
 
 
 class Identity(object):
@@ -75,7 +75,7 @@ class Identity(object):
     def save_with_folder(self, upload_folder_path: str):
         folder_hash = hashlib.shake_128(upload_folder_path.encode('utf8')).hexdigest(3)
         suffix = '-tests' if os.environ.get('OORT_TESTS') == '1' else ''
-        write_config_section_values(f'watch-folder-{folder_hash}{suffix}',
+        write_oort_config_section_values(f'watch-folder-{folder_hash}{suffix}',
                                     username=self._username,
                                     upload_key=self._api_key,
                                     subdomain=self.subdomain or '',

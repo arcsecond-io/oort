@@ -14,7 +14,7 @@ from astropy.io.fits.verify import VerifyWarning
 from astropy.io.votable.exceptions import VOTableSpecWarning
 from astropy.utils.exceptions import AstropyWarning
 
-from oort.shared.config import get_logger
+from oort.shared.config import get_oort_logger
 from oort.shared.constants import ZIP_EXTENSIONS, get_all_fits_extensions, get_all_xisf_extensions
 from oort.shared.identity import Identity
 from oort.shared.models import (
@@ -66,7 +66,7 @@ class UploadPack(object):
         self._root_path = root_path
         self._raw_file_path = pathlib.Path(file_path)
 
-        self._logger = get_logger('uloader', debug=identity.debug)
+        self._logger = get_oort_logger('uloader', debug=identity.debug)
         self._parse()
 
         # Will work whatever the raw file path extension (zipped or not), and
