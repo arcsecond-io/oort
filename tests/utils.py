@@ -1,5 +1,6 @@
 import inspect
 import sys
+import uuid
 from functools import wraps
 
 import httpretty
@@ -20,7 +21,7 @@ TEST_LOGIN_UPLOAD_KEY = '935e2b9e24c44581b4ef5f4c8e53213e'
 TEST_CUSTOM_USERNAME = 'astronomer'
 TEST_CUSTOM_UPLOAD_KEY = '5e2b9e4ef5f4c8e53224c4458113e93b'
 
-TEL_UUID = '5b35ff8f-4db8-485d-afde-75b0e3fa2a92'
+TEL_UUID = str(uuid.uuid4())
 TEL_DETAILS = {'uuid': TEL_UUID, 'name': 'telescope name', 'coordinates': {}}
 ORG_DETAILS = {'subdomain': TEST_LOGIN_ORG_SUBDOMAIN}
 ORG_MEMBERSHIPS = {TEST_LOGIN_ORG_SUBDOMAIN: TEST_LOGIN_ORG_ROLE}

@@ -11,7 +11,8 @@ from tests.utils import (CUSTOM_ASTRONOMER,
                          CUSTOM_ASTRONOMER_DETAILS,
                          ORG_DETAILS,
                          TEL_DETAILS,
-                         TEL_UUID, TEST_LOGIN_ORG_ROLE,
+                         TEL_UUID,
+                         TEST_LOGIN_ORG_ROLE,
                          TEST_LOGIN_ORG_SUBDOMAIN,
                          TEST_LOGIN_UPLOAD_KEY,
                          TEST_LOGIN_USERNAME,
@@ -21,45 +22,45 @@ from tests.utils import (CUSTOM_ASTRONOMER,
 
 
 @use_test_database
-def test_cli_folders_with_options_org_as_o_but_no_telescope():
+def test_cli_folders_with_options_org_but_no_telescope():
     save_test_credentials()
 
     with patch.object(ArcsecondAPI, 'read', return_value=(ORG_DETAILS, None)) as mock_read_org, \
             patch.object(ArcsecondAPI, 'list', return_value=([TEL_DETAILS, ], None)) as mock_list_org_telescopes:
         with pytest.raises(InvalidWatchOptionsOortCloudError):
-            o, organisation, t, telescope, astronomer = TEST_LOGIN_ORG_SUBDOMAIN, None, None, None, (None, None)
+            organisation, telescope, astronomer = TEST_LOGIN_ORG_SUBDOMAIN, None, (None, None)
             username, upload_key, org_subdomain, org_role, tel_details = \
-                parse_upload_watch_options(o, organisation, t, telescope, astronomer, True)
+                parse_upload_watch_options(organisation, telescope, astronomer, True)
 
         assert mock_read_org.call_count == 1
         assert mock_list_org_telescopes.call_count == 1
 
 
 @use_test_database
-def test_cli_folders_with_options_org_as_o_but_invalid_telescope():
+def test_cli_folders_with_options_org_but_invalid_telescope():
     save_test_credentials()
 
     with patch.object(ArcsecondAPI, 'read') as mock_read:
         mock_read.side_effect = [(ORG_DETAILS, None), (None, ArcsecondError())]
 
         with pytest.raises(InvalidOrganisationTelescopeOortCloudError):
-            o, organisation, t, telescope, astronomer = TEST_LOGIN_ORG_SUBDOMAIN, None, 'dummy', None, (None, None)
+            organisation, telescope, astronomer = TEST_LOGIN_ORG_SUBDOMAIN, 'dummy', (None, None)
             username, upload_key, org_subdomain, org_role, tel_details = \
-                parse_upload_watch_options(o, organisation, t, telescope, astronomer, True)
+                parse_upload_watch_options(organisation, telescope, astronomer, True)
 
         assert mock_read.call_count == 2
 
 
 @use_test_database
-def test_cli_folders_with_options_org_as_o_and_t():
+def test_cli_folders_with_options_org_and_telescope():
     save_test_credentials()
 
     with patch.object(ArcsecondAPI, 'read') as mock_read:
         mock_read.side_effect = [(ORG_DETAILS, None), (TEL_DETAILS, None)]
 
-        o, organisation, t, telescope, astronomer = TEST_LOGIN_ORG_SUBDOMAIN, None, TEL_UUID, None, (None, None)
+        organisation, telescope, astronomer = TEST_LOGIN_ORG_SUBDOMAIN, TEL_UUID, (None, None)
         username, upload_key, org_subdomain, org_role, tel_details = \
-            parse_upload_watch_options(o, organisation, t, telescope, astronomer, True)
+            parse_upload_watch_options(organisation, telescope, astronomer, True)
 
         # Assert
         assert mock_read.call_count == 2
@@ -78,9 +79,9 @@ def test_cli_folders_custom_astronomer_with_o_and_t_options_and_valid_upload_key
             patch.object(ArcsecondAPI, 'list', return_value=(UPLOAD_KEYS, None)) as mock_list:
         mock_read.side_effect = [(ORG_DETAILS, None), (TEL_DETAILS, None), (CUSTOM_ASTRONOMER_DETAILS, None)]
 
-        o, organisation, t, telescope, astronomer = TEST_LOGIN_ORG_SUBDOMAIN, None, TEL_UUID, None, CUSTOM_ASTRONOMER
+        organisation, telescope, astronomer = TEST_LOGIN_ORG_SUBDOMAIN, TEL_UUID, CUSTOM_ASTRONOMER
         username, upload_key, org_subdomain, org_role, tel_details = \
-            parse_upload_watch_options(o, organisation, t, telescope, astronomer, True, False)
+            parse_upload_watch_options(organisation, telescope, astronomer, True, False)
 
         # Assert
         assert mock_list.call_count == 1
