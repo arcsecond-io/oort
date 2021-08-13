@@ -247,7 +247,6 @@ def watch(state, folders, o=None, organisation=None, t=None, telescope=None, ast
     ok = input(' --> OK? (Press Enter) ')
 
     if ok.strip() == '':
-        oort_folder = os.path.dirname(os.path.dirname(__file__))
         prepared_folders = save_upload_folders(folders,
                                                username,
                                                upload_key,
