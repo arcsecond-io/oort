@@ -191,7 +191,7 @@ def config(state):
               help="A astronomer on behalf of whom you upload. You MUST provide its username and api key.")
 @basic_options
 @pass_state
-def watch(state, folders, o=None, organisation=None, t=None, telescope=None, astronomer=(None, None)):
+def watch(state, folders, organisation=None, telescope=None, zip=False, astronomer=(None, None)):
     """
     Indicate a folder (or multiple folders) that Oort should watch.
 
@@ -207,7 +207,7 @@ def watch(state, folders, o=None, organisation=None, t=None, telescope=None, ast
     """
     try:
         username, upload_key, org_subdomain, org_role, telescope_details = \
-            parse_upload_watch_options(o, organisation, t, telescope, astronomer, state.debug, state.verbose)
+            parse_upload_watch_options(organisation, telescope, astronomer, state.debug, state.verbose)
     except InvalidWatchOptionsOortCloudError:
         return
 
@@ -283,11 +283,11 @@ def folders(state):
               help="The Organisation subdomain, if uploading to an organisation.")
 @basic_options
 @pass_state
-def telescopes(state, o=None, organisation=None):
+def telescopes(state, organisation=None):
     test = os.environ.get('OORT_TESTS') == '1'
     kwargs = {'debug': state.debug, 'test': test, 'verbose': state.verbose}
 
-    org_subdomain = o or organisation or ''
+    org_subdomain = organisation or ''
     if org_subdomain:
         kwargs.update(organisation=org_subdomain)
         click.echo(f" • Fetching telescopes for organisation {org_subdomain}...")
