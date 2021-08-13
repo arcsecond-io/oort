@@ -16,7 +16,7 @@ fixture_path = pathlib.Path(spec.origin).parent.parent / 'tests' / 'fixtures'
 
 root_path = '/Users/onekiloparsec/data/'
 telescope_uuid = '44f5bee9-a557-4264-86d6-c877d5013788'
-identity = Identity('cedric', str(uuid.uuid4()), 'saao', 'admin', telescope_uuid)
+identity = Identity('cedric', str(uuid.uuid4()), 'saao', 'admin', telescope_uuid, True)
 
 
 @use_test_database
@@ -29,12 +29,14 @@ def test_packer_calib_bias():
 
         pack = UploadPack(root_path, path, identity)
         assert pack is not None
+        assert pack.upload is not None
         # Check detection of FITS or XISF is OK
         assert pack.is_data_file is True
         assert pack.upload.file_path == path
         assert pack.upload.file_path_zipped == path + '.gz'
         assert pack.upload.file_size > 0
         assert pack.upload.file_size_zipped > 0
+        assert pack.upload.astronomer == 'cedric'
 
         # Check night log date format is OK
         assert re.match(r'[0-9]{4}-[0-9]{2}-[0-9]{2}', pack.night_log_date_string) is not None
