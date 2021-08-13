@@ -131,17 +131,14 @@ Moreover, these extensions can be augmented with the following zipped file exten
 
 Files to be uploaded can be already compressed or not, oort is able to deal with any of them transparently.
 
-However, if a XISF or FITS file is being detected, it will be zipped (with standard)
+If a XISF or FITS file is being detected and the zip option is set (in the `watch` command), it will be zipped (with standard)
 `gzip` compression before being uploaded. The compression is made locally just beside the original file, which will be deleting once zip is done (as
 would a normal `gzip` command do in the terminal).
 
 **Oort includes an interruption handler that will stop any zip process running**, would any problem occurs preventing the process to complete. More
 precisely it will stop zip processes on `SIGINT`, `SIGQUIT` and `SIGTERM`.
 
-<span style='color: red;'>Hence Oort is a compressor tool for data files too.</span>
-
-Oort has a limitation nonetheless: if the folder is read-only for its user, no zipping will be permitted and file will not be uploaded. We are working
-on solving this problem.
+Of course, if the folder is read-only for its user, no zipping will be made.
 
 ## Folder structure and Data organisation
 
