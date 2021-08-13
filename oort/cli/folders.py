@@ -215,17 +215,14 @@ def save_upload_folders(folders: list,
             upload_path = upload_path.parent
 
         telescope_uuid = ''
-        longitude = None
         if telescope_details:
             telescope_uuid = telescope_details.get('uuid') or ''
-            longitude = telescope_details.get('coordinates').get('longitude') or ''
 
         identity = Identity(username=username,
                             upload_key=upload_key or '',
                             subdomain=org_subdomain or '',
                             role=org_role or '',
                             telescope=telescope_uuid,
-                            longitude=longitude,
                             zip=zip,
                             debug=debug)
 

@@ -13,7 +13,6 @@ class Identity(object):
                    folder_section.get('subdomain', ''),
                    folder_section.get('role', ''),
                    folder_section.get('telescope', ''),
-                   folder_section.get('longitude', ''),
                    folder_section.get('zip', 'False').lower() == 'true',
                    folder_section.get('debug', 'False').lower() == 'true')
 
@@ -23,7 +22,6 @@ class Identity(object):
                  subdomain: Optional[str] = None,
                  role: Optional[str] = None,
                  telescope: Optional[str] = None,
-                 longitude: Optional[float] = None,
                  zip: bool = False,
                  debug: bool = False):
         self._username = username
@@ -31,7 +29,6 @@ class Identity(object):
         self._subdomain = subdomain
         self._role = role
         self._telescope = telescope
-        self._longitude = longitude
         self._zip = zip
         self._debug = debug
 
@@ -56,10 +53,6 @@ class Identity(object):
         return self._telescope
 
     @property
-    def longitude(self) -> Optional[float]:
-        return self._longitude
-
-    @property
     def zip(self) -> bool:
         return self._zip
 
@@ -68,7 +61,7 @@ class Identity(object):
         return self._debug
 
     def get_args_string(self):
-        s = f"{self.username},{self.upload_key},{self.subdomain},{self.role},{self.telescope},{self.longitude},"
+        s = f"{self.username},{self.upload_key},{self.subdomain},{self.role},{self.telescope},"
         s += f"{str(self.zip)},{str(self.debug)}"
         return s
 
@@ -82,6 +75,5 @@ class Identity(object):
                                          role=self.role or '',
                                          path=upload_folder_path,
                                          telescope=self.telescope or '',
-                                         longitude=str(self.longitude) if self.longitude else '',
                                          zip=str(self.zip),
                                          debug=str(self.debug))
