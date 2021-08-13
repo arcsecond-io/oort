@@ -14,7 +14,7 @@ logger = get_oort_logger('uploader')
 
 
 def handle_ctrl_c(signum, frame):
-    logger.info(f'Interrupt received: {signum}. Cancelling all zips.')
+    logger.info(f'Interrupt received: {signum}. Cancelling all pending operations and exiting.')
     zipper_stop_event.set()
     time.sleep(0.1)
     sys.exit(0)
