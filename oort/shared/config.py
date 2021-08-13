@@ -10,7 +10,9 @@ from oort.shared.constants import OORT_SUPERVISOR_SOCK_FILENAME
 
 def _get_directory_path() -> Path:
     path = Path('~/.oort').expanduser().resolve()
-    path.mkdir(mode=0o755, exist_ok=True)
+    if os.path.exists(str(path)) is False:
+        os.mkdir(str(path))
+    # path.mkdir(mode=0o755, exist_ok=True)
     return path
 
 
