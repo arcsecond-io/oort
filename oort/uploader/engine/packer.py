@@ -131,7 +131,8 @@ class UploadPack(object):
                self.is_data_file and \
                self.clear_file_exists and \
                not self.zipped_file_exists and \
-               self._upload.substatus != Substatus.ZIPPING.value
+               self._upload.substatus != Substatus.ZIPPING.value and \
+               os.access(self._root_path, os.W_OK)
 
     @property
     def final_file_path(self):
