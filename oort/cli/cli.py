@@ -180,19 +180,13 @@ def config(state):
 @main.command(help='Start watching a folder for files.')
 @click.argument('folders', required=True, nargs=-1)
 @click.option('-o', '--organisation',
-              required=False,
-              nargs=1,
+              required=False, nargs=1,
               help="The Organisation subdomain, if uploading to an organisation.")
 @click.option('-t', '--telescope',
-              required=False,
-              nargs=1,
-              type=click.UUID,
+              required=False, nargs=1, type=click.UUID,
               help="The UUID of the telescope acquiring data (in the case of organisation uploads).")
 @click.option('--astronomer',
-              required=False,
-              nargs=2,
-              type=(str, str),
-              default=[None, None],
+              required=False, nargs=2, type=(str, str), default=[None, None],
               help="A astronomer on behalf of whom you upload. You MUST provide its username and api key.")
 @basic_options
 @pass_state
