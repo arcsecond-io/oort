@@ -177,7 +177,7 @@ def config(state):
         print(f.read())
 
 
-@main.command()
+@main.command(help='Start watching a folder for files.')
 @click.argument('folders', required=True, nargs=-1)
 @click.option('-o', '--organisation',
               required=False,
