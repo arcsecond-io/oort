@@ -120,15 +120,13 @@ def check_organisation_uploadkeys(org_subdomain: str, username: str, upload_key:
         raise InvalidOrganisationUploadKeyOortCloudError(org_subdomain, username, upload_key)
 
 
-def parse_upload_watch_options(o: Optional[str] = None,
-                               organisation: Optional[str] = None,
-                               t: Optional[str] = None,
+def parse_upload_watch_options(organisation: Optional[str] = None,
                                telescope: Optional[str] = None,
                                astronomer: Tuple[Optional[str], Optional[str]] = (None, None),
                                debug: Optional[bool] = False,
                                verbose: Optional[bool] = False):
-    telescope_uuid = t or telescope or ''
-    org_subdomain = o or organisation or ''
+    telescope_uuid = telescope or ''
+    org_subdomain = organisation or ''
 
     # Validation of the organisation #
 
