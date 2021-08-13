@@ -76,7 +76,7 @@ class UploadPack(object):
         except Upload.DoesNotExist:
             self._upload = Upload.create(file_path=self.clear_file_path)
 
-        self._upload.smart_update(astronomer=self._identity.username, file_path_zipped=self.zipped_file_path)
+        self.update_upload(astronomer=self._identity.username, file_path_zipped=self.zipped_file_path)
 
         self._find_date_and_sizes()
 
@@ -242,7 +242,7 @@ class UploadPack(object):
     def _find_date_and_sizes(self):
         _file_date = self._find_date()
         _file_size, _zipped_file_size = self._find_sizes()
-        self._upload.smart_update(file_date=_file_date, file_size=_file_size, file_size_zipped=_zipped_file_size)
+        self.update_upload(file_date=_file_date, file_size=_file_size, file_size_zipped=_zipped_file_size)
 
     def _find_sizes(self):
         _file_size = 0
@@ -333,4 +333,7 @@ class UploadPack(object):
             return file_date
 
     def _archive(self, substatus):
-        self._upload.smart_update(status=Status.OK.value, substatus=substatus, ended=datetime.now())
+        self.update_upload(status=Status.OK.value, substatus=substatus, ended=datetime.now())
+
+    def update_upload(self, **kwargs):
+        self._upload = self._upload.smart_update(**kwargs)

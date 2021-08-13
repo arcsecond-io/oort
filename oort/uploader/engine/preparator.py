@@ -30,12 +30,12 @@ class UploadPreparator(object):
 
         # Do NOT mix debug and self._identity.debug
 
-        self._pack.upload.smart_update(astronomer=self._identity.username)
+        self._pack.update_upload(astronomer=self._identity.username)
         if self._identity.subdomain:
             test = os.environ.get('OORT_TESTS') == '1'
             api = ArcsecondAPI.organisations(debug=self._identity.debug, test=test)
             self._organisation = self._sync_local_resource(Organisation, api, self._identity.subdomain)
-            self._pack.upload.smart_update(organisation=self._organisation)
+            self._pack.update_upload(organisation=self._organisation)
 
     # ------ PROPERTIES ------------------------------------------------------------------------------------------------
 
@@ -95,7 +95,7 @@ class UploadPreparator(object):
             local_resource = self._create_local_resource(db_class, **kwargs)
         else:
             if 'name' in remote_resource.keys() and 'name' in db_class._meta.sorted_field_names:
-                local_resource.smart_update(name=remote_resource.get('name'))
+                local_resource = local_resource.smart_update(name=remote_resource.get('name'))
 
         return local_resource
 
@@ -231,39 +231,39 @@ class UploadPreparator(object):
     def prepare(self):
         self._logger.info(f'{self.prefix} Preparation started for {self._pack.final_file_path}')
         try:
-            self._pack.upload.smart_update(status=Status.PREPARING.value, substatus=Substatus.SYNC_TELESCOPE.value)
+            self._pack.update_upload(status=Status.PREPARING.value, substatus=Substatus.SYNC_TELESCOPE.value)
             self._sync_telescope()
 
             if self._telescope:
-                self._pack.upload.smart_update(telescope=self._telescope)
+                self._pack.update_upload(telescope=self._telescope)
 
             if self._pack.night_log_date_string:
-                self._pack.upload.smart_update(substatus=Substatus.SYNC_NIGHTLOG.value)
+                self._pack.update_upload(substatus=Substatus.SYNC_NIGHTLOG.value)
                 self._sync_night_log()
 
                 # No night log, no observation not calib possible.
-                self._pack.upload.smart_update(substatus=Substatus.SYNC_OBS_OR_CALIB.value)
+                self._pack.update_upload(substatus=Substatus.SYNC_OBS_OR_CALIB.value)
                 self._sync_observation_or_calibration()  # observation or calibration
 
-            self._pack.upload.smart_update(substatus=Substatus.SYNC_DATASET.value)
+            self._pack.update_upload(substatus=Substatus.SYNC_DATASET.value)
             self._sync_dataset()
 
             if self._dataset:
-                self._pack.upload.smart_update(dataset=self.dataset)
+                self._pack.update_upload(dataset=self.dataset)
 
         except errors.UploadPreparationFatalError as e:
             self._logger.info(f'{self.prefix} Preparation failed for {self._pack.final_file_path} with error: {str(e)}')
-            self._pack.upload.smart_update(status=Status.ERROR.value, substatus=Substatus.ERROR.value, error=str(e))
+            self._pack.update_upload(status=Status.ERROR.value, substatus=Substatus.ERROR.value, error=str(e))
             self._preparation_succeeded = False
             self._preparation_can_be_restarted = False
 
         except errors.UploadPreparationError as e:
             self._logger.info(f'{self.prefix} Preparation failed for {self._pack.final_file_path} with error: {str(e)}')
-            self._pack.upload.smart_update(status=Status.ERROR.value, substatus=Substatus.ERROR.value, error=str(e))
+            self._pack.update_upload(status=Status.ERROR.value, substatus=Substatus.ERROR.value, error=str(e))
             self._preparation_succeeded = False
             self._preparation_can_be_restarted = True
 
         else:
             self._logger.info(f'{self.prefix} Preparation succeeded for {self._pack.final_file_path}')
-            self._pack.upload.smart_update(status=Status.UPLOADING.value, substatus=Substatus.READY.value)
+            self._pack.update_upload(status=Status.UPLOADING.value, substatus=Substatus.READY.value)
             self._preparation_succeeded = True

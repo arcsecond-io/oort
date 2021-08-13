@@ -31,7 +31,7 @@ class AsyncZipper(Thread):
         return '[AsyncZipper: ' + '/'.join(self._file_path.split(os.sep)[-2:]) + ']'
 
     def run(self):
-        self._upload.smart_update(substatus=Substatus.ZIPPING.value)
+        self._upload = self._upload.smart_update(substatus=Substatus.ZIPPING.value)
         self._logger.info(f'{self.log_prefix} Starting to gzip file: {self._file_path}...')
         # Make file read-only to avoid deletion until end
         os.chmod(self._file_path, S_IREAD | S_IRGRP | S_IROTH)
@@ -46,7 +46,7 @@ class AsyncZipper(Thread):
                             time.sleep(10)
 
         except Exception as e:
-            self._upload.smart_update(substatus=self._initial_substatus)
+            self._upload = self._upload.smart_update(substatus=self._initial_substatus)
             pathlib.Path(self._zipped_file_path).unlink(missing_ok=True)
             self._logger.error(f'{self.log_prefix} [{str(e)}] Cancelling gzip of file: {self._file_path}.')
 
@@ -58,7 +58,7 @@ class AsyncZipper(Thread):
             # Deleting original file
             pathlib.Path(self._file_path).unlink()
             # Back to upload pending status.
-            self._upload.smart_update(substatus=Substatus.PENDING.value)
+            self._upload = self._upload.smart_update(substatus=Substatus.PENDING.value)
             self._logger.info(f'{self.log_prefix} Done with gzip of file: {self._file_path}...')
             time.sleep(0.1)
 

@@ -94,10 +94,14 @@ class BaseModel(Model):
 
     def smart_update(self, **kwargs):
         # with db.atomic():
-        for k, v in kwargs.items():
-            setattr(self, k, v)
-        self.save()
+        id_field = getattr(self.__class__, self._primary_field)
+        id_field_value = getattr(self, self._primary_field)
+        # See https://docs.peewee-orm.com/en/latest/peewee/querying.html#atomic-updates
+        query = self.__class__.update(**kwargs).where(id_field == id_field_value)
+        query.execute()
+        refreshed_instance = self.__class__.get_by_id(id_field_value)
         upload_post_save_signal.send(self)
+        return refreshed_instance
 
 
 class Organisation(BaseModel):
@@ -188,6 +192,8 @@ PREPARATION_DONE_SUBSTATUSES = [Substatus.CHECKING.value,
 
 
 class Upload(BaseModel):
+    _primary_field = 'id'
+
     created = DateTimeField(default=datetime.now)
 
     file_path = CharField(unique=True, null=True)
