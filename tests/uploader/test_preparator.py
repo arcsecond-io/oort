@@ -10,7 +10,7 @@ from oort.shared.models import Calibration, Dataset, NightLog, Observation, Orga
 from oort.uploader.engine.packer import UploadPack
 from oort.uploader.engine.preparator import UploadPreparator
 from tests.utils import (TEST_CUSTOM_UPLOAD_KEY, TEST_CUSTOM_USERNAME, TEST_LOGIN_ORG_ROLE, TEST_LOGIN_ORG_SUBDOMAIN,
-                         TEST_LOGIN_UPLOAD_KEY, TEST_LOGIN_USERNAME, save_test_credentials, use_test_database)
+                         TEST_LOGIN_UPLOAD_KEY, TEST_LOGIN_USERNAME, save_arcsecond_test_credentials, use_test_database)
 
 spec = importlib.util.find_spec('oort')
 
@@ -42,7 +42,7 @@ def test_preparator_init_no_org():
 
 @use_test_database
 def test_preparator_init_with_org():
-    save_test_credentials()
+    save_arcsecond_test_credentials()
 
     identity = Identity(TEST_LOGIN_USERNAME,
                         '',
@@ -76,7 +76,7 @@ def test_preparator_init_with_org():
 
 @use_test_database
 def test_preparator_init_with_org_and_custom_astronomer():
-    save_test_credentials()
+    save_arcsecond_test_credentials()
 
     identity = Identity(TEST_CUSTOM_USERNAME,
                         TEST_CUSTOM_UPLOAD_KEY,
@@ -110,7 +110,7 @@ def test_preparator_init_with_org_and_custom_astronomer():
 
 @use_test_database
 def test_preparator_prepare_no_org_no_telescope():
-    save_test_credentials()
+    save_arcsecond_test_credentials()
 
     identity = Identity(TEST_LOGIN_USERNAME, TEST_LOGIN_UPLOAD_KEY, debug=True)
     pack = UploadPack(folder_path, fits_file_path, identity)
@@ -156,7 +156,7 @@ def test_preparator_prepare_no_org_no_telescope():
 
 @use_test_database
 def test_preparator_prepare_with_org_and_telescope():
-    save_test_credentials()
+    save_arcsecond_test_credentials()
 
     identity = Identity(TEST_LOGIN_USERNAME,
                         '',
@@ -213,7 +213,7 @@ def test_preparator_prepare_with_org_and_telescope():
 
 @use_test_database
 def test_preparator_prepare_with_org_and_telescope_and_custom_astronomer():
-    save_test_credentials()
+    save_arcsecond_test_credentials()
 
     identity = Identity(TEST_CUSTOM_USERNAME,
                         TEST_CUSTOM_UPLOAD_KEY,

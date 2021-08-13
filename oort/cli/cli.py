@@ -188,19 +188,21 @@ def config(state):
 @click.option('-z', '--zip',
               required=False, nargs=1, type=click.BOOL,
               help="Zip the data files (FITS and XISF) before sending to the cloud. Default is False.")
-@click.option('--astronomer',
-              required=False, nargs=2, type=(str, str), default=[None, None],
-              help="A astronomer on behalf of whom you upload. You MUST provide its username and api key.")
+# @click.option('--astronomer',
+#               required=False, nargs=2, type=(str, str), default=[None, None],
+#               help="A astronomer on behalf of whom you upload. You MUST provide its username and upload key.")
 @basic_options
 @pass_state
-def watch(state, folders, organisation=None, telescope=None, zip=False, astronomer=(None, None)):
+def watch(state, folders, organisation=None, telescope=None, zip=False):
     """
-    Indicate a folder (or multiple folders) that Oort should watch.
+    Indicate a folder (or multiple folders) that Oort should watch. The files of the
+    folder and all of its subfolders will be uploaded (expect hidden files).
 
     If an organisation is provided, a telescope UUID must also be provided.
 
-    If an organisation is provided, no custom astronomer can be used. Inversely,
-    if a custom astronomer is provided, no organisation can be used.
+    If a custom astronomer is provided, it means files will be uploaded to that
+    particular *personal* account. It can be used by telescope hosting organisations
+    uploading files on behalf of someone.
 
     Oort will start by walking through the folder tree and uploads files
     according to the name of the subfolders (see main help). Once done,
@@ -209,16 +211,16 @@ def watch(state, folders, organisation=None, telescope=None, zip=False, astronom
     """
     try:
         username, upload_key, org_subdomain, org_role, telescope_details = \
-            parse_upload_watch_options(organisation, telescope, astronomer, state.debug, state.verbose)
+            parse_upload_watch_options(organisation, telescope, state.debug, state.verbose)
     except InvalidWatchOptionsOortCloudError:
         return
 
     click.echo(" --- Folder(s) watch summary --- ")
-    click.echo(f" • Arcsecond username: @{username} (Upload key: {upload_key[:4]}...)")
-    if org_subdomain:
-        click.echo(f" • Uploading for organisation: {org_subdomain} (role: {org_role})")
+    click.echo(f" • Arcsecond username: @{username} (Upload key: {upload_key[:4]}••••)")
+    if not org_subdomain:
+        click.echo(f" • Uploading to your *personal* account.")
     else:
-        click.echo(" • Uploading to a *personal* account (use option '-o <subdomain>' for an organisation).")
+        click.echo(f" • Uploading to organisation account '{org_subdomain}' (as {org_role}).")
 
     if telescope_details:
         name, uuid = telescope_details.get('name'), telescope_details.get('uuid')
@@ -226,15 +228,13 @@ def watch(state, folders, organisation=None, telescope=None, zip=False, astronom
     else:
         click.echo(" • No designated telescope.")
 
-    click.echo(" • Dates inside FITS/XISF files are assumed to be local dates.")
-
     h = pathlib.Path.home()
     click.echo(f" • Folder path{'s' if len(folders) > 1 else ''}:")
     for folder in folders:
         f = pathlib.Path(folder).resolve()
         if f.is_file():
             f = f.parent
-        click.echo(f"   > {f}")
+        click.echo(f"   > {str(f)}")
         if f == h:
             click.echo("---> Warning: This watched folder is your HOME folder. <---")
 

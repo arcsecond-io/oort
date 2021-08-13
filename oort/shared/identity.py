@@ -27,7 +27,7 @@ class Identity(object):
                  zip: bool = False,
                  debug: bool = False):
         self._username = username
-        self._api_key = upload_key
+        self._upload_key = upload_key
         self._subdomain = subdomain
         self._role = role
         self._telescope = telescope
@@ -41,7 +41,7 @@ class Identity(object):
 
     @property
     def upload_key(self) -> str:
-        return self._api_key
+        return self._upload_key
 
     @property
     def subdomain(self) -> Optional[str]:
@@ -76,12 +76,12 @@ class Identity(object):
         folder_hash = hashlib.shake_128(upload_folder_path.encode('utf8')).hexdigest(3)
         suffix = '-tests' if os.environ.get('OORT_TESTS') == '1' else ''
         write_oort_config_section_values(f'watch-folder-{folder_hash}{suffix}',
-                                    username=self._username,
-                                    upload_key=self._api_key,
-                                    subdomain=self.subdomain or '',
-                                    role=self.role or '',
-                                    path=upload_folder_path,
-                                    telescope=self.telescope or '',
-                                    longitude=str(self._longitude) if self._longitude else '',
-                                    zip=str(self.zip),
-                                    debug=str(self.debug))
+                                         username=self.username,
+                                         upload_key=self.upload_key,
+                                         subdomain=self.subdomain or '',
+                                         role=self.role or '',
+                                         path=upload_folder_path,
+                                         telescope=self.telescope or '',
+                                         longitude=str(self.longitude) if self.longitude else '',
+                                         zip=str(self.zip),
+                                         debug=str(self.debug))
