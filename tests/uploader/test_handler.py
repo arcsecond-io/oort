@@ -25,7 +25,7 @@ def test_event_handler_simple_init():
         # To avoid a mock error:
         mock_method.__name__ = 'mock on_save_handler method'
 
-        df = DataFileHandler(folder_path, identity, tick=0.1, debug=True)
+        DataFileHandler(folder_path, identity, tick=0.1, debug=True)
         time.sleep(0.2)
         assert mock_method.call_count == 0
 

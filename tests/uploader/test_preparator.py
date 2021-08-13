@@ -9,8 +9,8 @@ from oort.shared.identity import Identity
 from oort.shared.models import Calibration, Dataset, NightLog, Observation, Organisation, Telescope, Upload, db
 from oort.uploader.engine.packer import UploadPack
 from oort.uploader.engine.preparator import UploadPreparator
-from tests.utils import (TEST_LOGIN_UPLOAD_KEY, TEST_CUSTOM_UPLOAD_KEY, TEST_CUSTOM_USERNAME, TEST_LOGIN_ORG_ROLE,
-                         TEST_LOGIN_ORG_SUBDOMAIN, TEST_LOGIN_USERNAME, save_test_credentials, use_test_database)
+from tests.utils import (TEST_CUSTOM_UPLOAD_KEY, TEST_CUSTOM_USERNAME, TEST_LOGIN_ORG_ROLE, TEST_LOGIN_ORG_SUBDOMAIN,
+                         TEST_LOGIN_UPLOAD_KEY, TEST_LOGIN_USERNAME, save_test_credentials, use_test_database)
 
 spec = importlib.util.find_spec('oort')
 
@@ -55,7 +55,7 @@ def test_preparator_init_with_org():
 
     pack = UploadPack(folder_path, fits_file_path, identity)
     with patch.object(ArcsecondAPI, 'is_logged_in', return_value=True), \
-         patch.object(UploadPreparator, 'prepare') as mock_method_prepare, \
+            patch.object(UploadPreparator, 'prepare') as mock_method_prepare, \
             patch.object(ArcsecondAPI, 'read', return_value=(org_details, None)) as mock_method_read:
         assert Organisation.select().count() == 0
         prep = UploadPreparator(pack, identity)
@@ -89,7 +89,7 @@ def test_preparator_init_with_org_and_custom_astronomer():
 
     pack = UploadPack(folder_path, fits_file_path, identity)
     with patch.object(ArcsecondAPI, 'is_logged_in', return_value=True), \
-         patch.object(UploadPreparator, 'prepare') as mock_method_prepare, \
+            patch.object(UploadPreparator, 'prepare') as mock_method_prepare, \
             patch.object(ArcsecondAPI, 'read', return_value=(org_details, None)) as mock_method_read:
         assert Organisation.select().count() == 0
         prep = UploadPreparator(pack, identity)
@@ -122,7 +122,7 @@ def test_preparator_prepare_no_org_no_telescope():
     ds = {'uuid': str(uuid.uuid4()), 'observation': obs['uuid'], 'name': pack.dataset_name}
 
     with patch.object(ArcsecondAPI, 'is_logged_in', return_value=True), \
-         patch.object(ArcsecondAPI, 'list', return_value=([], None)) as mock_method_list, \
+            patch.object(ArcsecondAPI, 'list', return_value=([], None)) as mock_method_list, \
             patch.object(ArcsecondAPI, 'nightlogs', return_value=ArcsecondAPI(test=True)) as mock_method_nightlogs, \
             patch.object(ArcsecondAPI, 'observations', return_value=ArcsecondAPI(test=True)) as mock_method_obs, \
             patch.object(ArcsecondAPI, 'datasets', return_value=ArcsecondAPI(test=True)) as mock_method_datasets, \
@@ -176,7 +176,7 @@ def test_preparator_prepare_with_org_and_telescope():
     ds = {'uuid': str(uuid.uuid4()), 'observation': obs['uuid'], 'name': pack.dataset_name}
 
     with patch.object(ArcsecondAPI, 'is_logged_in', return_value=True), \
-         patch.object(ArcsecondAPI, 'list', return_value=([], None)) as mock_method_list, \
+            patch.object(ArcsecondAPI, 'list', return_value=([], None)) as mock_method_list, \
             patch.object(ArcsecondAPI, 'nightlogs', return_value=ArcsecondAPI(test=True)) as mock_method_nightlogs, \
             patch.object(ArcsecondAPI, 'observations', return_value=ArcsecondAPI(test=True)) as mock_method_obs, \
             patch.object(ArcsecondAPI, 'datasets', return_value=ArcsecondAPI(test=True)) as mock_method_datasets, \
@@ -186,6 +186,8 @@ def test_preparator_prepare_with_org_and_telescope():
 
         up = UploadPreparator(pack, identity)
         up.prepare()
+
+        mock_method_read.assert_called()
 
         mock_method_nightlogs.assert_called_with(test=True, debug=True, organisation=TEST_LOGIN_ORG_SUBDOMAIN)
         mock_method_obs.assert_called_with(test=True, debug=True, organisation=TEST_LOGIN_ORG_SUBDOMAIN)
@@ -231,7 +233,7 @@ def test_preparator_prepare_with_org_and_telescope_and_custom_astronomer():
     ds = {'uuid': str(uuid.uuid4()), 'observation': obs['uuid'], 'name': pack.dataset_name}
 
     with patch.object(ArcsecondAPI, 'is_logged_in', return_value=True), \
-         patch.object(ArcsecondAPI, 'list', return_value=([], None)) as mock_method_list, \
+            patch.object(ArcsecondAPI, 'list', return_value=([], None)) as mock_method_list, \
             patch.object(ArcsecondAPI, 'nightlogs', return_value=ArcsecondAPI(test=True)) as mock_method_nightlogs, \
             patch.object(ArcsecondAPI, 'observations', return_value=ArcsecondAPI(test=True)) as mock_method_obs, \
             patch.object(ArcsecondAPI, 'datasets', return_value=ArcsecondAPI(test=True)) as mock_method_datasets, \
@@ -241,6 +243,8 @@ def test_preparator_prepare_with_org_and_telescope_and_custom_astronomer():
 
         up = UploadPreparator(pack, identity)
         up.prepare()
+
+        mock_method_read.assert_called()
 
         # Making sure we build APIs with custom upload_key and not organisation
         mock_method_nightlogs.assert_called_with(test=True, debug=True, upload_key=TEST_CUSTOM_UPLOAD_KEY)

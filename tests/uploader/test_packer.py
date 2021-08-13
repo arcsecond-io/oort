@@ -278,7 +278,7 @@ def test_packer_no_telescope_date_before_noon():
         assert pack.night_log_date_string == '2020-03-20'
 
 
-############## REAL FIXTURE FILES ######################################################################################
+# ############# REAL FIXTURE FILES ################################################################################### #
 
 @use_test_database
 def test_packer_non_data_non_zipped():

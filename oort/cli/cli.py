@@ -296,7 +296,7 @@ def telescopes(state, o=None, organisation=None):
         kwargs.update(organisation=org_subdomain)
         click.echo(f" • Fetching telescopes for organisation {org_subdomain}...")
     else:
-        click.echo(f" • Fetching telescopes...")
+        click.echo(" • Fetching telescopes...")
 
     telescope_list, error = ArcsecondAPI.telescopes(**kwargs).list()
     if error:

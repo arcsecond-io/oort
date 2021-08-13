@@ -5,11 +5,8 @@ from functools import wraps
 import httpretty
 import peewee
 from arcsecond.api.constants import ARCSECOND_API_URL_DEV
-from arcsecond.config import (
-    config_file_clear_section,
-    config_file_save_upload_key,
-    config_file_save_organisation_membership
-)
+from arcsecond.config import (config_file_clear_section, config_file_save_organisation_membership,
+                              config_file_save_upload_key)
 
 from oort.shared.models import BaseModel
 
@@ -22,6 +19,14 @@ TEST_LOGIN_UPLOAD_KEY = '935e2b9e24c44581b4ef5f4c8e53213e'
 
 TEST_CUSTOM_USERNAME = 'astronomer'
 TEST_CUSTOM_UPLOAD_KEY = '5e2b9e4ef5f4c8e53224c4458113e93b'
+
+TEL_UUID = '5b35ff8f-4db8-485d-afde-75b0e3fa2a92'
+TEL_DETAILS = {'uuid': TEL_UUID, 'name': 'telescope name', 'coordinates': {}}
+ORG_DETAILS = {'subdomain': TEST_LOGIN_ORG_SUBDOMAIN}
+ORG_MEMBERSHIPS = {TEST_LOGIN_ORG_SUBDOMAIN: TEST_LOGIN_ORG_ROLE}
+CUSTOM_ASTRONOMER = ('custom', '1-2-3-4-5-6-7-8-9')
+CUSTOM_ASTRONOMER_DETAILS = {'username': CUSTOM_ASTRONOMER[0], 'key': CUSTOM_ASTRONOMER[1]}
+UPLOAD_KEYS = [{'username': CUSTOM_ASTRONOMER[0], 'key': CUSTOM_ASTRONOMER[1]}]
 
 
 def save_test_credentials(username=TEST_LOGIN_USERNAME, subdomain=TEST_LOGIN_ORG_SUBDOMAIN):

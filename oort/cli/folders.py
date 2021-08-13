@@ -130,7 +130,7 @@ def parse_upload_watch_options(o: Optional[str] = None,
     telescope_uuid = t or telescope or ''
     org_subdomain = o or organisation or ''
 
-    ### Validation of the organisation ###
+    # Validation of the organisation #
 
     org = None
     org_role = ''
@@ -140,14 +140,14 @@ def parse_upload_watch_options(o: Optional[str] = None,
         # Check that the provided subdomain is an organisation of which the current logged in astronomer is a member.
         org_role = check_local_astronomer_remote_organisation_membership(org_subdomain, debug, verbose)
 
-    ### Validation of the telescope ###
+    # Validation of the telescope #
 
     # In every case, check for telescope details if a UUID is provided.
     telescope_details = None
     if telescope_uuid:
         telescope_details = check_organisation_telescope(telescope_uuid, org_subdomain, debug, verbose)
 
-    ### Validation of the uploader ###
+    # Validation of the uploader #
 
     username = ''
     upload_key = ''
