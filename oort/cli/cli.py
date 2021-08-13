@@ -1,5 +1,6 @@
 import builtins
 import os
+import pathlib
 import webbrowser
 
 import click
@@ -225,12 +226,23 @@ def watch(state, folders, o=None, organisation=None, t=None, telescope=None, ast
 
     click.echo(" • Dates inside FITS/XISF files are assumed to be local dates.")
 
+    h = pathlib.Path.home()
     if len(folders) == 1:
-        click.echo(f" • Folder path: {os.path.expanduser(os.path.realpath(folders[0]))}")
+        f = pathlib.Path(folders[0]).resolve()
+        if f.is_file():
+            f = f.parent
+        click.echo(f" • Folder path: {f}")
+        if f == h:
+            click.echo("\n\n ---> Warning: The watched folder is your HOME folder. <---\n\n")
     else:
         click.echo(" • Folder paths:")
         for folder in folders:
-            click.echo(f"   > {os.path.expanduser(os.path.realpath(folder))}")
+            f = pathlib.Path(folder).resolve()
+            if f.is_file():
+                f = f.parent
+            click.echo(f"   > {f}")
+            if f == h:
+                click.echo("---> Warning: This watched folder is your HOME folder. <---")
 
     ok = input(' --> OK? (Press Enter) ')
 
