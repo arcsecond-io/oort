@@ -277,7 +277,7 @@ def folders(state):
             else:
                 click.echo("   telescope    = (no telescope)")
             click.echo(f"   path         = {section.get('path')}")
-            click.echo(f"   zip          = {section.get('zip')}")
+            click.echo(f"   zip          = {section.get('zip', 'False')}")
             click.echo()
 
 
