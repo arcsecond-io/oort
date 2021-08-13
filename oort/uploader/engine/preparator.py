@@ -17,7 +17,7 @@ class UploadPreparator(object):
         self._pack = pack
         self._identity = self._pack.identity
         self._debug = debug
-        self._logger = get_oort_logger('uloader', debug=self._debug)
+        self._logger = get_oort_logger('uploader', debug=self._debug)
 
         self._preparation_succeeded = False
         self._preparation_can_be_restarted = False
