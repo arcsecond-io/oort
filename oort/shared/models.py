@@ -39,15 +39,6 @@ class BaseModel(Model):
     _primary_field = 'uuid'
 
     @classmethod
-    def exists(cls, **kwargs):
-        try:
-            cls.get(**kwargs)
-        except DoesNotExist:
-            return False
-        else:
-            return True
-
-    @classmethod
     def get_field(cls, name):
         return cls._meta.sorted_fields[cls._meta.sorted_field_names.index(name)]
 
