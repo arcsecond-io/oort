@@ -188,14 +188,17 @@ def save_upload_folders(folders: list,
                         debug: bool,
                         verbose: bool) -> list:
     logger = get_logger('cli', debug=debug)
+
     prepared_folders = []
     for raw_folder in folders:
-        upload_folder = os.path.expanduser(os.path.realpath(raw_folder))
-        if not os.path.exists(upload_folder) and os.environ.get('OORT_TESTS') != '1':
-            logger.warn(f'Upload folder "{upload_folder}" does not exists. Skipping.')
+        upload_path = pathlib.Path(raw_folder).resolve()
+
+        if not upload_path.exists() and os.environ.get('OORT_TESTS') != '1':
+            logger.warn(f'Upload folder "{upload_path}" does not exists. Skipping.')
             continue
-        if os.path.isfile(upload_folder):
-            upload_folder = os.path.dirname(upload_folder)
+
+        if upload_path.is_file():
+            upload_path = upload_path.parent
 
         telescope_uuid = ''
         longitude = None
@@ -209,9 +212,10 @@ def save_upload_folders(folders: list,
                             role=org_role or '',
                             telescope=telescope_uuid,
                             longitude=longitude,
+                            zip=zip,
                             debug=debug)
 
-        identity.save_with_folder(upload_folder_path=upload_folder)
-        prepared_folders.append((upload_folder, identity))
+        identity.save_with_folder(upload_folder_path=str(upload_path))
+        prepared_folders.append((str(upload_path), identity))
 
     return prepared_folders
