@@ -1,4 +1,5 @@
 import os
+import pathlib
 from typing import Optional, Tuple, Union
 
 import click
@@ -180,11 +181,12 @@ def parse_upload_watch_options(organisation: Optional[str] = None,
 
 
 def save_upload_folders(folders: list,
-                        username: Optional[str],
-                        upload_key: Optional[str],
+                        username: str,
+                        upload_key: str,
                         org_subdomain: Optional[str],
                         org_role: Optional[str],
                         telescope_details: Optional[dict],
+                        zip: bool,
                         debug: bool,
                         verbose: bool) -> list:
     logger = get_logger('cli', debug=debug)

@@ -186,6 +186,9 @@ def config(state):
 @click.option('-t', '--telescope',
               required=False, nargs=1, type=click.UUID,
               help="The UUID of the telescope acquiring data (in the case of organisation uploads).")
+@click.option('-z', '--zip',
+              required=False, nargs=1, type=click.BOOL,
+              help="Zip the data files (FITS and XISF) before sending to the cloud. Default is False.")
 @click.option('--astronomer',
               required=False, nargs=2, type=(str, str), default=[None, None],
               help="A astronomer on behalf of whom you upload. You MUST provide its username and api key.")
@@ -245,6 +248,7 @@ def watch(state, folders, organisation=None, telescope=None, zip=False, astronom
                                                org_subdomain,
                                                org_role,
                                                telescope_details,
+                                               zip,
                                                state.debug,
                                                state.verbose)
 
@@ -274,6 +278,7 @@ def folders(state):
             else:
                 click.echo("   telescope    = (no telescope)")
             click.echo(f"   path         = {section.get('path')}")
+            click.echo(f"   zip          = {section.get('zip')}")
             click.echo()
 
 

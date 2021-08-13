@@ -14,6 +14,7 @@ class Identity(object):
                    folder_section.get('role', ''),
                    folder_section.get('telescope', ''),
                    folder_section.get('longitude', ''),
+                   folder_section.get('zip', 'False').lower() == 'true',
                    folder_section.get('debug', 'False').lower() == 'true')
 
     def __init__(self,
@@ -23,6 +24,7 @@ class Identity(object):
                  role: Optional[str] = None,
                  telescope: Optional[str] = None,
                  longitude: Optional[float] = None,
+                 zip: bool = False,
                  debug: bool = False):
         self._username = username
         self._api_key = upload_key
@@ -30,6 +32,7 @@ class Identity(object):
         self._role = role
         self._telescope = telescope
         self._longitude = longitude
+        self._zip = zip
         self._debug = debug
 
     @property
@@ -57,11 +60,17 @@ class Identity(object):
         return self._longitude
 
     @property
+    def zip(self) -> bool:
+        return self._zip
+
+    @property
     def debug(self) -> bool:
         return self._debug
 
     def get_args_string(self):
-        return f"{self.username},{self.upload_key},{self.subdomain},{self.role},{self.telescope},{self.longitude},{str(self.debug)}"
+        s = f"{self.username},{self.upload_key},{self.subdomain},{self.role},{self.telescope},{self.longitude},"
+        s += f"{str(self.zip)},{str(self.debug)}"
+        return s
 
     def save_with_folder(self, upload_folder_path: str):
         folder_hash = hashlib.shake_128(upload_folder_path.encode('utf8')).hexdigest(3)
@@ -74,4 +83,5 @@ class Identity(object):
                                     path=upload_folder_path,
                                     telescope=self.telescope or '',
                                     longitude=str(self._longitude) if self._longitude else '',
+                                    zip=str(self.zip),
                                     debug=str(self.debug))
