@@ -218,7 +218,7 @@ def watch(state, folders, organisation=None, telescope=None, zip=False):
     click.echo(" --- Folder(s) watch summary --- ")
     click.echo(f" • Arcsecond username: @{username} (Upload key: {upload_key[:4]}••••)")
     if not org_subdomain:
-        click.echo(f" • Uploading to your *personal* account.")
+        click.echo(" • Uploading to your *personal* account.")
     else:
         click.echo(f" • Uploading to organisation account '{org_subdomain}' (as {org_role}).")
 

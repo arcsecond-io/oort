@@ -1,6 +1,6 @@
 import os
 import pathlib
-from typing import Optional, Tuple, Union
+from typing import Optional, Union
 
 import click
 from arcsecond import ArcsecondAPI
