@@ -30,13 +30,16 @@ class FileUploader(object):
     def log_prefix(self) -> str:
         return '[FileUploader: ' + '/'.join(self._final_file_path.split(os.sep)[-2:]) + ']'
 
+    def update_upload(self, **kwargs):
+        self._upload = self._upload.smart_update(**kwargs)
+
     def _prepare_file_uploader(self, remote_resource_exists):
         def update_upload_progress(event, progress_percent):
             if progress_percent > self._upload.progress + 0.1 or progress_percent > 99:
-                self._upload.smart_update(status=Status.UPLOADING.value,
-                                          substatus=Substatus.UPLOADING.value,
-                                          progress=progress_percent,
-                                          duration=(datetime.now() - self._upload.started).total_seconds())
+                self.update_upload(status=Status.UPLOADING.value,
+                                   substatus=Substatus.UPLOADING.value,
+                                   progress=progress_percent,
+                                   duration=(datetime.now() - self._upload.started).total_seconds())
 
         self._async_file_uploader: AsyncFileUploader
         if remote_resource_exists:
@@ -77,39 +80,39 @@ class FileUploader(object):
 
     def _check(self):
         _should_perform = False
-        self._upload.smart_update(started=datetime.now())
+        self.update_upload(started=datetime.now())
 
         try:
-            self._upload.smart_update(status=Status.UPLOADING.value, substatus=Substatus.CHECKING.value)
+            self.update_upload(status=Status.UPLOADING.value, substatus=Substatus.CHECKING.value)
             exists_remotely = self._check_remote_resource_and_file()
 
         except errors.UploadRemoteFileCheckError as error:
             self._logger.info(f'{self.log_prefix} {str(error)}')
-            self._upload.smart_update(status=Status.ERROR.value,
-                                      substatus=Substatus.ERROR.value,
-                                      error=str(error),
-                                      ended=datetime.now(),
-                                      progress=0,
-                                      duration=0)
+            self.update_upload(status=Status.ERROR.value,
+                               substatus=Substatus.ERROR.value,
+                               error=str(error),
+                               ended=datetime.now(),
+                               progress=0,
+                               duration=0)
 
         except Exception as error:
             self._logger.info(f'{self.log_prefix} {str(error)}')
-            self._upload.smart_update(status=Status.ERROR.value,
-                                      substatus=Substatus.ERROR.value,
-                                      error=str(error),
-                                      ended=datetime.now(),
-                                      progress=0,
-                                      duration=0)
+            self.update_upload(status=Status.ERROR.value,
+                               substatus=Substatus.ERROR.value,
+                               error=str(error),
+                               ended=datetime.now(),
+                               progress=0,
+                               duration=0)
 
         else:
             if exists_remotely:
                 self._logger.info(f'{self.log_prefix} Already synced.')
-                self._upload.smart_update(status=Status.OK.value,
-                                          substatus=Substatus.ALREADY_SYNCED.value,
-                                          error='',
-                                          ended=datetime.now(),
-                                          progress=0,
-                                          duration=0)
+                self.update_upload(status=Status.OK.value,
+                                   substatus=Substatus.ALREADY_SYNCED.value,
+                                   error='',
+                                   ended=datetime.now(),
+                                   progress=0,
+                                   duration=0)
             else:
                 _should_perform = True
 
@@ -119,21 +122,21 @@ class FileUploader(object):
         if not self._check():
             return
 
-        self._upload.smart_update(status=Status.UPLOADING.value, substatus=Substatus.STARTING.value, error='')
+        self.update_upload(status=Status.UPLOADING.value, substatus=Substatus.STARTING.value, error='')
         self._logger.info(f'{self.log_prefix} Starting upload.')
 
         self._async_file_uploader.start()
         _, upload_error = self._async_file_uploader.finish()
 
         ended = datetime.now()
-        self._upload.smart_update(ended=ended, progress=0, duration=(ended - self._upload.started).total_seconds())
+        self.update_upload(ended=ended, progress=0, duration=(ended - self._upload.started).total_seconds())
 
         if upload_error:
             self._logger.info(f'{self.log_prefix} {str(upload_error)}')
             self._process_error(upload_error)
         else:
             self._logger.info(f'{self.log_prefix} successfully uploaded in {self._upload.duration} seconds.')
-            self._upload.smart_update(status=Status.OK.value, substatus=Substatus.DONE.value, error='')
+            self.update_upload(status=Status.OK.value, substatus=Substatus.DONE.value, error='')
 
     def _process_error(self, error):
         status, substatus, error = Status.ERROR.value, Substatus.ERROR.value, str(error)
@@ -149,7 +152,7 @@ class FileUploader(object):
                 if 'already exists in dataset' in error_content:
                     status, substatus, error = Status.OK.value, Substatus.ALREADY_SYNCED.value, ''
 
-        self._upload.smart_update(status=status, substatus=substatus, error=error)
+        self.update_upload(status=status, substatus=substatus, error=error)
 
     def upload(self):
         self._logger.info(f'{self.log_prefix} Starting file upload....')
