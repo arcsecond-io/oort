@@ -1,4 +1,6 @@
+import atexit
 import pathlib
+import time
 from datetime import datetime
 from enum import Enum
 
@@ -11,21 +13,23 @@ from peewee import (
     ForeignKeyField,
     IntegerField,
     Model,
-    SqliteDatabase,
     UUIDField
 )
 from playhouse.signals import Signal
+from playhouse.sqliteq import SqliteQueueDatabase
 
 from oort.shared.config import get_db_file_path
-from oort.shared.config import get_logger
 from oort.shared.constants import ZIP_EXTENSIONS
 from oort.uploader.engine.errors import MultipleDBInstanceError
 
-db = SqliteDatabase(get_db_file_path(), pragmas={'journal_mode': 'wal', 'cache_size': -1024 * 64})
+db = SqliteQueueDatabase(get_db_file_path(),
+                         use_gevent=False,
+                         autostart=True,
+                         queue_max_size=64,
+                         results_timeout=5.0,
+                         pragmas={'journal_mode': 'wal', 'cache_size': -1024 * 64})
 
 upload_post_save_signal = Signal()
-
-logger = get_logger('db')
 
 
 class BaseModel(Model):
@@ -82,23 +86,26 @@ class BaseModel(Model):
         for foreign_key_name in foreign_items.keys():
             kwargs.pop(foreign_key_name)
 
-        with db.atomic('IMMEDIATE'):
-            instance = cls.create(**kwargs)
+        db.pause()
+        # with db.atomic('IMMEDIATE'):
+        instance = cls.create(**kwargs)
 
         for foreign_key_name, foreign_value in foreign_items.items():
             foreign_model = cls.get_field(foreign_key_name).rel_model
             foreign_instance = foreign_model.get(foreign_model.get_primary_field() == foreign_value)
-            with db.atomic('IMMEDIATE'):
-                setattr(instance, foreign_key_name, foreign_instance)
-                instance.save()
+            # with db.atomic('IMMEDIATE'):
+            setattr(instance, foreign_key_name, foreign_instance)
+            instance.save()
+            time.sleep(0.1)
 
+        db.unpause()
         return instance
 
     def smart_update(self, **kwargs):
-        with db.atomic():
-            for k, v in kwargs.items():
-                setattr(self, k, v)
-            self.save()
+        # with db.atomic():
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+        self.save()
         upload_post_save_signal.send(self)
 
 
@@ -229,3 +236,8 @@ class Upload(BaseModel):
 
 db.connect()
 db.create_tables([Organisation, Telescope, NightLog, Observation, Calibration, Dataset, Upload])
+
+
+@atexit.register
+def _stop_worker_threads():
+    db.stop()

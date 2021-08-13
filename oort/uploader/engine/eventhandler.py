@@ -37,15 +37,16 @@ class DataFileHandler(FileSystemEventHandler):
         threading.Timer(self._tick, self._restart_uploads).start()
 
     def _restart_uploads(self):
-        with db.atomic():
-            count = 0
-            for upload in Upload.select().where(
-                    (Upload.substatus == Substatus.RESTART.value) |
-                    (Upload.substatus == Substatus.PENDING.value)).limit(20):
-                count += 1
+        # with db.atomic():
+        count = 0
+        for upload in Upload.select().where(
+                (Upload.substatus == Substatus.RESTART.value) |
+                (Upload.substatus == Substatus.PENDING.value)).limit(20):
+            count += 1
 
-                pack = packer.UploadPack(self._root_path, upload.file_path, self._identity)
-                pack.do_upload()  # will take care of zipping
+            pack = packer.UploadPack(self._root_path, upload.file_path, self._identity)
+            pack.do_upload()  # will take care of zipping
+            time.sleep(0.01)
 
         self._logger.info(f'{self.log_prefix} Found {count} uploads to restart.')
         threading.Timer(self._tick, self._restart_uploads).start()
