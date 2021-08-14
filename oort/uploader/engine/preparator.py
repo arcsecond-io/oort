@@ -99,7 +99,7 @@ class UploadPreparator(object):
 
         return local_resource
 
-    def _sync_resource(self, db_class: Type[Model], api: ArcsecondAPI, **kwargs) -> Model:
+    def _sync_resource(self, db_class: Type[Model], api: ArcsecondAPI, **kwargs: dict) -> Model:
         try:
             resource = db_class.smart_get(**kwargs)
 
