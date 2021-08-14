@@ -81,7 +81,6 @@ class BaseModel(Model):
         for foreign_key_name, foreign_value in foreign_items.items():
             foreign_model = cls.get_field(foreign_key_name).rel_model
             foreign_instance = foreign_model.get(foreign_model.get_primary_field() == foreign_value)
-            # with db.atomic('IMMEDIATE'):
             setattr(instance, foreign_key_name, foreign_instance)
             instance.save()
             time.sleep(0.1)
