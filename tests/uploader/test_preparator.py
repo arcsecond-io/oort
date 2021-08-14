@@ -137,14 +137,14 @@ def test_preparator_prepare_no_org_no_telescope():
         mock_method_datasets.assert_called_with(test=True, debug=True, upload_key=TEST_LOGIN_UPLOAD_KEY)
 
         mock_method_list.assert_any_call(date=pack.night_log_date_string)
-        mock_method_list.assert_any_call(name=pack.dataset_name, night_log=nl['uuid'], target_name=pack.dataset_name)
-        mock_method_list.assert_any_call(name=pack.dataset_name, observation=obs['uuid'])
+        mock_method_list.assert_any_call(night_log=nl['uuid'], target_name=pack.target_name)
+        mock_method_list.assert_any_call(observation=obs['uuid'])
 
         mock_method_create.assert_any_call({'date': pack.night_log_date_string})
         assert up.night_log is not None
         assert up.night_log.uuid == nl['uuid']
 
-        payload = {'name': pack.dataset_name, 'night_log': nl['uuid'], 'target_name': pack.dataset_name}
+        payload = {'name': pack.dataset_name, 'night_log': nl['uuid'], 'target_name': pack.target_name}
         mock_method_create.assert_any_call(payload)
         assert up.obs_or_calib is not None
         assert up.obs_or_calib.uuid == obs['uuid']
@@ -194,14 +194,14 @@ def test_preparator_prepare_with_org_and_telescope():
         mock_method_datasets.assert_called_with(test=True, debug=True, organisation=TEST_LOGIN_ORG_SUBDOMAIN)
 
         mock_method_list.assert_any_call(date=pack.night_log_date_string, telescope=telescope_uuid)
-        mock_method_list.assert_any_call(name=pack.dataset_name, night_log=nl['uuid'], target_name=pack.dataset_name)
-        mock_method_list.assert_any_call(name=pack.dataset_name, observation=obs['uuid'])
+        mock_method_list.assert_any_call(night_log=nl['uuid'], target_name=pack.target_name)
+        mock_method_list.assert_any_call(observation=obs['uuid'])
 
         mock_method_create.assert_any_call({'date': pack.night_log_date_string, 'telescope': telescope_uuid})
         assert up.night_log is not None
         assert up.night_log.uuid == nl['uuid']
 
-        payload = {'name': pack.dataset_name, 'night_log': nl['uuid'], 'target_name': pack.dataset_name}
+        payload = {'name': pack.dataset_name, 'night_log': nl['uuid'], 'target_name': pack.target_name}
         mock_method_create.assert_any_call(payload)
         assert up.obs_or_calib is not None
         assert up.obs_or_calib.uuid == obs['uuid']
@@ -209,7 +209,6 @@ def test_preparator_prepare_with_org_and_telescope():
         mock_method_create.assert_any_call({'name': pack.dataset_name, 'observation': obs['uuid']})
         assert up.dataset is not None
         assert up.dataset.uuid == ds['uuid']
-
 
 # @use_test_database
 # def test_preparator_prepare_with_org_and_telescope_and_custom_astronomer():
