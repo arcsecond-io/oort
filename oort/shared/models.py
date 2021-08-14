@@ -7,6 +7,7 @@ from enum import Enum
 
 from peewee import (CharField, DateTimeField, DoesNotExist, Field, FloatField, ForeignKeyField, IntegerField, Model,
                     OperationalError, UUIDField)
+from playhouse.migrate import SqliteMigrator, migrate
 from playhouse.signals import Signal
 from playhouse.sqliteq import SqliteQueueDatabase
 
@@ -210,6 +211,7 @@ class Upload(BaseModel):
     dataset = ForeignKeyField(Dataset, null=True, backref='uploads')
     telescope = ForeignKeyField(Telescope, null=True, backref='uploads')
 
+    target_name = CharField(default='')
     astronomer = CharField(default='')
     organisation = ForeignKeyField(Organisation, backref='uploads', null=True)
 
@@ -234,7 +236,10 @@ class Upload(BaseModel):
         return f"{(self.file_size / math.pow(k, i)):.2f} {sizes[i]}"
 
 
-db.connect()
+_migrator = SqliteMigrator(db)
+migrate(
+    _migrator.add_column('upload', 'target_name', CharField(default='')),
+)
 try:
     db.connect()
 except OperationalError:
