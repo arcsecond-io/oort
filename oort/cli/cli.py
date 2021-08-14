@@ -114,6 +114,7 @@ def login(state, username, password):
         click.echo(error)
     else:
         click.echo(f' • Successfully logged in as @{username}.')
+        # Update all upload_key stored in the config for all watched folders.
         update_oort_config_upload_folder_sections_key(ArcsecondAPI.upload_key())
 
 
@@ -281,15 +282,19 @@ def watch(state, folders, organisation=None, telescope=None, zip=False):
     else:
         click.echo(" • No designated telescope.")
 
-    h = pathlib.Path.home()
+    home_path = pathlib.Path.home()
+    existing_folders = [section.get('path') for section in get_oort_config_upload_folder_sections()]
+
     click.echo(f" • Folder path{'s' if len(folders) > 1 else ''}:")
     for folder in folders:
-        f = pathlib.Path(folder).resolve()
-        if f.is_file():
-            f = f.parent
-        click.echo(f"   > {str(f)}")
-        if f == h:
-            click.echo("---> Warning: This watched folder is your HOME folder. <---")
+        folder_path = pathlib.Path(folder).expanduser().resolve()
+        if folder_path.is_file():
+            folder_path = folder_path.parent
+        click.echo(f"   > {str(folder_path)}")
+        if folder_path == home_path:
+            click.echo("   >>> Warning: This watched folder is your HOME folder. <<<")
+        if str(folder_path) in existing_folders:
+            click.echo("   >>> Warning: This folder is already watched. Continuing will override its parameters. <<<")
 
     ok = input(' --> OK? (Press Enter) ')
 
