@@ -63,6 +63,8 @@ class BaseModel(Model):
 
     @classmethod
     def smart_get(cls, **kwargs):
+        # The following allows get queries with a ForeignKey inside kwargs.
+        # One needs it for when creating Dataset related to Observation...
         foreign_key_names = [key for key in kwargs if isinstance(cls.get_field(key), ForeignKeyField)]
         if len(foreign_key_names) > 0:
             value = kwargs.pop(foreign_key_names[0])
