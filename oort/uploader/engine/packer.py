@@ -92,12 +92,12 @@ class UploadPack(object):
             return
 
         if self.is_hidden_file:
-            self._logger.info(f'{self.log_prefix} {self.final_file_path} is an hidden file. Upload skipped.')
+            self._logger.info(f'{self.log_prefix} {self.final_file_name} is an hidden file. Upload skipped.')
             self._archive(Substatus.SKIPPED_HIDDEN_FILE.value)
             return
 
         if self.is_empty_file:
-            self._logger.info(f'{self.log_prefix} {self.final_file_path} is an empty file. Upload skipped.')
+            self._logger.info(f'{self.log_prefix} {self.final_file_name} is an empty file. Upload skipped.')
             self._archive(Substatus.SKIPPED_EMPTY_FILE.value)
             return
 
@@ -106,21 +106,21 @@ class UploadPack(object):
             upload_preparator.prepare()
         else:
             self._logger.info(
-                f'{self.log_prefix} Preparation already done for {self.final_file_path} ({self._upload.substatus}).'
+                f'{self.log_prefix} Preparation already done for {self.final_file_name} ({self._upload.substatus}).'
             )
 
         if self.is_already_finished:
-            self._logger.info(f'{self.log_prefix} Upload already finished for {self.final_file_path}.')
+            self._logger.info(f'{self.log_prefix} Upload already finished for {self.final_file_name}.')
         elif self._upload.dataset is not None:
             file_uploader = uploader.FileUploader(self)
             file_uploader.upload()
         else:
-            self._logger.info(f'{self.log_prefix} Missing dataset, upload skipped for {self.final_file_path}.')
+            self._logger.info(f'{self.log_prefix} Missing dataset, upload skipped for {self.final_file_name}.')
             self._archive(Substatus.SKIPPED_NO_DATASET.value)
 
     @property
     def log_prefix(self) -> str:
-        return '[UploadPack: ' + '/'.join(self._raw_file_path.parts[-2:]) + ']'
+        return f'[UploadPack: {self.final_file_path}]'
 
     @property
     def identity(self) -> Identity:
@@ -275,10 +275,10 @@ class UploadPack(object):
                     if index >= 10:
                         break
                     date_header = hdu.header.get('DATE-OBS') or hdu.header.get('DATE_OBS') or hdu.header.get('DATE')
-                    target_name = hdu.header.get('OBJECT')
-                    if date_header:
+                    target_name = hdu.header.get('OBJECT', "")  # Make sure to not return None!
+                    if date_header is not None:
                         file_date = dateparser.parse(date_header)
-                    if file_date and target_name:
+                    if file_date and target_name != "":
                         hdulist.close()
                         break
         except Exception as error:

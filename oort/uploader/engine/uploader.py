@@ -28,7 +28,7 @@ class FileUploader(object):
 
     @property
     def log_prefix(self) -> str:
-        return '[FileUploader: ' + '/'.join(self._final_file_path.split(os.sep)[-2:]) + ']'
+        return f'[FileUploader: {self._final_file_path}]'
 
     def update_upload(self, **kwargs):
         self._upload = self._upload.smart_update(**kwargs)

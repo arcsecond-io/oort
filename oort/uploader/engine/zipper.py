@@ -28,7 +28,7 @@ class AsyncZipper(Thread):
 
     @property
     def log_prefix(self) -> str:
-        return '[AsyncZipper: ' + '/'.join(self._file_path.split(os.sep)[-2:]) + ']'
+        return f'[AsyncZipper: {self._file_path}]'
 
     def run(self):
         self._upload = self._upload.smart_update(substatus=Substatus.ZIPPING.value)

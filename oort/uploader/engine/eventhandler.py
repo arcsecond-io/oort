@@ -1,4 +1,5 @@
 import os
+import pathlib
 import threading
 import time
 
@@ -34,7 +35,7 @@ class DataFileHandler(FileSystemEventHandler):
 
     @property
     def log_prefix(self) -> str:
-        return '[EventHandler: ' + '/'.join(self._root_path.split(os.sep)[-2:]) + ']'
+        return f'[EventHandler: {self._root_path}]'
 
     def launch_restart_loop(self):
         self._logger.info(f'{self.log_prefix} Launching the restart uploads loop (tick = {self._tick} sec).')
@@ -58,7 +59,8 @@ class DataFileHandler(FileSystemEventHandler):
 
     def on_created(self, event):
         if os.path.isfile(event.src_path) and not os.path.basename(event.src_path).startswith('.'):
-            self._logger.info(f'{self.log_prefix} Created event for path : {event.src_path}')
+            relative_path = pathlib.Path(event.src_path).relative_to(pathlib.Path(self._root_path))
+            self._logger.info(f'{self.log_prefix} Created event for path : {str(relative_path)}')
 
             # Protection against large files currently being written, or files being zipped.
             # In both cases, the file size isn't stable yet.
@@ -72,10 +74,13 @@ class DataFileHandler(FileSystemEventHandler):
             pack.do_upload()  # will take care of zipping
 
     def on_moved(self, event):
-        self._logger.info(f'{self.log_prefix} {event.event_type}: {event.src_path}')
+        relative_path = pathlib.Path(event.src_path).relative_to(pathlib.Path(self._root_path))
+        self._logger.info(f'{self.log_prefix} {event.event_type}: {str(relative_path)}')
 
     def on_deleted(self, event):
-        self._logger.info(f'{self.log_prefix} {event.event_type}: {event.src_path}')
+        relative_path = pathlib.Path(event.src_path).relative_to(pathlib.Path(self._root_path))
+        self._logger.info(f'{self.log_prefix} {event.event_type}: {str(relative_path)}')
 
     def on_modified(self, event):
-        self._logger.info(f'{self.log_prefix} {event.event_type}: {event.src_path}')
+        relative_path = pathlib.Path(event.src_path).relative_to(pathlib.Path(self._root_path))
+        self._logger.info(f'{self.log_prefix} {event.event_type}: {str(relative_path)}')
