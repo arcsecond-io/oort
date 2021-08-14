@@ -6,7 +6,7 @@ import warnings
 import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta
 from enum import Enum, auto
-from typing import Optional
+from typing import Optional, Tuple
 
 import dateparser
 from astropy.io import fits as pyfits
@@ -67,7 +67,7 @@ class UploadPack(object):
         self._raw_file_path = pathlib.Path(file_path)
 
         self._logger = get_oort_logger('uploader', debug=identity.debug)
-        self._parse()
+        self._parse_type_and_dataset_name()
 
         # Will work whatever the raw file path extension (zipped or not), and
         # whatever the current state of the two files (exists or not).
@@ -76,9 +76,10 @@ class UploadPack(object):
         except Upload.DoesNotExist:
             self._upload = Upload.create(file_path=self.clear_file_path)
 
-        self.update_upload(astronomer=self._identity.username, file_path_zipped=self.zipped_file_path)
+        self.update_upload(astronomer=self._identity.username,
+                           file_path_zipped=self.zipped_file_path)
 
-        self._find_date_and_sizes()
+        self._find_date_size_and_target_name()
 
     def do_upload(self):
         if self.should_zip:
@@ -206,6 +207,10 @@ class UploadPack(object):
         return self._dataset_name.strip()
 
     @property
+    def target_name(self) -> str:
+        return self._upload.target_name.strip()
+
+    @property
     def should_prepare(self) -> bool:
         return self._upload.substatus not in PREPARATION_DONE_SUBSTATUSES
 
@@ -213,38 +218,26 @@ class UploadPack(object):
     def is_already_finished(self) -> bool:
         return self._upload.substatus in FINISHED_SUBSTATUSES
 
-    def _parse(self):
-        # Remove all parts belonging to root path
-        _segments = [s for s in str(self._raw_file_path)[len(self._root_path):].split(os.sep) if s != '']
-        # Removing file name part
-        _segments.pop()
+    def _parse_type_and_dataset_name(self):
+        # No starting root, and no ending filename. Just the final folder.
+        _clean_path = self._raw_file_path.relative_to(self._root_path).parent
+        _is_calib = any([c for c in CALIB_PREFIXES if c in str(_clean_path).lower()])
 
-        self._type = ResourceType.OBSERVATION
-        self._dataset_name = None
-
-        for i in range(1, min(len(_segments), 2) + 1):
-            if any([c for c in CALIB_PREFIXES if c in _segments[-i].lower()]):
-                self._type = ResourceType.CALIBRATION
-                if i == 1:
-                    self._dataset_name = _segments[-i]
-                else:  # i = 2
-                    self._dataset_name = f'{_segments[-i]}/{_segments[-1]}'
-                break
-
-        if self._type == ResourceType.OBSERVATION:
-            self._dataset_name = '/'.join(_segments)
+        self._type = ResourceType.CALIBRATION if _is_calib else ResourceType.OBSERVATION
+        self._dataset_name = str(_clean_path)
 
         if len(self._dataset_name.strip()) == 0:
-            self._dataset_name = f'(folder {os.path.basename(self._root_path)})'
+            self._dataset_name = f'(folder {self._root_path.name})'
 
-        # What happens when rules change: dataset will change -> new upload...
-
-    def _find_date_and_sizes(self):
-        _file_date = self._find_date()
+    def _find_date_size_and_target_name(self) -> None:
+        _file_date, _target_name = self._find_date_and_target_name()
         _file_size, _zipped_file_size = self._find_sizes()
-        self.update_upload(file_date=_file_date, file_size=_file_size, file_size_zipped=_zipped_file_size)
+        self.update_upload(file_date=_file_date,
+                           file_size=_file_size,
+                           file_size_zipped=_zipped_file_size,
+                           target_name=_target_name)
 
-    def _find_sizes(self):
+    def _find_sizes(self) -> Tuple[float, float]:
         _file_size = 0
         if self.clear_file_exists:
             _file_size = pathlib.Path(self.clear_file_path).stat().st_size
@@ -253,19 +246,20 @@ class UploadPack(object):
             _zipped_file_size = pathlib.Path(self.zipped_file_path).stat().st_size
         return _file_size, _zipped_file_size
 
-    def _find_date(self):
+    def _find_date_and_target_name(self) -> Tuple[Optional[datetime], str]:
         _file_date = self._upload.file_date or None
         if _file_date is not None:
             return _file_date
         file_full_extension = ''.join(self._raw_file_path.suffixes).lower()
         file_full_path = str(self._raw_file_path)
         if file_full_extension in get_all_xisf_extensions():
-            return self._find_xisf_filedate(file_full_path)
+            return self._find_xisf_file_date_and_target_name(file_full_path)
         elif file_full_extension in get_all_fits_extensions():
-            return self._find_fits_filedate(file_full_path)
+            return self._find_fits_file_date_and_target_name(file_full_path)
 
-    def _find_fits_filedate(self, path):
+    def _find_fits_file_date_and_target_name(self, path: str) -> Tuple[Optional[datetime], str]:
         file_date = None
+        target_name = ""
         hdulist = None
         try:
             with pyfits.open(path, mode='readonly', memmap=True, ignore_missing_end=True) as hdulist:
@@ -276,18 +270,19 @@ class UploadPack(object):
                     if index >= 10:
                         break
                     date_header = hdu.header.get('DATE-OBS') or hdu.header.get('DATE_OBS') or hdu.header.get('DATE')
+                    target_name = hdu.header.get('OBJECT')
                     if date_header:
                         file_date = dateparser.parse(date_header)
-                        if file_date:
-                            hdulist.close()
-                            break
+                    if file_date and target_name:
+                        hdulist.close()
+                        break
         except Exception as error:
             if hdulist:
                 hdulist.close()
             self._logger.debug(f'{self.log_prefix} {str(error)}')
-        return file_date
+        return file_date, target_name
 
-    def _find_xisf_filedate(self, path):
+    def _find_xisf_file_date_and_target_name(self, path: str) -> Tuple[Optional[datetime], str]:
         header = b''
         open_method = open
         file_last_extension = self._raw_file_path.suffix
@@ -312,9 +307,9 @@ class UploadPack(object):
                 elif len(header) > 0:
                     header += bytes
         if len(header) > 0:
-            return self._get_xisf_filedate(header)
+            return self._get_xisf_file_date(header), self._get_xisf_target_name(header)
 
-    def _get_xisf_filedate(self, header):
+    def _get_xisf_file_date(self, header: bytes) -> Optional[datetime]:
         file_date = None
         prefix = './/{http://www.pixinsight.com/xisf}FITSKeyword'
         try:
@@ -332,8 +327,20 @@ class UploadPack(object):
         else:
             return file_date
 
-    def _archive(self, substatus):
+    def _get_xisf_target_name(self, header: bytes) -> str:
+        target_name = ""
+        prefix = './/{http://www.pixinsight.com/xisf}FITSKeyword'
+        try:
+            tree = ET.fromstring(header.decode('utf-8'))
+            tag = tree.find(prefix + '[@name="OBJECT"]')
+            if tag is not None:
+                target_name = tag.get('value').strip()
+        except Exception as error:
+            self._logger.debug(f'{self.log_prefix} {str(error)}')
+        return target_name
+
+    def _archive(self, substatus) -> None:
         self.update_upload(status=Status.OK.value, substatus=substatus, ended=datetime.now())
 
-    def update_upload(self, **kwargs):
+    def update_upload(self, **kwargs) -> None:
         self._upload = self._upload.smart_update(**kwargs)
