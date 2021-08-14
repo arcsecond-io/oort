@@ -177,6 +177,59 @@ def config(state):
         print(f.read())
 
 
+@main.command(help="Display the list of all watched folders and their options.")
+@basic_options
+@pass_state
+def folders(state):
+    sections = get_oort_config_upload_folder_sections()
+    if len(sections) == 0:
+        click.echo(" • No folder watched. Use `oort watch` (or `oort watch --help` for more details).")
+    else:
+        for index, section in enumerate(sections):
+            click.echo(f" • Folder #{index + 1}:")
+            click.echo(f"   username     = @{section.get('username')}")
+            click.echo(f"   upload_key   = {section.get('upload_key')[0:4]}••••")
+            if section.get('subdomain'):
+                click.echo(f"   organisation = {section.get('subdomain')} (role: {section.get('role')})")
+            else:
+                click.echo("   organisation = (no organisation)")
+            if section.get('telescope'):
+                click.echo(f"   telescope    = {section.get('telescope')}")
+            else:
+                click.echo("   telescope    = (no telescope)")
+            click.echo(f"   path         = {section.get('path')}")
+            click.echo(f"   zip          = {section.get('zip', 'False')}")
+            click.echo()
+
+
+@main.command(help="Display the list of (organisation) telescopes.")
+@click.option('-o', '--organisation',
+              required=False, nargs=1,
+              help="The Organisation subdomain, if uploading to an organisation.")
+@basic_options
+@pass_state
+def telescopes(state, organisation=None):
+    test = os.environ.get('OORT_TESTS') == '1'
+    kwargs = {'debug': state.debug, 'test': test, 'verbose': state.verbose}
+
+    org_subdomain = organisation or ''
+    if org_subdomain:
+        kwargs.update(organisation=org_subdomain)
+        click.echo(f" • Fetching telescopes for organisation {org_subdomain}...")
+    else:
+        click.echo(" • Fetching telescopes...")
+
+    telescope_list, error = ArcsecondAPI.telescopes(**kwargs).list()
+    if error:
+        raise OortCloudError(str(error))
+
+    click.echo(f" • Found {len(telescope_list)} telescope{'s' if len(telescope_list) > 1 else ''}.")
+    for telescope_dict in telescope_list:
+        s = f" 🔭 \"{telescope_dict['name']}\" (UUID: {telescope_dict['uuid']}) "
+        s += f"[ObservingSite UUID: {telescope_dict['observing_site']}]"
+        click.echo(s)
+
+
 @main.command(help='Start watching a folder for files.')
 @click.argument('folders', required=True, nargs=-1)
 @click.option('-o', '--organisation',
@@ -256,54 +309,3 @@ def watch(state, folders, organisation=None, telescope=None, zip=False):
             paths_observer.observe_folder(folder_path, identity)
 
 
-@main.command(help="Display the list of all watched folders and their options.")
-@basic_options
-@pass_state
-def folders(state):
-    sections = get_oort_config_upload_folder_sections()
-    if len(sections) == 0:
-        click.echo(" • No folder watched. Use `oort watch` (or `oort watch --help` for more details).")
-    else:
-        for index, section in enumerate(sections):
-            click.echo(f" • Folder #{index + 1}:")
-            click.echo(f"   username     = @{section.get('username')}")
-            click.echo(f"   upload_key   = {section.get('upload_key')[0:4]}••••")
-            if section.get('subdomain'):
-                click.echo(f"   organisation = {section.get('subdomain')} (role: {section.get('role')})")
-            else:
-                click.echo("   organisation = (no organisation)")
-            if section.get('telescope'):
-                click.echo(f"   telescope    = {section.get('telescope')}")
-            else:
-                click.echo("   telescope    = (no telescope)")
-            click.echo(f"   path         = {section.get('path')}")
-            click.echo(f"   zip          = {section.get('zip', 'False')}")
-            click.echo()
-
-
-@main.command(help="Display the list of (organisation) telescopes.")
-@click.option('-o', '--organisation',
-              required=False, nargs=1,
-              help="The Organisation subdomain, if uploading to an organisation.")
-@basic_options
-@pass_state
-def telescopes(state, organisation=None):
-    test = os.environ.get('OORT_TESTS') == '1'
-    kwargs = {'debug': state.debug, 'test': test, 'verbose': state.verbose}
-
-    org_subdomain = organisation or ''
-    if org_subdomain:
-        kwargs.update(organisation=org_subdomain)
-        click.echo(f" • Fetching telescopes for organisation {org_subdomain}...")
-    else:
-        click.echo(" • Fetching telescopes...")
-
-    telescope_list, error = ArcsecondAPI.telescopes(**kwargs).list()
-    if error:
-        raise OortCloudError(str(error))
-
-    click.echo(f" • Found {len(telescope_list)} telescope{'s' if len(telescope_list) > 1 else ''}.")
-    for telescope_dict in telescope_list:
-        s = f" 🔭 \"{telescope_dict['name']}\" (UUID: {telescope_dict['uuid']}) "
-        s += f"[ObservingSite UUID: {telescope_dict['observing_site']}]"
-        click.echo(s)
