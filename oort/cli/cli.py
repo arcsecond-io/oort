@@ -296,7 +296,7 @@ def watch(state, folders, organisation=None, telescope=None, zip=False):
         if str(folder_path) in existing_folders:
             click.echo("   >>> Warning: This folder is already watched. Continuing will override its parameters. <<<")
 
-    ok = input(' --> OK? (Press Enter) ')
+    ok = input('\n   ----> OK? (Press Enter) ')
 
     if ok.strip() == '':
         save_upload_folders(folders,
@@ -309,8 +309,8 @@ def watch(state, folders, organisation=None, telescope=None, zip=False):
                             state.debug,
                             state.verbose)
 
-        msg = " • OK. "
-        msg += f" Watch will start within {OORT_UPLOADER_FOLDER_DETECTION_TICK_SECONDS} seconds "
+        click.echo("\n • OK.")
+        msg = f" • Watch will start within {OORT_UPLOADER_FOLDER_DETECTION_TICK_SECONDS} seconds "
         msg += "if the uploader process is running.\n • Getting processes status for you right now:"
         click.echo(msg)
         get_supervisor_processes_status(debug=state.debug)
