@@ -235,6 +235,11 @@ class Upload(BaseModel):
 
 
 db.connect()
+try:
+    db.connect()
+except OperationalError:
+    pass
+
 db.create_tables([Organisation, Telescope, NightLog, Observation, Calibration, Dataset, Upload])
 
 
