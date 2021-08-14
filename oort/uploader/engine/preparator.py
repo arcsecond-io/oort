@@ -104,7 +104,8 @@ class UploadPreparator(object):
             resource = db_class.smart_get(**kwargs)
 
         except DoesNotExist:
-            self._logger.info(f'{self.prefix} Local resource does not exist. Find or create remote one.')
+            self._logger.info(
+                f'{self.prefix} Local resource {str(db_class)} does not exist. Find or create remote one.')
 
             remote_resource = self._find_or_create_remote_resource(api, **kwargs)
             if remote_resource is None:
@@ -119,7 +120,8 @@ class UploadPreparator(object):
             resource = self._create_local_resource(db_class, **remote_resource)
 
         else:
-            self._logger.info(f'{self.prefix} Local resource exists already.')
+            resource_str = f"{str(db_class)} ({getattr(resource, resource._primary_field)})"
+            self._logger.info(f'{self.prefix} Local resource {resource_str} exists already.')
 
         return resource
 
@@ -163,7 +165,7 @@ class UploadPreparator(object):
             return remote_resource
 
     def _create_local_resource(self, db_class: Type[Model], **kwargs):
-        self._logger.info(f'{self.prefix} Creating local resource...')
+        self._logger.info(f'{self.prefix} Creating local resource {str(db_class)}...')
 
         fields = {k: v for k, v in kwargs.items() if k in db_class._meta.sorted_field_names and v is not None}
 
@@ -171,7 +173,8 @@ class UploadPreparator(object):
             fields.update(organisation=self._identity.subdomain)
 
         instance = db_class.smart_create(**fields)
-        self._logger.info(f'{self.prefix} Local resource created.')
+        resource_str = f"{str(db_class)} ({getattr(instance, instance._primary_field)})"
+        self._logger.info(f'{self.prefix} Local resource created {resource_str}.')
 
         return instance
 
@@ -190,7 +193,7 @@ class UploadPreparator(object):
         kwargs = {'date': self._pack.night_log_date_string}
         if self._identity.telescope:
             kwargs.update(telescope=self._identity.telescope)
-        self._logger.info(f'{self.prefix} Syncing NIGHT_LOG {self._pack.night_log_date_string}...')
+        self._logger.info(f'{self.prefix} Syncing NIGHT_LOG {kwargs}...')
         self._night_log = self._sync_resource(NightLog, nightlogs_api, **kwargs)
 
     def _sync_observation_or_calibration(self):
@@ -209,7 +212,7 @@ class UploadPreparator(object):
         kwargs = {'name': self._pack.dataset_name}
         if self._obs_or_calib:
             kwargs.update(**{self._pack.resource_type: str(self._obs_or_calib.uuid)})
-        self._logger.info(f'{self.prefix} Syncing DATASET {self._pack.dataset_name}...')
+        self._logger.info(f'{self.prefix} Syncing DATASET: {kwargs}...')
         self._dataset = self._sync_resource(Dataset, datasets_api, **kwargs)
 
     def prepare(self):
