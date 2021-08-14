@@ -20,6 +20,7 @@ from oort.shared.config import (get_oort_config_upload_folder_sections,
                                 get_oort_log_file_path,
                                 get_oort_supervisor_conf_file_path,
                                 update_oort_config_upload_folder_sections_key)
+from oort.shared.constants import OORT_UPLOADER_FOLDER_DETECTION_TICK_SECONDS
 from oort.shared.errors import OortCloudError
 from oort.shared.utils import tail
 
@@ -303,4 +304,8 @@ def watch(state, folders, organisation=None, telescope=None, zip=False):
                             state.debug,
                             state.verbose)
 
-        click.echo(f" • OK. Watch will start within 30 seconds.")
+        msg = " • OK. "
+        msg += f" Watch will start within {OORT_UPLOADER_FOLDER_DETECTION_TICK_SECONDS} seconds "
+        msg += "if the uploader process is running."
+        click.echo(msg)
+        get_supervisor_processes_status(debug=state.debug)

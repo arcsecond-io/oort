@@ -6,6 +6,7 @@ from watchdog.events import FileCreatedEvent
 from watchdog.observers import Observer
 
 from oort.shared.config import get_oort_logger
+from oort.shared.constants import OORT_UPLOADER_FOLDER_DETECTION_TICK_SECONDS
 from oort.shared.identity import Identity
 from oort.shared.models import Upload
 from . import eventhandler
@@ -17,6 +18,7 @@ class PathsObserver(Observer):
         self._mapping = {}
         self._debug = False
         self._logger = get_oort_logger('uploader', debug=self._debug)
+        threading.Timer(OORT_UPLOADER_FOLDER_DETECTION_TICK_SECONDS, self._detect_watched_folders).start()
 
     @property
     def debug(self):

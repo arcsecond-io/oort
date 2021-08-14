@@ -28,6 +28,8 @@ DATA_EXTENSIONS = OORT_FITS_EXTENSIONS + ['.xisf', ]
 
 ZIP_EXTENSIONS = ['.zip', '.gz', '.bz2']
 
+OORT_UPLOADER_FOLDER_DETECTION_TICK_SECONDS = 30
+
 
 def _extend_list(extensions):
     for zip in ZIP_EXTENSIONS:
