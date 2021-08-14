@@ -6,18 +6,23 @@ from oort.uploader.engine.pathsobserver import PathsObserver
 from tests.utils import use_test_database
 
 
+@use_test_database
 def test_observer_empty():
-    po = PathsObserver()
-    assert po.observed_paths == []
+    with patch.object(PathsObserver, 'schedule', return_value={}) as mocked_method_schedule, \
+            patch.object(PathsObserver, '_start_initial_walk', return_value={}) as mocked_method_walk, \
+            patch.object(threading.Thread, 'start'), \
+            patch.object(threading.Timer, 'start'):
+        po = PathsObserver()
+        assert po.observed_paths == []
 
 
 @use_test_database
 def test_observer_adding_folder_path():
-    po = PathsObserver()
     with patch.object(PathsObserver, 'schedule', return_value={}) as mocked_method_schedule, \
-            patch.object(PathsObserver, '_perform_initial_walk', return_value={}) as mocked_method_walk, \
+            patch.object(PathsObserver, '_start_initial_walk', return_value={}) as mocked_method_walk, \
             patch.object(threading.Timer, 'start'):
-        po.observe_folder('.', Identity('cedric', '123', debug=True))
-        mocked_method_walk.assert_called_once()
+        po = PathsObserver()
+        po._schedule_watch('.', Identity('cedric', '123', debug=True), True)
+        mocked_method_walk.assert_called()
         mocked_method_schedule.assert_called_once_with(ANY, '.', recursive=True)
         assert po.observed_paths == ['.']
