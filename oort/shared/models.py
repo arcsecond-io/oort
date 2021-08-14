@@ -71,7 +71,6 @@ class BaseModel(Model):
         for foreign_key_name in foreign_items.keys():
             kwargs.pop(foreign_key_name)
 
-        db.pause()
         # with db.atomic('IMMEDIATE'):
         instance = cls.create(**kwargs)
 
@@ -83,7 +82,6 @@ class BaseModel(Model):
             instance.save()
             time.sleep(0.1)
 
-        db.unpause()
         return instance
 
     def smart_update(self, **kwargs):
