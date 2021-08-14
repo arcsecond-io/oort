@@ -32,6 +32,18 @@ class Identity(object):
         self._zip = zip
         self._debug = debug
 
+    # In python3, this will do the __ne__ by inverting the value
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Identity):
+            return NotImplemented
+        return self.username == other.username and \
+               self.upload_key == other.upload_key and \
+               self.subdomain == other.subdomain and \
+               self.role == other.role and \
+               self.telescope == other.telescope and \
+               self.zip == other.zip and \
+               self.debug == other.debug
+
     @property
     def username(self) -> str:
         return self._username
