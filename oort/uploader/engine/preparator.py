@@ -73,8 +73,8 @@ class UploadPreparator(object):
         return self._dataset
 
     @property
-    def prefix(self) -> str:
-        return '[UploadPreparator: ' + '/'.join(self._pack.final_file_path.split(os.sep)[-2:]) + ']'
+    def log_prefix(self) -> str:
+        return f'[UploadPreparator: {self._pack.final_file_path}]'
 
     # ------ SYNC ------------------------------------------------------------------------------------------------------
 
@@ -101,8 +101,9 @@ class UploadPreparator(object):
             resource = db_class.smart_get(**kwargs)
 
         except DoesNotExist:
-            self._logger.info(
-                f'{self.prefix} Local resource {str(db_class)} does not exist. Find or create remote one.')
+            msg = f'{self.log_prefix} Local resource {str(db_class)} does not exist. '
+            msg += ' Find or create remote one.'
+            self._logger.info(msg)
 
             remote_resource = self._find_or_create_remote_resource(api, **kwargs)
             if remote_resource is None:
@@ -118,7 +119,7 @@ class UploadPreparator(object):
 
         else:
             resource_str = f"{str(db_class)} ({getattr(resource, resource._primary_field)})"
-            self._logger.info(f'{self.prefix} Local resource {resource_str} exists already.')
+            self._logger.info(f'{self.log_prefix} Local resource {resource_str} exists already.')
 
         return resource
 
@@ -147,7 +148,7 @@ class UploadPreparator(object):
         # The resource exists. Do nothing.
         elif len(response_list) == 1:
             new_resource = response_list[0]
-            self._logger.info(f'{self.prefix} Remote resource exists, using it.')
+            self._logger.info(f'{self.log_prefix} Remote resource exists, using it.')
 
         # Multiple resources found ??? Filter is not good, or something fishy is happening.
         else:
@@ -157,7 +158,7 @@ class UploadPreparator(object):
         return new_resource
 
     def _create_remote_resource(self, api: ArcsecondAPI, **kwargs) -> Optional[dict]:
-        self._logger.info(f'{self.prefix} Creating remote resource...')
+        self._logger.info(f'{self.log_prefix} Creating remote resource...')
 
         remote_resource, error = api.create(kwargs)
 
@@ -165,11 +166,11 @@ class UploadPreparator(object):
             msg = f'Failed to create resource in {api} endpoint: {str(error)}'
             raise errors.UploadPreparationError(msg)
         else:
-            self._logger.info(f'{self.prefix} Remote resource created.')
+            self._logger.info(f'{self.log_prefix} Remote resource created.')
             return remote_resource
 
     def _create_local_resource(self, db_class: Type[Model], **kwargs):
-        self._logger.info(f'{self.prefix} Creating local resource {str(db_class)}...')
+        self._logger.info(f'{self.log_prefix} Creating local resource {str(db_class)}...')
 
         fields = {k: v for k, v in kwargs.items() if k in db_class._meta.sorted_field_names and v is not None}
 
@@ -178,17 +179,15 @@ class UploadPreparator(object):
 
         instance = db_class.smart_create(**fields)
         resource_str = f"{str(db_class)} ({getattr(instance, instance._primary_field)})"
-        self._logger.info(f'{self.prefix} Local resource created {resource_str}.')
+        self._logger.info(f'{self.log_prefix} Local resource created {resource_str}.')
 
         return instance
 
     # ------ CHECKS ----------------------------------------------------------------------------------------------------
 
     def _sync_telescope(self):
-        if not self._identity.telescope:
-            return
-
-        self._logger.info(f'{self.prefix} Reading telescope {self._identity.telescope}...')
+        if not self._identity.telescope: return
+        self._logger.info(f'{self.log_prefix} Reading telescope {self._identity.telescope}...')
         api = ArcsecondAPI.telescopes(**self.api_kwargs)
         self._telescope = self._sync_local_resource(Telescope, api, self._identity.telescope)
 
@@ -197,7 +196,7 @@ class UploadPreparator(object):
         kwargs = {'date': self._pack.night_log_date_string}
         if self._identity.telescope:
             kwargs.update(telescope=self._identity.telescope)
-        self._logger.info(f'{self.prefix} Syncing NIGHT_LOG {kwargs}...')
+        self._logger.info(f'{self.log_prefix} Syncing NIGHT_LOG {kwargs}...')
         self._night_log = self._sync_resource(NightLog, nightlogs_api, **kwargs)
 
     def _sync_observation_or_calibration(self):
@@ -208,7 +207,7 @@ class UploadPreparator(object):
             kwargs.update(night_log=str(self._night_log.uuid))
         if self._pack.resource_type == 'observation':
             kwargs.update(target_name=self._pack.target_name or self._pack.dataset_name)
-        self._logger.info(f'{self.prefix} Syncing {self._pack.remote_resources_name[:-1].upper()}: {kwargs}...')
+        self._logger.info(f'{self.log_prefix} Syncing {self._pack.remote_resources_name[:-1].upper()}: {kwargs}...')
         self._obs_or_calib = self._sync_resource(self._pack.resource_db_class, resources_api, **kwargs)
 
     def _sync_dataset(self):
@@ -216,11 +215,11 @@ class UploadPreparator(object):
         kwargs = {'name': self._pack.dataset_name}
         if self._obs_or_calib:
             kwargs.update(**{self._pack.resource_type: str(self._obs_or_calib.uuid)})
-        self._logger.info(f'{self.prefix} Syncing DATASET: {kwargs}...')
+        self._logger.info(f'{self.log_prefix} Syncing DATASET: {kwargs}...')
         self._dataset = self._sync_resource(Dataset, datasets_api, **kwargs)
 
     def prepare(self):
-        self._logger.info(f'{self.prefix} Preparation started for {self._pack.final_file_path}')
+        self._logger.info(f'{self.log_prefix} Preparation started for {self._pack.final_file_name}')
         try:
             self._pack.update_upload(status=Status.PREPARING.value, substatus=Substatus.SYNC_TELESCOPE.value)
             self._sync_telescope()
@@ -243,18 +242,20 @@ class UploadPreparator(object):
                 self._pack.update_upload(dataset=self.dataset)
 
         except errors.UploadPreparationFatalError as e:
-            self._logger.info(f'{self.prefix} Preparation failed for {self._pack.final_file_path} with error: {str(e)}')
+            self._logger.info(f'{self.log_prefix} Preparation failed for {self._pack.final_file_name} with error:')
+            self._logger.info(f'{str(e)}')
             self._pack.update_upload(status=Status.ERROR.value, substatus=Substatus.ERROR.value, error=str(e))
             self._preparation_succeeded = False
             self._preparation_can_be_restarted = False
 
         except errors.UploadPreparationError as e:
-            self._logger.info(f'{self.prefix} Preparation failed for {self._pack.final_file_path} with error: {str(e)}')
+            self._logger.info(f'{self.log_prefix} Preparation failed for {self._pack.final_file_name} with error:')
+            self._logger.info(f'{str(e)}')
             self._pack.update_upload(status=Status.ERROR.value, substatus=Substatus.ERROR.value, error=str(e))
             self._preparation_succeeded = False
             self._preparation_can_be_restarted = True
 
         else:
-            self._logger.info(f'{self.prefix} Preparation succeeded for {self._pack.final_file_path}')
+            self._logger.info(f'{self.log_prefix} Preparation succeeded for {self._pack.final_file_name}')
             self._pack.update_upload(status=Status.UPLOADING.value, substatus=Substatus.READY.value)
             self._preparation_succeeded = True
