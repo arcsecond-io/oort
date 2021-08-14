@@ -72,7 +72,11 @@ class BaseModel(Model):
             kwargs.pop(foreign_key_name)
 
         # with db.atomic('IMMEDIATE'):
-        instance = cls.create(**kwargs)
+        try:
+            instance = cls.get(**kwargs)
+        except DoesNotExist:
+            instance = cls.create(**kwargs)
+        time.sleep(0.1)
 
         for foreign_key_name, foreign_value in foreign_items.items():
             foreign_model = cls.get_field(foreign_key_name).rel_model
