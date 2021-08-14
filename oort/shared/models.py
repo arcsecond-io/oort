@@ -5,17 +5,8 @@ import time
 from datetime import datetime
 from enum import Enum
 
-from peewee import (
-    CharField,
-    DateTimeField,
-    DoesNotExist,
-    Field,
-    FloatField,
-    ForeignKeyField,
-    IntegerField,
-    Model,
-    UUIDField
-)
+from peewee import (CharField, DateTimeField, DoesNotExist, Field, FloatField, ForeignKeyField, IntegerField, Model,
+                    OperationalError, UUIDField)
 from playhouse.signals import Signal
 from playhouse.sqliteq import SqliteQueueDatabase
 
