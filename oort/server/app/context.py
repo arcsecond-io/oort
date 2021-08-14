@@ -8,7 +8,11 @@ from xmlrpc.client import ServerProxy
 from arcsecond import ArcsecondAPI
 from playhouse.shortcuts import model_to_dict
 
-from oort.shared.config import get_oort_config_folder_section, get_oort_config_upload_folder_sections, get_oort_config_value
+from oort.shared.config import (
+    get_oort_config_folder_section,
+    get_oort_config_upload_folder_sections,
+    get_oort_config_value
+)
 from oort.shared.models import (Dataset, Status, Upload)
 
 
