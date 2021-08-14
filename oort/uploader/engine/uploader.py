@@ -123,7 +123,7 @@ class FileUploader(object):
             return
 
         self.update_upload(status=Status.UPLOADING.value, substatus=Substatus.STARTING.value, error='')
-        self._logger.info(f'{self.log_prefix} Starting upload.')
+        self._logger.info(f'{self.log_prefix} Starting upload ({self._upload.get_formatted_size()})')
 
         self._async_file_uploader.start()
         _, upload_error = self._async_file_uploader.finish()
@@ -135,7 +135,8 @@ class FileUploader(object):
             self._logger.info(f'{self.log_prefix} {str(upload_error)}')
             self._process_error(upload_error)
         else:
-            self._logger.info(f'{self.log_prefix} successfully uploaded in {self._upload.duration} seconds.')
+            self._logger.info(
+                f'{self.log_prefix} Successfully uploaded {self._upload.get_formatted_size()} in {self._upload.duration} seconds.')
             self.update_upload(status=Status.OK.value, substatus=Substatus.DONE.value, error='')
 
     def _process_error(self, error):
