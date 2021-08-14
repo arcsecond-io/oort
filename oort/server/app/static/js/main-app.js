@@ -6,6 +6,7 @@ var app = new Vue({
     source: null,
     has_data: false,
     counts: null,
+    skip: false,
     state: { folders: [] },
     selected_folder: null,
     pending_uploads: [],
@@ -25,6 +26,10 @@ var app = new Vue({
     const self = this
     this.source = new EventSource('/uploads')
     this.source.onmessage = function (event) {
+      if (self.skip) {
+        return
+      }
+
       const json_data = JSON.parse(event.data)
       self.has_data = true
 
@@ -47,6 +52,7 @@ var app = new Vue({
   methods: {
     selectFolder (folder) {
       this.reset()
+      this.skip = false
       this.selected_folder = folder
       fetch('/update?selectedFolder=' + encodeURIComponent(folder.section))
     },
@@ -57,6 +63,12 @@ var app = new Vue({
       this.error_uploads = []
       this.progresses = []
       this.counts = null
+    },
+    skipRefresh () {
+      this.skip = true
+    },
+    unskipRefresh () {
+      this.skip = false
     },
     retryAllFailed () {
       fetch('/retry?ids=' + this.error_uploads.reduce((acc, value) => acc + value.id.toString() + ',', ''))

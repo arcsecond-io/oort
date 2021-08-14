@@ -112,7 +112,11 @@
             :options="state.folders"
             :value="selected_folder"
             :clearable="false"
-            :searchable="false"
+            :searchable="true"
+            @open="skipRefresh"
+            @search:focus="skipRefresh"
+            @close="unskipRefresh"
+            @search:blur="unskipRefresh"
             @input="selectFolder"
             label="path"
           >
