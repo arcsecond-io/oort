@@ -190,16 +190,16 @@ class UploadPack(object):
         return (self._upload.file_date - timedelta(days=x)).date().isoformat()
 
     @property
-    def resource_type(self) -> str:
-        return self._type.name.lower()
-
-    @property
     def resource_db_class(self):
         return Observation if self._type == ResourceType.OBSERVATION else Calibration
 
     @property
     def remote_resources_name(self) -> str:
         return self._type.name.lower() + 's'
+
+    @property
+    def resource_type(self) -> str:
+        return self._type.name.lower()
 
     @property
     def dataset_name(self) -> str:
