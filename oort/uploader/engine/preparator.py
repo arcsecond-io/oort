@@ -1,4 +1,5 @@
 import os
+from copy import deepcopy
 from typing import Optional, Type, Union
 
 from arcsecond import ArcsecondAPI
@@ -126,7 +127,14 @@ class UploadPreparator(object):
         return resource
 
     def _find_or_create_remote_resource(self, api: ArcsecondAPI, **kwargs) -> Optional[dict]:
-        response_list, error = api.list(**kwargs)
+        # Do not include name in search as it may have changed, and/or is a loosely-defined value.
+        # For NightLogs it has no impact since there is no name field.
+        # For Observation and Calibration, there is a reference to NightLog that should suffice.
+        # For Dataset, there is a reference to Observation or Calibration that should suffice.
+        kwargs_copy = deepcopy(kwargs)
+        if 'name' in kwargs_copy.keys() and len(kwargs_copy.keys()) > 1:
+            del kwargs_copy['name']
+        response_list, error = api.list(**kwargs_copy)
 
         # An error occurred. Deal with it.
         if error is not None:
