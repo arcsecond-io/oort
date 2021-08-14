@@ -238,7 +238,7 @@ class Upload(BaseModel):
 
 _migrator = SqliteMigrator(db)
 migrate(
-    _migrator.add_column('upload', 'target_name', CharField(default='')),
+    _migrator.add_column(Upload._meta.table_name, 'target_name', CharField(default='')),
 )
 
 db.connect(reuse_if_open=True)
