@@ -40,8 +40,9 @@ class DataFileHandler(FileSystemEventHandler):
         # with db.atomic():
         count = 0
         for upload in Upload.select().where(
-                (Upload.substatus == Substatus.RESTART.value) |
-                (Upload.substatus == Substatus.PENDING.value)).limit(20):
+                ((Upload.substatus == Substatus.RESTART.value) |
+                 (Upload.substatus == Substatus.PENDING.value)) &
+                Upload.file_path.startswith(self._root_path)).limit(10):
             count += 1
 
             pack = packer.UploadPack(self._root_path, upload.file_path, self._identity)
