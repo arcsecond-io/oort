@@ -99,8 +99,6 @@ class UploadPreparator(object):
 
         return local_resource
 
-    # ------------------------------------------------------------------------------------------------------------------
-
     def _sync_resource(self, db_class: Type[Model], api: ArcsecondAPI, **kwargs) -> Model:
         try:
             resource = db_class.smart_get(**kwargs)
@@ -124,8 +122,6 @@ class UploadPreparator(object):
             self._logger.info(f'{self.prefix} Local resource exists already.')
 
         return resource
-
-    # ------------------------------------------------------------------------------------------------------------------
 
     def _find_or_create_remote_resource(self, api: ArcsecondAPI, **kwargs) -> Optional[dict]:
         response_list, error = api.list(**kwargs)
@@ -154,8 +150,6 @@ class UploadPreparator(object):
 
         return new_resource
 
-    # ------------------------------------------------------------------------------------------------------------------
-
     def _create_remote_resource(self, api: ArcsecondAPI, **kwargs) -> Optional[dict]:
         self._logger.info(f'{self.prefix} Creating remote resource...')
 
@@ -167,8 +161,6 @@ class UploadPreparator(object):
         else:
             self._logger.info(f'{self.prefix} Remote resource created.')
             return remote_resource
-
-    # ------------------------------------------------------------------------------------------------------------------
 
     def _create_local_resource(self, db_class: Type[Model], **kwargs):
         self._logger.info(f'{self.prefix} Creating local resource...')
@@ -193,8 +185,6 @@ class UploadPreparator(object):
         api = ArcsecondAPI.telescopes(**self.api_kwargs)
         self._telescope = self._sync_local_resource(Telescope, api, self._identity.telescope)
 
-    # ------------------------------------------------------------------------------------------------------------------
-
     def _sync_night_log(self):
         nightlogs_api = ArcsecondAPI.nightlogs(**self.api_kwargs)
         kwargs = {'date': self._pack.night_log_date_string}
@@ -202,8 +192,6 @@ class UploadPreparator(object):
             kwargs.update(telescope=self._identity.telescope)
         self._logger.info(f'{self.prefix} Syncing NIGHT_LOG {self._pack.night_log_date_string}...')
         self._night_log = self._sync_resource(NightLog, nightlogs_api, **kwargs)
-
-    # ------------------------------------------------------------------------------------------------------------------
 
     def _sync_observation_or_calibration(self):
         # self._pack.remote_resources_name is either 'observations' or 'calibrations'
@@ -216,8 +204,6 @@ class UploadPreparator(object):
         self._logger.info(f'{self.prefix} Syncing {self._pack.remote_resources_name[:-1].upper()}: {kwargs}...')
         self._obs_or_calib = self._sync_resource(self._pack.resource_db_class, resources_api, **kwargs)
 
-    # ------------------------------------------------------------------------------------------------------------------
-
     def _sync_dataset(self):
         datasets_api = ArcsecondAPI.datasets(**self.api_kwargs)
         kwargs = {'name': self._pack.dataset_name}
@@ -225,8 +211,6 @@ class UploadPreparator(object):
             kwargs.update(**{self._pack.resource_type: str(self._obs_or_calib.uuid)})
         self._logger.info(f'{self.prefix} Syncing DATASET {self._pack.dataset_name}...')
         self._dataset = self._sync_resource(Dataset, datasets_api, **kwargs)
-
-    # ------------------------------------------------------------------------------------------------------------------
 
     def prepare(self):
         self._logger.info(f'{self.prefix} Preparation started for {self._pack.final_file_path}')
