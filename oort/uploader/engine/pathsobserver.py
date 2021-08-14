@@ -41,22 +41,30 @@ class PathsObserver(Observer):
         if root_path.is_file():
             root_path = root_path.parent
 
-        count, ignore_count = 0, 0
+        file_count, event_count, ignore_count = 0, 0, 0
         for path in root_path.glob('**/*'):
             # Skipping both hidden files and hidden directories.
             if any([part for part in path.parts if len(part) > 0 and part[0] == '.']) or not path.is_file():
                 continue
+
+            file_count += 1
             if Upload.is_finished(str(path)):
                 ignore_count += 1
                 if ignore_count > 0 and ignore_count % 100 == 0:
-                    self._logger.info(f'{self.log_prefix} Ignored {ignore_count} uploads already finished in {folder_path}.')
+                    self._logger.info(
+                        f'{self.log_prefix} Ignored {ignore_count} uploads already finished in {folder_path}.')
             else:
-                count += 1
+                event_count += 1
                 event = FileCreatedEvent(str(path))
                 event_handler.dispatch(event)
             time.sleep(0.01)
 
-        self._logger.info(f'{self.log_prefix} Initial walk inside folder {folder_path} dispatched {count} events.')
+        if ignore_count < 100:
+            self._logger.info(f'{self.log_prefix} Ignored {ignore_count} uploads already finished in {folder_path}.')
+
+        msg = f'{self.log_prefix} Initial walk inside folder {folder_path} '
+        msg += f'dispatched {event_count} events for {file_count} files.'
+        self._logger.info(msg)
 
     def observe_folder(self, folder_path: str, identity: Identity, tick=5.0) -> None:
         event_handler = eventhandler.DataFileHandler(path=folder_path, identity=identity, tick=tick, debug=self._debug)
