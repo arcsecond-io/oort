@@ -29,6 +29,10 @@ class DataFileHandler(FileSystemEventHandler):
         self._logger = get_oort_logger('uploader', debug=self._debug)
 
     @property
+    def identity(self):
+        return self._identity
+
+    @property
     def log_prefix(self) -> str:
         return '[EventHandler: ' + '/'.join(self._root_path.split(os.sep)[-2:]) + ']'
 
