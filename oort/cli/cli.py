@@ -22,7 +22,6 @@ from oort.shared.config import (get_oort_config_upload_folder_sections,
                                 update_oort_config_upload_folder_sections_key)
 from oort.shared.errors import OortCloudError
 from oort.shared.utils import tail
-from oort.uploader.main import paths_observer
 
 pass_state = click.make_pass_decorator(State, ensure=True)
 
@@ -294,18 +293,14 @@ def watch(state, folders, organisation=None, telescope=None, zip=False):
     ok = input(' --> OK? (Press Enter) ')
 
     if ok.strip() == '':
-        prepared_folders = save_upload_folders(folders,
-                                               username,
-                                               upload_key,
-                                               org_subdomain,
-                                               org_role,
-                                               telescope_details,
-                                               zip,
-                                               state.debug,
-                                               state.verbose)
+        save_upload_folders(folders,
+                            username,
+                            upload_key,
+                            org_subdomain,
+                            org_role,
+                            telescope_details,
+                            zip,
+                            state.debug,
+                            state.verbose)
 
-        for (folder_path, identity) in prepared_folders:
-            # paths_observer.observe_folder will deal with the initial walk.
-            paths_observer.observe_folder(folder_path, identity)
-
-
+        click.echo(f" • OK. Watch will start within 30 seconds.")
