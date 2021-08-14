@@ -63,7 +63,7 @@ class UploadPack(object):
 
     def __init__(self, root_path: str, file_path: str, identity: Identity):
         self._identity = identity
-        self._root_path = root_path
+        self._root_path = pathlib.Path(root_path)
         self._raw_file_path = pathlib.Path(file_path)
 
         self._logger = get_oort_logger('uploader', debug=identity.debug)
@@ -136,7 +136,7 @@ class UploadPack(object):
                self.clear_file_exists and \
                not self.zipped_file_exists and \
                self._upload.substatus != Substatus.ZIPPING.value and \
-               os.access(self._root_path, os.W_OK)
+               os.access(str(self._root_path), os.W_OK)
 
     @property
     def final_file_path(self):
