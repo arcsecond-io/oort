@@ -43,7 +43,10 @@
     </div>
 
     <div class="small center">
-      Uploader State: {$ context.uploaderState $}
+      Uploader State:
+      <span {% if context.uploaderState == 'STOPPED' %}style="color: red; font-weight: bold;"{% endif %}>
+        {$ context.uploaderState $}
+      </span>
       <a class="btn btn-sm btn-default" href="/update?uploader=stop">Stop</a>
       <a class="btn btn-sm btn-default" href="/update?uploader=start">Start</a>
     </div>
