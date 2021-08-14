@@ -231,7 +231,9 @@
                   :root_path="selected_folder.path"
                 ></finished-table>
                 <div class="center-block text-center">
-                  <span class="subtitle">Uploads older than 7 days are not shown ({{ counts.hidden }} hidden). </span>
+                  <span class="subtitle">
+                    {{ counts.hidden }} uploads are hidden because they are finished more than 7 days ago.
+                  </span>
                 </div>
                 <div v-else>
                   <span class="label-centered">There are no inactive / past uploads.</span>
