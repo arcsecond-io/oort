@@ -248,18 +248,23 @@ class UploadPack(object):
 
     def _find_date_and_target_name(self) -> Tuple[Optional[datetime], str]:
         _file_date = self._upload.file_date or None
-        if _file_date is not None:
-            return _file_date
+        _target_name = self._upload.target_name or ""
+        if _file_date is not None and _target_name != "":
+            return _file_date, _target_name
+
         file_full_extension = ''.join(self._raw_file_path.suffixes).lower()
         file_full_path = str(self._raw_file_path)
         if file_full_extension in get_all_xisf_extensions():
             return self._find_xisf_file_date_and_target_name(file_full_path)
         elif file_full_extension in get_all_fits_extensions():
             return self._find_fits_file_date_and_target_name(file_full_path)
+        else:
+            return _file_date, _target_name
 
     def _find_fits_file_date_and_target_name(self, path: str) -> Tuple[Optional[datetime], str]:
         file_date = None
         target_name = ""
+
         hdulist = None
         try:
             with pyfits.open(path, mode='readonly', memmap=True, ignore_missing_end=True) as hdulist:
@@ -280,6 +285,7 @@ class UploadPack(object):
             if hdulist:
                 hdulist.close()
             self._logger.debug(f'{self.log_prefix} {str(error)}')
+
         return file_date, target_name
 
     def _find_xisf_file_date_and_target_name(self, path: str) -> Tuple[Optional[datetime], str]:
@@ -306,10 +312,12 @@ class UploadPack(object):
                     header += bytes[:index] + b'</xisf>'
                 elif len(header) > 0:
                     header += bytes
-        if len(header) > 0:
-            return self._get_xisf_file_date(header), self._get_xisf_target_name(header)
+
+        return self._get_xisf_file_date(header), self._get_xisf_target_name(header)
 
     def _get_xisf_file_date(self, header: bytes) -> Optional[datetime]:
+        if len(header) == 0:
+            return None
         file_date = None
         prefix = './/{http://www.pixinsight.com/xisf}FITSKeyword'
         try:
@@ -328,6 +336,8 @@ class UploadPack(object):
             return file_date
 
     def _get_xisf_target_name(self, header: bytes) -> str:
+        if len(header) == 0:
+            return ""
         target_name = ""
         prefix = './/{http://www.pixinsight.com/xisf}FITSKeyword'
         try:
