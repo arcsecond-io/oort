@@ -135,8 +135,9 @@ class FileUploader(object):
             self._logger.info(f'{self.log_prefix} {str(upload_error)}')
             self._process_error(upload_error)
         else:
-            self._logger.info(
-                f'{self.log_prefix} Successfully uploaded {self._upload.get_formatted_size()} in {self._upload.duration} seconds.')
+            msg = f'{self.log_prefix} Successfully uploaded {self._upload.get_formatted_size()}'
+            msg += f' in {self._upload.duration} seconds.'
+            self._logger.info(msg)
             self.update_upload(status=Status.OK.value, substatus=Substatus.DONE.value, error='')
 
     def _process_error(self, error):

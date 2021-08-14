@@ -6,7 +6,7 @@ from datetime import datetime
 from enum import Enum
 
 from peewee import (CharField, DateTimeField, DoesNotExist, Field, FloatField, ForeignKeyField, IntegerField, Model,
-                    OperationalError, UUIDField)
+                    UUIDField)
 from playhouse.migrate import SqliteMigrator, migrate
 from playhouse.signals import Signal
 from playhouse.sqliteq import SqliteQueueDatabase
