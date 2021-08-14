@@ -19,6 +19,8 @@ class PathsObserver(Observer):
         self._mapping = {}
         self._debug = False
         self._logger = get_oort_logger('uploader', debug=self._debug)
+        self._handler_tick = 20.0
+
         threading.Timer(OORT_UPLOADER_FOLDER_DETECTION_TICK_SECONDS, self._detect_watched_folders).start()
 
     @property
@@ -37,24 +39,41 @@ class PathsObserver(Observer):
         return '[PathsObserver]'
 
     def _detect_watched_folders(self):
+        mapping_keys = self._mapping.keys()
+
         for folder_section in get_oort_config_upload_folder_sections():
             folder_path = folder_section.get('path')
-            if folder_path not in self._mapping.keys():
-                identity = Identity.from_folder_section(folder_section)
-                self._start_watching_folder(folder_path, identity)
-        threading.Timer(30, self._detect_watched_folders).start()
+            identity = Identity.from_folder_section(folder_section)
 
-    def _start_watching_folder(self, folder_path: str, identity: Identity, tick=5.0) -> None:
-        if folder_path in self._mapping.keys():
-            self._logger.warn(f'{self.log_prefix} Folder path {folder_path} already observed. Ignoring.')
-            return
+            if folder_path in mapping_keys:
+                # Folder is already watched. We need to update its config only if identity is differnt.
+                handler = self._mapping.get(folder_path).get('handler')
+                if handler is not None and identity != handler.identity:
+                    self._unschedule_watch(folder_path)
+                    self._schedule_watch(folder_path, identity, initial_walk=False)
+            else:
+                self._schedule_watch(folder_path, identity, initial_walk=True)
 
+        threading.Timer(OORT_UPLOADER_FOLDER_DETECTION_TICK_SECONDS, self._detect_watched_folders).start()
+
+    def _unschedule_watch(self, folder_path: str) -> None:
+        self._logger.info(f'{self.log_prefix} Re-scheduling watch events handler for path {folder_path}.')
+        self.unschedule(self._mapping.get(folder_path).get('watcher'))
+        del self._mapping[folder_path]
+
+    def _schedule_watch(self, folder_path: str, identity: Identity, initial_walk: bool = False) -> None:
         self._logger.info(f'{self.log_prefix} Starting to watch folder {folder_path}...')
-        event_handler = eventhandler.DataFileHandler(path=folder_path, identity=identity, tick=tick, debug=self._debug)
+
+        event_handler = eventhandler.DataFileHandler(path=folder_path,
+                                                     identity=identity,
+                                                     tick=self._handler_tick,
+                                                     debug=self._debug)
+
         watcher = self.schedule(event_handler, folder_path, recursive=True)
         self._mapping[folder_path] = {'watcher': watcher, 'handler': event_handler}
 
-        threading.Thread(target=self._start_initial_walk, args=(folder_path, event_handler)).start()
+        if initial_walk is True:
+            threading.Thread(target=self._start_initial_walk, args=(folder_path, event_handler)).start()
 
     def _start_initial_walk(self, folder_path, event_handler):
         self._logger.info(f'{self.log_prefix} Starting initial walk inside folder {folder_path}...')
