@@ -240,11 +240,8 @@ _migrator = SqliteMigrator(db)
 migrate(
     _migrator.add_column('upload', 'target_name', CharField(default='')),
 )
-try:
-    db.connect()
-except OperationalError:
-    pass
 
+db.connect(reuse_if_open=True)
 db.create_tables([Organisation, Telescope, NightLog, Observation, Calibration, Dataset, Upload])
 
 
