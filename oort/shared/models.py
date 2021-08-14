@@ -1,4 +1,5 @@
 import atexit
+import math
 import pathlib
 import time
 from datetime import datetime
@@ -229,6 +230,14 @@ class Upload(BaseModel):
             return False
         else:
             return u.status == Status.OK.value and u.substatus in FINISHED_SUBSTATUSES
+
+    def get_formatted_size(self) -> str:
+        if self.file_size == 0:
+            return '0 Bytes'
+        k = 1024
+        sizes = ['Bytes', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
+        i = math.floor(math.log10(1.0 * self.file_size) / math.log10(k))
+        return f"{(self.file_size / math.pow(k, i)):.2f} {sizes[i]}"
 
 
 db.connect()
