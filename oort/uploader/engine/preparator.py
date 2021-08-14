@@ -203,7 +203,7 @@ class UploadPreparator(object):
         if self._night_log:
             kwargs.update(night_log=str(self._night_log.uuid))
         if self._pack.resource_type == 'observation':
-            kwargs.update(target_name=self._pack.dataset_name)
+            kwargs.update(target_name=self._pack.target_name or self._pack.dataset_name)
         self._logger.info(f'{self.prefix} Syncing {self._pack.remote_resources_name[:-1].upper()}: {kwargs}...')
         self._obs_or_calib = self._sync_resource(self._pack.resource_db_class, resources_api, **kwargs)
 
