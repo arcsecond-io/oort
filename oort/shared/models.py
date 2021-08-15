@@ -23,6 +23,7 @@ from oort.shared.config import get_oort_db_file_path
 from oort.shared.constants import ZIP_EXTENSIONS
 from oort.uploader.engine.errors import MultipleDBInstanceError
 
+# Create global instance 'db'
 db = SqliteQueueDatabase(str(get_oort_db_file_path()),
                          use_gevent=False,
                          autostart=True,
@@ -30,6 +31,11 @@ db = SqliteQueueDatabase(str(get_oort_db_file_path()),
                          results_timeout=5.0,
                          pragmas={'journal_mode': 'wal', 'cache_size': -1024 * 64})
 
+
+# Make sure write thread is stopped upon exit.
+@atexit.register
+def _stop_worker_threads():
+    db.stop()
 
 
 class BaseModel(Model):
@@ -244,8 +250,3 @@ _migrator = SqliteMigrator(db)
 migrate(
     _migrator.add_column(Upload._meta.table_name, 'target_name', CharField(default='')),
 )
-
-
-@atexit.register
-def _stop_worker_threads():
-    db.stop()
