@@ -61,7 +61,7 @@ Vue.component('finished-table', {
       <a v-else-if="upload.astronomer" :href='getProfileURL(upload)' target="_blank">@{{ upload.astronomer }}</a>
     </td>
     <td>
-      {{ getFormattedSize(upload.file_size) }}
+      {{ getFormattedSize(upload.file_size || upload.file_size_zipped) }}
     </td>
     <td>
       <div :style="getStatusStyle(upload)">
