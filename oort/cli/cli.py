@@ -96,8 +96,10 @@ def main(ctx, version=False, **kwargs):
 
 
 @main.command()
-@click.option('--username', required=True, nargs=1, prompt=True)
-@click.option('--password', required=True, nargs=1, prompt=True, hide_input=True)
+@click.option('--username', required=True, nargs=1, prompt=True,
+              help="Username of the Arcsecond account. Primary email address is also allowed.")
+@click.option('--password', required=True, nargs=1, prompt=True, hide_input=True,
+              help="Password of the Arcsecond account. It will be sent encrypted.")
 @basic_options
 @pass_state
 def login(state, username, password):
@@ -109,11 +111,16 @@ def login(state, username, password):
     Beware that the key will be stored locally on a file:
     ~/.arcsecond.ini
     """
-    _, error = ArcsecondAPI.login(username, password, None, upload_key=True, debug=state.debug, verbose=state.verbose)
+    profile, error = ArcsecondAPI.login(username,
+                                        password,
+                                        None,
+                                        upload_key=True,
+                                        debug=state.debug,
+                                        verbose=state.verbose)
     if error is not None:
         click.echo(error)
     else:
-        click.echo(f' • Successfully logged in as @{username}.')
+        click.echo(f' • Successfully logged in as @{ArcsecondAPI.username()}.')
         # Update all upload_key stored in the config for all watched folders.
         update_oort_config_upload_folder_sections_key(ArcsecondAPI.upload_key())
 
