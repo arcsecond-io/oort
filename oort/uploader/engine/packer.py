@@ -97,19 +97,23 @@ class UploadPack(object):
             self._archive(Substatus.SKIPPED_EMPTY_FILE.value)
             return
 
+        # Still not 100% satisfactory...
+
         item = f"{self.final_file_name} ({self._upload.substatus})"
+        preparation_succeeded = self._upload.dataset is not None
 
         if self.should_prepare:
             upload_preparator = preparator.UploadPreparator(self, debug=self._identity.debug)
-            upload_preparator.prepare()
+            preparation_succeeded, _ = upload_preparator.prepare()
         else:
             self._logger.info(f'{self.log_prefix} Preparation already done for {item}.')
 
-        if self.is_already_finished:
-            self._logger.info(f'{self.log_prefix} Upload already finished for {item}.')
-        else:
-            file_uploader = uploader.FileUploader(self)
-            file_uploader.upload()
+        if preparation_succeeded:
+            if self.is_already_finished:
+                self._logger.info(f'{self.log_prefix} Upload already finished for {item}.')
+            else:
+                file_uploader = uploader.FileUploader(self)
+                file_uploader.upload()
 
     @property
     def log_prefix(self) -> str:
