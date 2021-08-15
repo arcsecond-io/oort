@@ -209,7 +209,7 @@ class UploadPack(object):
 
     @property
     def is_already_finished(self) -> bool:
-        return self._upload.substatus in FINISHED_SUBSTATUSES
+        return self._upload.status == Status.OK.value and self._upload.substatus in FINISHED_SUBSTATUSES
 
     def _parse_type_and_dataset_name(self):
         # No starting root, and no ending filename. Just the final folder.
