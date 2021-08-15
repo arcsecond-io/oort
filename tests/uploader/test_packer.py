@@ -138,23 +138,23 @@ def test_packer_observation_no_filter():
             patch.object(UploadPack, '_find_xisf_file_date_and_target_name', return_value=(datetime.now(), "target")):
         stat.return_value.st_size = random.randint(1, 1000)
 
-    pack = UploadPack(str(root_path), path, identity)
-    assert pack is not None
-    # Check detection of FITS or XISF is OK
-    assert pack.is_data_file is True
-    assert pack.upload.file_path == path
-    assert pack.upload.file_path_zipped == path + '.gz'
-    assert pack.upload.file_size > 0
-    assert pack.upload.file_size_zipped > 0
-    assert pack.upload.target_name == 'target'
+        pack = UploadPack(str(root_path), path, identity)
+        assert pack is not None
+        # Check detection of FITS or XISF is OK
+        assert pack.is_data_file is True
+        assert pack.upload.file_path == path
+        assert pack.upload.file_path_zipped == path + '.gz'
+        assert pack.upload.file_size > 0
+        assert pack.upload.file_size_zipped > 0
+        assert pack.upload.target_name == 'target'
 
-    # Check night log date format is OK
-    assert re.match(r'[0-9]{4}-[0-9]{2}-[0-9]{2}', pack.night_log_date_string) is not None
-    # Check detection of resource is OK
-    assert pack.resource_type == 'observation'
-    assert pack.remote_resources_name == 'observations'
-    # Check name of dataset respect folder name
-    assert pack.dataset_name == 'HD5980'
+        # Check night log date format is OK
+        assert re.match(r'[0-9]{4}-[0-9]{2}-[0-9]{2}', pack.night_log_date_string) is not None
+        # Check detection of resource is OK
+        assert pack.resource_type == 'observation'
+        assert pack.remote_resources_name == 'observations'
+        # Check name of dataset respect folder name
+        assert pack.dataset_name == 'HD5980'
 
 
 @use_test_database
