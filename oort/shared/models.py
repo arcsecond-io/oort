@@ -235,12 +235,13 @@ class Upload(BaseModel):
             return u.status == Status.OK.value and u.substatus in FINISHED_SUBSTATUSES
 
     def get_formatted_size(self) -> str:
-        if self.file_size == 0:
+        size = self.file_size or self.file_size_zipped or 0
+        if size == 0:
             return '0 Bytes'
         k = 1024
-        sizes = ['Bytes', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
-        i = math.floor(math.log10(1.0 * self.file_size) / math.log10(k))
-        return f"{(self.file_size / math.pow(k, i)):.2f} {sizes[i]}"
+        units = ['Bytes', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
+        i = math.floor(math.log10(1.0 * size) / math.log10(k))
+        return f"{(size / math.pow(k, i)):.2f} {units[i]}"
 
 
 db.connect(reuse_if_open=True)
