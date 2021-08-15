@@ -187,7 +187,6 @@ class UploadPreparator(object):
     # ------ CHECKS ----------------------------------------------------------------------------------------------------
 
     def _sync_telescope(self):
-        if not self._identity.telescope: return
         self._logger.info(f'{self.log_prefix} Reading telescope {self._identity.telescope}...')
         api = ArcsecondAPI.telescopes(**self.api_kwargs)
         self._telescope = self._sync_local_resource(Telescope, api, self._identity.telescope)
@@ -222,11 +221,16 @@ class UploadPreparator(object):
     def prepare(self):
         self._logger.info(f'{self.log_prefix} Preparation started for {self._pack.final_file_name}')
         try:
-            self._pack.update_upload(status=Status.PREPARING.value, substatus=Substatus.SYNC_TELESCOPE.value)
-            self._sync_telescope()
+            self._pack.update_upload(status=Status.PREPARING.value,
+                                     substatus=Substatus.SYNC_TELESCOPE.value)
 
+            # --- It has no impact on the upload to actually get the telescope details.
+            # --- It is only used to display the telescope name in the web page.
+            if self._identity.telescope:
+                self._sync_telescope()
             if self._telescope:
                 self._pack.update_upload(telescope=self._telescope)
+            # ------------------------------------------------------------------
 
             if self._pack.night_log_date_string:
                 self._pack.update_upload(substatus=Substatus.SYNC_NIGHTLOG.value)
