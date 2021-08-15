@@ -152,7 +152,8 @@ class UploadPack(object):
 
     @property
     def clear_file_path(self) -> str:
-        return str(self._raw_file_path.with_suffix('')) if self._raw_file_path.suffix in ZIP_EXTENSIONS \
+        return str(self._raw_file_path.with_suffix('')) \
+            if self._raw_file_path.suffix in ZIP_EXTENSIONS and len(self._raw_file_path.suffixes) > 1 \
             else str(self._raw_file_path)
 
     @property

@@ -419,3 +419,17 @@ def test_packer_data_bz2_no_clear():
     assert pack.clear_file_exists is False
     assert pack.zipped_file_exists is True
     assert pack.should_zip is False
+
+
+@use_test_database
+def test_packer_data_pure_zip():
+    path = str(fixture_path / 'dummy.zip')
+    pack = UploadPack(str(root_path), path, identity)
+    assert pack.clear_file_path.endswith('dummy.zip')
+
+
+@use_test_database
+def test_packer_data_txt_zip():
+    path = str(fixture_path / 'dummy.txt.zip')
+    pack = UploadPack(str(root_path), path, identity)
+    assert pack.clear_file_path.endswith('dummy.txt')
