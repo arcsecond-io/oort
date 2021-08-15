@@ -208,7 +208,7 @@ class UploadPack(object):
 
     @property
     def should_prepare(self) -> bool:
-        return self._upload.substatus not in PREPARATION_DONE_SUBSTATUSES
+        return self._upload.substatus not in PREPARATION_DONE_SUBSTATUSES or self._upload.dataset is None
 
     @property
     def is_already_finished(self) -> bool:
