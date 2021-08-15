@@ -5,8 +5,17 @@ import time
 from datetime import datetime
 from enum import Enum
 
-from peewee import (CharField, DateTimeField, DoesNotExist, Field, FloatField, ForeignKeyField, IntegerField, Model,
-                    UUIDField)
+from peewee import (
+    CharField,
+    DateTimeField,
+    DoesNotExist,
+    Field,
+    FloatField,
+    ForeignKeyField,
+    IntegerField,
+    Model,
+    UUIDField
+)
 from playhouse.migrate import SqliteMigrator, migrate
 from playhouse.signals import Signal
 from playhouse.sqliteq import SqliteQueueDatabase
@@ -232,13 +241,13 @@ class Upload(BaseModel):
         return f"{(self.file_size / math.pow(k, i)):.2f} {sizes[i]}"
 
 
+db.connect(reuse_if_open=True)
+db.create_tables([Organisation, Telescope, NightLog, Observation, Calibration, Dataset, Upload])
+
 _migrator = SqliteMigrator(db)
 migrate(
     _migrator.add_column(Upload._meta.table_name, 'target_name', CharField(default='')),
 )
-
-db.connect(reuse_if_open=True)
-db.create_tables([Organisation, Telescope, NightLog, Observation, Calibration, Dataset, Upload])
 
 
 @atexit.register
