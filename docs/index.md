@@ -18,7 +18,7 @@ data.
 
 [Contact us](mailto:team@arcsecond.io). We would be happy to open a portal for you to see and try, even uploading some data to test.
 
-Oort comes with a monitor (small local web server), and this is what it looks like when running:
+Oort comes with a small local web server to monitor the uploader, and this is what it looks like when running:
 ![https://arcsecond-io.github.io/oort/assets/oort-screenshot-uploading.png](./assets/oort-screenshot-uploading.png)
 (<a href="https://arcsecond-io.github.io/oort/assets/oort-screenshot-uploading.png">enlarge</a>)
 
@@ -91,14 +91,14 @@ There is no need of using `sudo` in any case with oort.
 
 ## How does it work?
 
-### An Uploader process and a Monitor process
+### An Uploader process and a Server process
 
 Oort-Cloud works by managing 2 processes:
 
 • An **uploader**, which takes care of creating/syncing the right Night Logs, Observations and Calibrations, as well as Datasets and Datafiles in
 Arcsecond.io (either in your personal account, or your Organisation). And then upload the files.
 
-• A **monitor** (small local web server), which allow you to observe, control and setup what is happening in the uploader (and find what happened
+• A **server** (small local web server), which allow you to observe, control and setup what is happening in the uploader (and find what happened
 before too).
 
 A subset of the `oort` subcommands is dedicated to start, stop and get status of these two processes. These processes are managed by a
@@ -108,7 +108,7 @@ daemon.
 These processes are **managed**, that is, they are automatically restarted if they crash. Use the command `oort logs` to get the latest logs of these
 processes.
 
-The monitor process starts a little web server locally, with the address <code>http://0.0.0.0:5000 </code>. With such IP address, the oort processes
+The little web server that Oort starts locally has the address <code>http://0.0.0.0:5000 </code>. With such IP address, the oort processes
 can run in the PC where data is sent to, and still being monitored from a remote PC without login. Say for instance the PC that receives all the data
 is PC42 and you work on PC17. Oort watch command has been issued on PC42. From PC17 you can monitor what happens on PC42 by simply visiting
 <code>http://&lt;ip address of pc42&gt;:5000 </code>.
