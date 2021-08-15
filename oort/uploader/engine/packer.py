@@ -87,10 +87,6 @@ class UploadPack(object):
             zip.start()
             return
 
-        if self.is_data_file and self._upload.file_size_zipped == 0 and self._upload.substatus == Substatus.READY.value:
-            self._logger.info(f'{self.log_prefix} {self.zipped_file_path} is zipped but size is zero?')
-            return
-
         if self.is_hidden_file:
             self._logger.info(f'{self.log_prefix} {self.final_file_name} is an hidden file. Upload skipped.')
             self._archive(Substatus.SKIPPED_HIDDEN_FILE.value)
