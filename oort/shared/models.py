@@ -102,9 +102,7 @@ class BaseModel(Model):
         # See https://docs.peewee-orm.com/en/latest/peewee/querying.html#atomic-updates
         query = self.__class__.update(**kwargs).where(id_field == id_field_value)
         query.execute()
-        refreshed_instance = self.__class__.get_by_id(id_field_value)
-        upload_post_save_signal.send(self)
-        return refreshed_instance
+        return self.__class__.get_by_id(id_field_value)
 
 
 class Organisation(BaseModel):
