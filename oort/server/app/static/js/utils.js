@@ -4,7 +4,7 @@ Vue.mixin({
       return upload.file_path.replace(root_path + '/', '')
     },
     getOrganisationDatasetURL (upload) {
-      return 'https://' + upload.organisation.subdomain + '.arcsecond.io/data/' + upload.night_log.date
+      return 'https://' + upload.organisation.subdomain + '.arcsecond.io/datasets#' + upload.dataset.uuid
     },
     getDatasetURL (upload) {
       return (upload.dataset) ? 'https://www.arcsecond.io/datasets/' + upload.dataset.uuid : ''
