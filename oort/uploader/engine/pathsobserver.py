@@ -20,7 +20,6 @@ class PathsObserver(Observer):
         self._debug = False
         self._logger = get_oort_logger('uploader', debug=self._debug)
         self._handler_tick = 20.0
-
         threading.Timer(OORT_UPLOADER_FOLDER_DETECTION_TICK_SECONDS, self._detect_watched_folders).start()
 
     @property
@@ -93,8 +92,8 @@ class PathsObserver(Observer):
             if Upload.is_finished(str(path)):
                 ignore_count += 1
                 if ignore_count > 0 and ignore_count % 100 == 0:
-                    self._logger.info(
-                        f'{self.log_prefix} Ignored {ignore_count} uploads already finished in {folder_path}.')
+                    msg = f'{self.log_prefix} Ignored {ignore_count} uploads already finished in {folder_path}.'
+                    self._logger.info(msg)
             else:
                 event_count += 1
                 event = FileCreatedEvent(str(path))
