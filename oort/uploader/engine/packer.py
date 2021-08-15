@@ -229,7 +229,7 @@ class UploadPack(object):
         self.update_upload(file_date=_file_date,
                            file_size=_file_size,
                            file_size_zipped=_zipped_file_size,
-                           target_name=_target_name)
+                           target_name=_target_name or '')
 
     def _find_sizes(self) -> Tuple[float, float]:
         _file_size = 0
