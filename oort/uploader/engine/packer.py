@@ -232,9 +232,9 @@ class UploadPack(object):
 
     def _find_sizes(self) -> Tuple[float, float]:
         _file_size = 0
+        _zipped_file_size = 0
         if self.clear_file_exists:
             _file_size = pathlib.Path(self.clear_file_path).stat().st_size
-        _zipped_file_size = 0
         if self.zipped_file_exists:
             _zipped_file_size = pathlib.Path(self.zipped_file_path).stat().st_size
         return _file_size, _zipped_file_size
@@ -284,7 +284,7 @@ class UploadPack(object):
     def _find_xisf_file_date_and_target_name(self, path: str) -> Tuple[Optional[datetime], str]:
         header = b''
         open_method = open
-        file_last_extension = self._raw_file_path.suffix
+        file_last_extension = self._raw_file_path.suffix.lower()
         if file_last_extension in ['.gzip', '.gz']:
             open_method = gzip.open
         elif file_last_extension in ['.bzip2', '.bz2']:
