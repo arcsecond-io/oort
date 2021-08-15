@@ -159,7 +159,7 @@ def test_preparator_prepare_with_org_and_telescope():
     save_arcsecond_test_credentials()
 
     identity = Identity(TEST_LOGIN_USERNAME,
-                        '',
+                        TEST_LOGIN_UPLOAD_KEY,
                         TEST_LOGIN_ORG_SUBDOMAIN,
                         TEST_LOGIN_ORG_ROLE,
                         telescope_uuid,
@@ -189,9 +189,18 @@ def test_preparator_prepare_with_org_and_telescope():
 
         mock_method_read.assert_called()
 
-        mock_method_nightlogs.assert_called_with(test=True, debug=True, organisation=TEST_LOGIN_ORG_SUBDOMAIN)
-        mock_method_obs.assert_called_with(test=True, debug=True, organisation=TEST_LOGIN_ORG_SUBDOMAIN)
-        mock_method_datasets.assert_called_with(test=True, debug=True, organisation=TEST_LOGIN_ORG_SUBDOMAIN)
+        mock_method_nightlogs.assert_called_with(test=True,
+                                                 debug=True,
+                                                 upload_key=TEST_LOGIN_UPLOAD_KEY,
+                                                 organisation=TEST_LOGIN_ORG_SUBDOMAIN)
+        mock_method_obs.assert_called_with(test=True,
+                                           debug=True,
+                                           upload_key=TEST_LOGIN_UPLOAD_KEY,
+                                           organisation=TEST_LOGIN_ORG_SUBDOMAIN)
+        mock_method_datasets.assert_called_with(test=True,
+                                                debug=True,
+                                                upload_key=TEST_LOGIN_UPLOAD_KEY,
+                                                organisation=TEST_LOGIN_ORG_SUBDOMAIN)
 
         mock_method_list.assert_any_call(date=pack.night_log_date_string, telescope=telescope_uuid)
         mock_method_list.assert_any_call(night_log=nl['uuid'], target_name=pack.target_name)
