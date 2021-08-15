@@ -220,7 +220,7 @@ class UploadPack(object):
         self._type = ResourceType.CALIBRATION if _is_calib else ResourceType.OBSERVATION
         self._dataset_name = str(_clean_path)
 
-        if len(self._dataset_name.strip()) == 0:
+        if len(self._dataset_name.strip()) == 0 or self._dataset_name.strip() == '.':
             self._dataset_name = f'(folder {self._root_path.name})'
 
     def _find_date_size_and_target_name(self) -> None:
