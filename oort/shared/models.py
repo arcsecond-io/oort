@@ -17,7 +17,6 @@ from peewee import (
     UUIDField
 )
 from playhouse.migrate import SqliteMigrator, migrate
-from playhouse.signals import Signal
 from playhouse.sqliteq import SqliteQueueDatabase
 
 from oort.shared.config import get_oort_db_file_path
@@ -31,7 +30,6 @@ db = SqliteQueueDatabase(str(get_oort_db_file_path()),
                          results_timeout=5.0,
                          pragmas={'journal_mode': 'wal', 'cache_size': -1024 * 64})
 
-upload_post_save_signal = Signal()
 
 
 class BaseModel(Model):
