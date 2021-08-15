@@ -20,9 +20,6 @@ class UploadPreparator(object):
         self._debug = debug
         self._logger = get_oort_logger('uploader', debug=self._debug)
 
-        self._preparation_succeeded = False
-        self._preparation_can_be_restarted = False
-
         self._organisation = None
         self._telescope = None
         self._night_log = None
@@ -220,6 +217,10 @@ class UploadPreparator(object):
 
     def prepare(self):
         self._logger.info(f'{self.log_prefix} Preparation started for {self._pack.final_file_name}')
+
+        preparation_succeeded = False
+        preparation_can_be_restarted = False
+
         try:
             self._pack.update_upload(status=Status.PREPARING.value,
                                      substatus=Substatus.SYNC_TELESCOPE.value)
@@ -247,20 +248,22 @@ class UploadPreparator(object):
                 self._pack.update_upload(dataset=self.dataset)
 
         except errors.UploadPreparationFatalError as e:
-            self._logger.info(f'{self.log_prefix} Preparation failed for {self._pack.final_file_name} with error:')
-            self._logger.info(f'{str(e)}')
+            self._logger.error(f'{self.log_prefix} Preparation failed for {self._pack.final_file_name} with error:')
+            self._logger.error(f'{str(e)}')
             self._pack.update_upload(status=Status.ERROR.value, substatus=Substatus.ERROR.value, error=str(e))
-            self._preparation_succeeded = False
-            self._preparation_can_be_restarted = False
+            preparation_succeeded = False
+            preparation_can_be_restarted = False
 
         except errors.UploadPreparationError as e:
-            self._logger.info(f'{self.log_prefix} Preparation failed for {self._pack.final_file_name} with error:')
-            self._logger.info(f'{str(e)}')
+            self._logger.error(f'{self.log_prefix} Preparation failed for {self._pack.final_file_name} with error:')
+            self._logger.error(f'{str(e)}')
             self._pack.update_upload(status=Status.ERROR.value, substatus=Substatus.ERROR.value, error=str(e))
-            self._preparation_succeeded = False
-            self._preparation_can_be_restarted = True
+            preparation_succeeded = False
+            preparation_can_be_restarted = True
 
         else:
             self._logger.info(f'{self.log_prefix} Preparation succeeded for {self._pack.final_file_name}')
             self._pack.update_upload(status=Status.UPLOADING.value, substatus=Substatus.READY.value)
-            self._preparation_succeeded = True
+            preparation_succeeded = True
+
+        return preparation_succeeded, preparation_can_be_restarted
