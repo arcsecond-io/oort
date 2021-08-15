@@ -14,8 +14,8 @@ def test_observer_empty():
             patch.object(threading.Timer, 'start'):
         po = PathsObserver()
         assert po.observed_paths == []
-        assert mocked_method_schedule.assert_not_called()
-        assert mocked_method_walk.assert_not_called()
+        mocked_method_schedule.assert_not_called()
+        mocked_method_walk.assert_not_called()
 
 
 @use_test_database
