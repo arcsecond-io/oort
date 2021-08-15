@@ -301,6 +301,17 @@ def test_packer_non_data_non_zipped():
 
 
 @use_test_database
+def test_packer_non_data_non_zipped_added_gz():
+    path = str(fixture_path / 'non_data_non_zipped.txt.gz')
+    pack = UploadPack(str(root_path), path, identity)
+    assert pack.is_data_file is False
+    assert pack.is_hidden_file is False
+    assert pack.clear_file_exists is True
+    assert pack.zipped_file_exists is False
+    assert pack.should_zip is False
+
+
+@use_test_database
 def test_packer_non_data_zipped():
     path = str(fixture_path / 'non_data_zipped.txt.gz')
     pack = UploadPack(str(root_path), path, identity)
@@ -314,6 +325,17 @@ def test_packer_non_data_zipped():
 @use_test_database
 def test_packer_data_clear_with_zipped():
     path = str(fixture_path / 'data_zipped_with_clear.fits')
+    pack = UploadPack(str(root_path), path, identity)
+    assert pack.is_data_file is True
+    assert pack.is_hidden_file is False
+    assert pack.clear_file_exists is True
+    assert pack.zipped_file_exists is True
+    assert pack.should_zip is False
+
+
+@use_test_database
+def test_packer_data_clear_with_zipped_added_gz():
+    path = str(fixture_path / 'data_zipped_with_clear.fits.gz')
     pack = UploadPack(str(root_path), path, identity)
     assert pack.is_data_file is True
     assert pack.is_hidden_file is False
