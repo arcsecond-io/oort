@@ -247,8 +247,8 @@ def telescopes(state, organisation=None):
               required=False, nargs=1,
               help="The Organisation subdomain, if uploading to an organisation.")
 @click.option('-t', '--telescope',
-              required=False, nargs=1, type=click.UUID,
-              help="The UUID of the telescope acquiring data (in the case of organisation uploads).")
+              required=False, nargs=1, type=click.STRING,
+              help="The UUID or the alias of the telescope acquiring data (in the case of organisation uploads).")
 @click.option('-z', '--zip',
               required=False, nargs=1, type=click.BOOL,
               help="Zip the data files (FITS and XISF) before sending to the cloud. Default is False.")
@@ -287,8 +287,11 @@ def watch(state, folders, organisation=None, telescope=None, zip=False):
         click.echo(f" • Uploading to organisation account '{org_subdomain}' (as {org_role}).")
 
     if telescope_details:
-        name, uuid = telescope_details.get('name'), telescope_details.get('uuid')
-        click.echo(f" • Night Logs will be linked to telescope '{name}' ({uuid}).")
+        msg = f" • Night Logs will be linked to telescope '{telescope_details.get('name')}' "
+        if telescope_details.get('alias', ''):
+            msg += f"alias \"{telescope_details.get('alias')}\" "
+        msg += f"({telescope_details.get('uuid')}))"
+        click.echo(msg)
     else:
         click.echo(" • No designated telescope.")
 
