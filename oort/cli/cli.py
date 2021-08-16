@@ -233,8 +233,11 @@ def telescopes(state, organisation=None):
 
     click.echo(f" • Found {len(telescope_list)} telescope{'s' if len(telescope_list) > 1 else ''}.")
     for telescope_dict in telescope_list:
-        s = f" 🔭 \"{telescope_dict['name']}\" (UUID: {telescope_dict['uuid']}) "
-        s += f"[ObservingSite UUID: {telescope_dict['observing_site']}]"
+        s = f" >>> 🔭 \"{telescope_dict['name']}\" "
+        if telescope_dict['alias']:
+            s += f"alias \"{telescope_dict['alias']}\" "
+        s += f"({telescope_dict['uuid']}) "
+        # s += f"[ObservingSite UUID: {telescope_dict['observing_site']}]"
         click.echo(s)
 
 
