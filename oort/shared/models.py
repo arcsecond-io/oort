@@ -53,31 +53,6 @@ class BaseModel(Model):
         return cls.get_field(cls._primary_field or 'uuid')
 
     @classmethod
-    def join_get(cls, foreign_field: Field, foreign_value, **kwargs):
-        qs = cls.select()
-        for field_name, value in kwargs.items():
-            qs = qs.where(cls.get_field(field_name) == value)
-        qs = qs.join(foreign_field.model).where(foreign_field == foreign_value)
-        if qs.count() == 0:
-            raise DoesNotExist()
-        elif qs.count() == 1:
-            return qs.get()
-        else:
-            msg = f'Multiple instances found for query params: {kwargs}'
-            raise MultipleDBInstanceError(msg)
-
-    @classmethod
-    def smart_get(cls, **kwargs):
-        # The following allows get queries with a ForeignKey inside kwargs.
-        # One needs it for when creating Dataset related to Observation...
-        foreign_key_names = [key for key in kwargs if isinstance(cls.get_field(key), ForeignKeyField)]
-        if len(foreign_key_names) > 0:
-            value = kwargs.pop(foreign_key_names[0])
-            foreign_model = cls.get_field(foreign_key_names[0]).rel_model
-            return cls.join_get(foreign_model.get_primary_field(), value, **kwargs)
-        return cls.get(**kwargs)
-
-    @classmethod
     def smart_create(cls, **kwargs):
         foreign_items = {key: value for key, value in kwargs.items() if
                          isinstance(cls.get_field(key), ForeignKeyField)}
