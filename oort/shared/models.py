@@ -78,12 +78,12 @@ class BaseModel(Model):
 
     def smart_update(self, **kwargs):
         # with db.atomic():
-        id_field = getattr(self.__class__, self._primary_field)
-        id_field_value = getattr(self, self._primary_field)
+        primary_field = getattr(self.__class__, self._primary_field)
+        primary_field_value = getattr(self, self._primary_field)
         # See https://docs.peewee-orm.com/en/latest/peewee/querying.html#atomic-updates
-        query = self.__class__.update(**kwargs).where(id_field == id_field_value)
+        query = self.__class__.update(**kwargs).where(primary_field == primary_field_value)
         query.execute()
-        return self.__class__.get_by_id(id_field_value)
+        return self.__class__.get_by_id(primary_field_value)
 
 
 class Organisation(BaseModel):
