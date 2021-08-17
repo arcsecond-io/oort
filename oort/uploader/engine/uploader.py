@@ -41,6 +41,17 @@ class FileUploader(object):
                                    progress=progress_percent,
                                    duration=(datetime.now() - self._upload.started).total_seconds())
 
+        ffps = str(self._final_file_path)
+
+        tag_filepath = f'filepath|{ffps}'
+        tag_folder = f'folder|{self._pack.clean_folder_name}'
+        tag_root = f'root|{self._pack.root_folder_name}'
+        tag_origin = f'origin|{socket.gethostname()}|'
+        tag_uploader = f'uploader|{ArcsecondAPI.username()}'
+        tag_oort = f'oort|{__version__}'
+
+        payload = {'file': ffps, 'tags': [tag_filepath, tag_folder, tag_root, tag_origin, tag_uploader, tag_oort]}
+
         self._async_file_uploader: AsyncFileUploader
         if remote_resource_exists:
             self._logger.info(f"{self.log_prefix} Remote resource exists. Preparing 'Update' APIs.")
