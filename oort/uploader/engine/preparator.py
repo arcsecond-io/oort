@@ -229,7 +229,7 @@ class UploadPreparator(object):
                 self._pack.update_upload(substatus=Substatus.SYNC_NIGHTLOG.value)
                 self._sync_night_log()
 
-                # No night log, no observation not calib possible.
+                # No night log, no observation nor calibration possible.
                 self._pack.update_upload(substatus=Substatus.SYNC_OBS_OR_CALIB.value)
                 self._sync_observation_or_calibration()  # observation or calibration
 
