@@ -301,9 +301,7 @@ def watch(state, folders, organisation=None, telescope=None, zip=False):
     click.echo(f" • Folder path{'s' if len(folders) > 1 else ''}:")
     for folder in folders:
         folder_path = pathlib.Path(folder).expanduser().resolve()
-        if folder_path.is_file():
-            folder_path = folder_path.parent
-        click.echo(f"   > {str(folder_path)}")
+        click.echo(f"   > {str(folder_path.parent if folder_path.is_file() else folder_path)}")
         if folder_path == home_path:
             click.echo("   >>> Warning: This watched folder is your HOME folder. <<<")
         if str(folder_path) in existing_folders:
@@ -323,7 +321,7 @@ def watch(state, folders, organisation=None, telescope=None, zip=False):
                             state.verbose)
 
         click.echo("\n • OK.")
-        msg = f" • Watch will start within {OORT_UPLOADER_FOLDER_DETECTION_TICK_SECONDS} seconds "
-        msg += "if the uploader process is running.\n • Getting processes status for you right now:"
+        msg = f" • Oort will start watching within {OORT_UPLOADER_FOLDER_DETECTION_TICK_SECONDS} seconds "
+        msg += "if the uploader process is running.\n • Getting the processes status for you right now:"
         click.echo(msg)
         get_supervisor_processes_status(debug=state.debug)
