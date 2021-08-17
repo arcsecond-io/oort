@@ -22,7 +22,7 @@ def perform_walk(root_path: str, identity: Identity, debug: bool):
             file_path = os.path.join(root, filename)
             if os.path.isfile(file_path) and not os.path.basename(file_path).startswith('.'):
                 pack = packer.UploadPack(root_path, file_path, identity)
-                pack.do_upload()
+                pack.prepare_and_upload_file()
 
     logger.info(f'Finished initial walk for {root_path}')
 

@@ -50,7 +50,7 @@ class DataFileHandler(FileSystemEventHandler):
             count += 1
 
             pack = packer.UploadPack(str(self._root_path), upload.file_path, self._identity)
-            pack.do_upload()  # will take care of zipping
+            pack.prepare_and_upload_file()  # will take care of zipping
             time.sleep(0.01)
 
         self._logger.info(f'{self.log_prefix} Found {count} uploads to restart.')
@@ -72,7 +72,7 @@ class DataFileHandler(FileSystemEventHandler):
 
             # Pack will be identical for file and its zipped counter-part.
             pack = packer.UploadPack(str(self._root_path), event.src_path, self._identity)
-            pack.do_upload()  # will take care of zipping
+            pack.prepare_and_upload_file()  # will take care of zipping
 
     def on_moved(self, event):
         relative_path = pathlib.Path(event.src_path).relative_to(self._root_path)

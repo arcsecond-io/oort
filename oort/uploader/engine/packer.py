@@ -81,7 +81,7 @@ class UploadPack(object):
 
         self._find_date_size_and_target_name()
 
-    def do_upload(self):
+    def prepare_and_upload_file(self):
         if self.should_zip:
             zip = zipper.AsyncZipper(self.clear_file_path)
             zip.start()
