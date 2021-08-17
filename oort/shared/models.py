@@ -9,7 +9,6 @@ from peewee import (
     CharField,
     DateTimeField,
     DoesNotExist,
-    Field,
     FloatField,
     ForeignKeyField,
     IntegerField,
@@ -21,7 +20,6 @@ from playhouse.sqliteq import SqliteQueueDatabase
 
 from oort.shared.config import get_oort_db_file_path
 from oort.shared.constants import ZIP_EXTENSIONS
-from oort.uploader.engine.errors import MultipleDBInstanceError
 
 # Create global instance 'db'
 db = SqliteQueueDatabase(str(get_oort_db_file_path()),
