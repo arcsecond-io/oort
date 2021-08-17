@@ -115,6 +115,9 @@ class UploadPack(object):
                 file_uploader = uploader.FileUploader(self)
                 file_uploader.upload()
 
+    def update_upload(self, **kwargs) -> None:
+        self._upload = self._upload.smart_update(**kwargs)
+
     @property
     def log_prefix(self) -> str:
         return f'[UploadPack: {self.final_file_path}]'
@@ -348,7 +351,4 @@ class UploadPack(object):
         return target_name
 
     def _archive(self, substatus) -> None:
-        self.update_upload(status=Status.OK.value, substatus=substatus, ended=datetime.now())
-
-    def update_upload(self, **kwargs) -> None:
-        self._upload = self._upload.smart_update(**kwargs)
+        self._upload = self._upload.archive(substatus=substatus, ended=datetime.now())

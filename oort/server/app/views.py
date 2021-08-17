@@ -61,7 +61,7 @@ def retry():
     ids = request.args.get("ids", '').split(',')
     for upload_id in ids:
         u = Upload.get_by_id(upload_id)
-        u.smart_update(status=Status.UPLOADING.value, substatus=Substatus.RESTART.value, error='')
+        u.reset_for_restart()
     return Response({}, mimetype='application/json')
 
 

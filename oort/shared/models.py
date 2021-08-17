@@ -243,6 +243,23 @@ class Upload(BaseModel):
         i = math.floor(math.log10(1.0 * size) / math.log10(k))
         return f"{(size / math.pow(k, i)):.2f} {units[i]}"
 
+    def archive(self, substatus):
+        return self.smart_update(status=Status.OK.value, substatus=substatus, ended=datetime.now())
+
+    def reset_for_restart(self):
+        return self.smart_update(status=Status.NEW.value,
+                                 substatus=Substatus.RESTART.value,
+                                 progress=0,
+                                 started=None,
+                                 ended=None,
+                                 duration=0,
+                                 error='',
+                                 dataset=None,
+                                 file_date=None,
+                                 file_size=0,
+                                 file_size_zipped=0,
+                                 target_name='')
+
 
 db.connect(reuse_if_open=True)
 db.create_tables([Organisation, Telescope, NightLog, Observation, Calibration, Dataset, Upload])
