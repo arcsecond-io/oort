@@ -228,7 +228,7 @@ def telescopes(state, organisation=None):
         click.echo(" • Fetching telescopes...")
 
     telescope_list, error = ArcsecondAPI.telescopes(**kwargs).list()
-    if error:
+    if error is not None:
         raise OortCloudError(str(error))
 
     click.echo(f" • Found {len(telescope_list)} telescope{'s' if len(telescope_list) > 1 else ''}.")

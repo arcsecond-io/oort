@@ -33,7 +33,7 @@ def check_remote_organisation(org_subdomain: str, debug: bool, verbose: bool):
     except DoesNotExist:
         test = os.environ.get('OORT_TESTS') == '1'
         org_resource, error = ArcsecondAPI.organisations(debug=debug, test=test, verbose=verbose).read(org_subdomain)
-        if error:
+        if error is not None:
             raise UnknownOrganisationOortCloudError(org_subdomain, str(error))
         else:
             return Organisation.smart_create(subdomain=org_subdomain)
@@ -85,7 +85,7 @@ def check_organisation_telescope(telescope_uuid: Optional[Union[str, UUID]],
         kwargs.update(organisation=org_subdomain)
 
     telescope_detail, error = ArcsecondAPI.telescopes(**kwargs).read(str(telescope_uuid))
-    if error:
+    if error is not None:
         raise InvalidOrganisationTelescopeOortCloudError(str(telescope_uuid), str(error))
 
     if telescope_detail is not None and telescope_detail.get('coordinates', None) is None:
@@ -105,7 +105,7 @@ def check_remote_astronomer(username: str, upload_key: str, debug: bool, verbose
 
     test = os.environ.get('OORT_TESTS') == '1'
     result, error = ArcsecondAPI.me(debug=debug, test=test, verbose=verbose).read(username)
-    if error:
+    if error is not None:
         raise InvalidAstronomerOortCloudError(username, upload_key, error_string=str(error))
 
 
@@ -114,7 +114,7 @@ def check_organisation_uploadkeys(org_subdomain: str, username: str, upload_key:
     kwargs = {'debug': debug, 'test': test, 'verbose': verbose, 'organisation': org_subdomain}
 
     upload_keys_details, error = ArcsecondAPI.uploadkeys(**kwargs).list()
-    if error:
+    if error is not None:
         InvalidWatchOptionsOortCloudError(str(error))
 
     upload_keys_mapping = {uk['username']: uk for uk in upload_keys_details}

@@ -123,7 +123,7 @@ class UploadPreparator(object):
 
         telescopes_api = ArcsecondAPI.telescopes(**self._api_kwargs)
         telescope_dict, error = telescopes_api.read(self._identity.telescope)
-        if error:
+        if error is not None:
             raise errors.UploadPreparationAPIError(str(error))
 
         self._telescope = Telescope.smart_create(**telescope_dict)
