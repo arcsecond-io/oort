@@ -19,12 +19,12 @@ class FileUploader(object):
         self._upload = self._pack.upload
         self._final_file_path = pathlib.Path(self._pack.final_file_path)
 
-        is_test_context = os.environ.get('OORT_TESTS') == '1'
-        self._api = ArcsecondAPI.datafiles(dataset=str(self._upload.dataset.uuid),
-                                           debug=pack.identity.debug,
-                                           test=is_test_context,
+        is_test_context = bool(os.environ.get('OORT_TESTS') == '1')
+        self._api = ArcsecondAPI.datafiles(dataset=str(self._upload.dataset.uuid),  # will be used as request prefix
                                            upload_key=pack.identity.upload_key,
-                                           organisation=pack.identity.subdomain)
+                                           organisation=pack.identity.subdomain,
+                                           debug=pack.identity.debug,
+                                           test=is_test_context)
 
     @property
     def log_prefix(self) -> str:
