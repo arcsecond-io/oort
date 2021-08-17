@@ -10,13 +10,14 @@ Cloud storage backend is [Amazon's S3](https://aws.amazon.com/s3/), and Oort has
 (it may need some tweaks on Windows).
 
 **Oort is a pure push up tool, not a two-ways syncing tool.** A file that is deleted locally will remain in the cloud if already uploaded. Change of
-files in the cloud have no effect locally either.
+files in the cloud have no effect locally either. Oort works in the background, in batch mode. When one or more folders started to be "watched", any
+new file inside them is sent to the cloud.
 
 Oort can be used by an observatory, to store data specifically for that organisation. For that, the organisation must have been registered first, and
 subdomain defined. See also the `--organisation` option below. Or by individual astronomers who want to store data in a cloud dedicated to astronomical
 data.
 
-[Contact us](mailto:team@arcsecond.io). We would be happy to open a portal for you to see and try, even uploading some data to test.
+[Contact us](mailto:team@arcsecond.io). We would be happy to open a portal for you to see and try to upload data.
 
 Oort comes with a small local web server to monitor the uploader, and this is what it looks like when running:
 ![https://arcsecond-io.github.io/oort/assets/oort-screenshot-uploading.png](./assets/oort-screenshot-uploading.png)
@@ -43,8 +44,7 @@ $ pip install oort-cloud --upgrade
 ```
 
 Note that a PyPi package named `oort` (without the `-cloud`) already exists (unfortunately), and has nothing to do with our case. The CLI commands
-below nonetheless start with
-`oort` only.
+below nonetheless start with `oort` only.
 
 ## Start & Watch
 
@@ -59,20 +59,21 @@ oort restart
 oort watch [OPTIONS] folder1 folder2 ...
 ```
 
-The `OPTIONS` part of `oort watch` is important. There are two options:
+The `OPTIONS` part of `oort watch` is important. There are three options:
 
 * `-o <subdomain>` (or `--organisation <subdomain>`) to specify that uploads of that folder will be sent to that organisation.
 * `-t <telescope uuid>` (or `--telescope <telescope uuid>`) to specify to which telescope the Night Logs must be attached. This option is mandatory for
   uploads to an organisation, and optional for uploads to a personal account.
+* `-z` (or `--zip`) to automatically gzip data files (FITS and XISF, other files aren't touched) before upload. Default is False. Note that switching
+  zip on will modify the content of the folder (replacing files with zipped ones), hence impacting a possible backup system. Moreover, zipping will
+  require some CPU resource.
 
 Oort will summarise the settings associated with the new watched folder, and ask for confirmation before proceeding.
 
 After a `oort watch` command is issued, oort will first walk through the whole folder tree and upload existing files. Then it will detect and upload
 any new file being added inside the watched folder (and in all of its subfolders).
 
-**All non-hidden files will be uploaded.**
-<span style='color: red;'>And data files will be compressed automatically before upload.</span>
-See below for details.
+**All non-hidden files will be uploaded.** And data files can be compressed automatically before upload. See below for details.
 
 ## Manage and Monitor
 
@@ -98,8 +99,8 @@ Oort-Cloud works by managing 2 processes:
 • An **uploader**, which takes care of creating/syncing the right Night Logs, Observations and Calibrations, as well as Datasets and Datafiles in
 Arcsecond.io (either in your personal account, or your Organisation). And then upload the files.
 
-• A **server** (small local web server), which allow you to observe, control and setup what is happening in the uploader (and find what happened
-before too).
+• A **server** (small local web server), which allow you to observe, control and setup what is happening in the uploader (and find what happened before
+too).
 
 A subset of the `oort` subcommands is dedicated to start, stop and get status of these two processes. These processes are managed by a
 small `supervisord`
@@ -108,9 +109,9 @@ daemon.
 These processes are **managed**, that is, they are automatically restarted if they crash. Use the command `oort logs` to get the latest logs of these
 processes.
 
-The little web server that Oort starts locally has the address <code>http://0.0.0.0:5000 </code>. With such IP address, the oort processes
-can run in the PC where data is sent to, and still being monitored from a remote PC without login. Say for instance the PC that receives all the data
-is PC42 and you work on PC17. Oort watch command has been issued on PC42. From PC17 you can monitor what happens on PC42 by simply visiting
+The little web server that Oort starts locally has the address <code>http://0.0.0.0:5000 </code>. With such IP address, the oort processes can run in
+the PC where data is sent to, and still being monitored from a remote PC without login. Say for instance the PC that receives all the data is PC42 and
+you work on PC17. Oort watch command has been issued on PC42. From PC17 you can monitor what happens on PC42 by simply visiting
 <code>http://&lt;ip address of pc42&gt;:5000 </code>.
 
 ### File extensions
@@ -129,7 +130,7 @@ Moreover, these extensions can be augmented with the following zipped file exten
 
 ### File compression
 
-Files to be uploaded can be already compressed or not, oort is able to deal with any of them transparently.
+Files to be uploaded can be already compressed or not. Oort is able to deal with any of them transparently.
 
 If a XISF or FITS file is being detected and the zip option is set (in the `watch` command), it will be zipped (with standard)
 `gzip` compression before being uploaded. The compression is made locally just beside the original file, which will be deleting once zip is done (as
@@ -147,20 +148,22 @@ Of course, if the folder is read-only for its user, no zipping will be made.
 Organisation is as follow: Data files are put inside Datasets, and to each dataset is attached one (and only one) of an Observation or a Calibration
 object. The latter will be used inside Arcsecond.io for various packaging tasks.
 
+If data is consistently from the same observing night in a single folder, this means that **1 folder (or subfolder) = 1 dataset = 1 observation (or
+calibration)**. In other words, the more organised are your files, the more easily Oort replicates this in the cloud.
+
 To determine whether this is an Observation or a Calibration, oort will use the full folder pathname. If it doesn't detect any calibration keywords (
 see below), it will choose an Observation.
 
-The detection of a Calibration relies on a few keywords. If the folder on disk contains the word "Bias" (case-insensitive) somewhere in its path, the
-data files will be put inside a Calibration object, associated with a Dataset whose name is that of the folder. See below for a table of examples. The
-keyword doesn't need to be isolated. A folder with a name <code>ccd7_biases_bin1</code> will be detected as Calibration.
+The detection of a Calibration relies on 4 simple *keywords*: <code>bias</code>, <code>dark</code>, <code>flat</code> and <code>calib</code> (all
+case-insensitive). For instance, if the folder on disk contains the word "Bias" (case-insensitive) somewhere in its path, the data files will be put
+inside a Calibration object, associated with a Dataset whose name is that of the folder. The keyword doesn't need to be isolated. A folder with a
+name <code>ccd7_biases_bin1</code> will be detected as Calibration.
 
-There are only 4 Keywords directing files to Calibrations containers: <code>bias</code>,
-<code>dark</code>, <code>flat</code> and <code>calib</code> (all case-insensitive). All other folder names are considered as target names, and put
-inside Observations containers.
+All other folder names are considered as target names, and put inside Observations containers. For instance, FITS or XISF files found
+in `<root>/NGC3603/mosaic/Halpha` will be put in an Observation (not a Calibration, since there is no special keyword found), and its Dataset will be
+named identically `NGC3603/mosaic/Halpha`.
 
-For instance, FITS or XISF files found in `<root>/NGC3603/mosaic/Halpha`
-will be put in an Observation (not a Calibration, since there is no special keyword found), and its Dataset will be named identically
-`NGC3603/mosaic/Halpha`.
+See below for an exhaustive table of examples.
 
 ### Night Log dates
 
@@ -250,11 +253,14 @@ Will not be uploaded because it is inside a hidden folder (starting with a `.`).
 
 Will not be uploaded because it is an hidden file (starting with a `.`).
 
-## Key things you must be aware of
+## Additional things you must be aware of
 
 * There is no need to install or run Oort as `root`.
 * One must login first before uploading, with the command `oort login`. It will locally store the necessary credentials used for uploading. **Keep
   these credentials safe**.
-* Note that `oort login` fetches a limited-scope upload key, just enough to perform its task. To the contrary of `arcsecond login` which fetches your
-  full API key.
-* If uploading for an organisation, Oort must necessarily be run someone who is a member of it (quite obviously).
+* Note that `oort login` fetches a limited-scope upload key, just enough to perform its task.
+* If uploading for an organisation, Oort must necessarily be run by a member of it (quite obviously).
+* This tool is open-source obviously to let anyone it doesn't send or use data that has not explicitly marked for uploading. It is also open for
+  modification, or improvement. Please, use the standard GitHub pull-request mechanism.
+* The only auxiliary data that is collected and attached as tag of the files and datasets are the machine hostname (the output of the `uname -n`
+  command). See inside `oort/uploader/engine/preparator.py` and `uploader.py` for the line `socket.gethostname()`.
