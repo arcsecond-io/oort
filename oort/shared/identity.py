@@ -74,6 +74,8 @@ class Identity(object):
         return s
 
     def save_with_folder(self, upload_folder_path: str):
+        # If data are on disk that are attached, then detached and re-attached to a different volume
+        # the full upload_folder_path will change, thus the folder_hash, and a new folder will be watched...
         folder_hash = hashlib.shake_128(upload_folder_path.encode('utf8')).hexdigest(3)
         suffix = '-tests' if os.environ.get('OORT_TESTS') == '1' else ''
         write_oort_config_section_values(f'watch-folder-{folder_hash}{suffix}',
