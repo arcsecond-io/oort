@@ -1,5 +1,6 @@
 import json
 import os
+import pathlib
 from datetime import datetime
 
 from arcsecond import ArcsecondAPI
@@ -13,9 +14,10 @@ from . import errors
 class FileUploader(object):
     def __init__(self, pack):
         self._logger = get_oort_logger('uploader', debug=True)
+
         self._pack = pack
         self._upload = self._pack.upload
-        self._final_file_path = self._pack.final_file_path
+        self._final_file_path = pathlib.Path(self._pack.final_file_path)
 
         is_test_context = os.environ.get('OORT_TESTS') == '1'
         self._api = ArcsecondAPI.datafiles(dataset=str(self._upload.dataset.uuid),
@@ -26,7 +28,7 @@ class FileUploader(object):
 
     @property
     def log_prefix(self) -> str:
-        return f'[FileUploader: {self._final_file_path}]'
+        return f'[FileUploader: {str(self._final_file_path)}]'
 
     def update_upload(self, **kwargs):
         self._upload = self._upload.smart_update(**kwargs)
@@ -42,22 +44,23 @@ class FileUploader(object):
         self._async_file_uploader: AsyncFileUploader
         if remote_resource_exists:
             self._logger.info(f"{self.log_prefix} Remote resource exists. Preparing 'Update' APIs.")
-            self._async_file_uploader, error = self._api.update(os.path.basename(self._final_file_path),
-                                                                {'file': self._final_file_path},
+            self._async_file_uploader, error = self._api.update(self._final_file_path.name,
+                                                                {'file': str(self._final_file_path)},
                                                                 callback=update_upload_progress)
         else:
             self._logger.info(f"{self.log_prefix} Remote resource does not exist. Preparing 'Create' APIs.")
-            self._async_file_uploader, error = self._api.create({'file': self._final_file_path},
+            self._async_file_uploader, error = self._api.create({'file': str(self._final_file_path)},
                                                                 callback=update_upload_progress)
 
         if error:
-            self._logger.info(f'{self.log_prefix} API preparation error for {self._final_file_path}: {str(error)}')
+            msg = f'{self.log_prefix} API preparation error for {str(self._final_file_path)}: {str(error)}'
+            self._logger.info(msg)
 
     def _check_remote_resource_and_file(self):
         _remote_resource_exists = False
         _remote_resource_has_file = False
 
-        response, error = self._api.read(os.path.basename(self._final_file_path))
+        response, error = self._api.read(self._final_file_path.name)
 
         if error:
             if 'not found' in error.lower():
