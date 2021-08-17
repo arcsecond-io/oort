@@ -157,7 +157,7 @@ class FileUploader(object):
 
         self.update_upload(status=status, substatus=substatus, error=error)
 
-    def upload(self):
+    def upload_file(self):
         self._logger.info(f'{self.log_prefix} Opening upload sequence.')
         self._perform()
         self._logger.info(f'{self.log_prefix} Closing upload sequence.')

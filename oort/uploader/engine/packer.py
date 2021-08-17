@@ -113,7 +113,7 @@ class UploadPack(object):
                 self._logger.info(f'{self.log_prefix} Upload already finished for {item}.')
             else:
                 file_uploader = uploader.FileUploader(self)
-                file_uploader.upload()
+                file_uploader.upload_file()
 
     def update_upload(self, **kwargs) -> None:
         self._upload = self._upload.smart_update(**kwargs)
