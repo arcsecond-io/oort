@@ -50,22 +50,6 @@ class UploadPreparator(object):
         return kwargs
 
     @property
-    def telescope(self) -> Optional[Telescope]:
-        return self._telescope
-
-    @property
-    def night_log(self) -> Optional[NightLog]:
-        return self._night_log
-
-    @property
-    def obs_or_calib(self) -> Optional[Union[Observation, Calibration]]:
-        return self._obs_or_calib
-
-    @property
-    def dataset(self) -> Optional[Dataset]:
-        return self._dataset
-
-    @property
     def log_prefix(self) -> str:
         return f'[UploadPreparator: {self._pack.final_file_path}]'
 
