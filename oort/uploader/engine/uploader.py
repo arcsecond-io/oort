@@ -16,10 +16,9 @@ class FileUploader(object):
         self._pack = pack
         self._upload = self._pack.upload
         self._final_file_path = self._pack.final_file_path
-        self._dataset_uuid = self._upload.dataset.uuid
 
         is_test_context = os.environ.get('OORT_TESTS') == '1'
-        self._api = ArcsecondAPI.datafiles(dataset=str(self._dataset_uuid),
+        self._api = ArcsecondAPI.datafiles(dataset=str(self._upload.dataset.uuid),
                                            debug=pack.identity.debug,
                                            test=is_test_context,
                                            upload_key=pack.identity.upload_key,
