@@ -208,6 +208,10 @@ class UploadPack(object):
         return self._dataset_name.strip()
 
     @property
+    def clean_folder_name(self) -> str:
+        return self._clean_folder_name.strip()
+
+    @property
     def target_name(self) -> str:
         return self._upload.target_name.strip()
 
@@ -221,14 +225,15 @@ class UploadPack(object):
 
     def _parse_type_and_dataset_name(self):
         # No starting root, and no ending filename. Just the final folder.
-        _clean_path = self._raw_file_path.relative_to(self._root_path).parent
-        _is_calib = any([c for c in CALIB_PREFIXES if c in str(_clean_path).lower()])
+        self._clean_folder_name = str(self._raw_file_path.relative_to(self._root_path).parent)
 
+        _is_calib = any([c for c in CALIB_PREFIXES if c in self._clean_folder_name.lower()])
         self._type = ResourceType.CALIBRATION if _is_calib else ResourceType.OBSERVATION
-        self._dataset_name = str(_clean_path)
 
-        if len(self._dataset_name.strip()) == 0 or self._dataset_name.strip() == '.':
-            self._dataset_name = f'(folder {self._root_path.name})'
+        if len(self._clean_folder_name.strip()) == 0 or self._clean_folder_name.strip() == '.':
+            self._clean_folder_name = f'(folder {self._root_path.name})'
+
+        self._dataset_name = self._clean_folder_name
 
     def _find_date_size_and_target_name(self) -> None:
         _file_date, _target_name = self._find_date_and_target_name()
