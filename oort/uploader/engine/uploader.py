@@ -36,6 +36,7 @@ class FileUploader(object):
         self._upload = self._upload.smart_update(**kwargs)
 
     def _prepare_file_uploader(self, remote_resource_exists):
+        # Callback allowing for the server monitor to display the percentage of progress of the upload.
         def update_upload_progress(event, progress_percent):
             if progress_percent > self._upload.progress + 0.1 or progress_percent > 99:
                 self.update_upload(status=Status.UPLOADING.value,
