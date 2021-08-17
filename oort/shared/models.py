@@ -52,27 +52,27 @@ class BaseModel(Model):
 
     @classmethod
     def smart_create(cls, **kwargs):
-        foreign_items = {key: value for key, value in kwargs.items() if
-                         isinstance(cls.get_field(key), ForeignKeyField)}
-
-        for foreign_key_name in foreign_items.keys():
-            kwargs.pop(foreign_key_name)
-
-        # with db.atomic('IMMEDIATE'):
+        primary_field_value = kwargs.get(cls.get_primary_field())
         try:
-            instance = cls.get(**kwargs)
+            instance = cls.get(**{cls.get_primary_field(): primary_field_value})
+            instance.smart_update(**kwargs)
         except DoesNotExist:
+            foreign_items = {key: value for key, value in kwargs.items() if
+                             isinstance(cls.get_field(key), ForeignKeyField)}
+
+            for foreign_key_name in foreign_items.keys():
+                kwargs.pop(foreign_key_name)
+
             instance = cls.create(**kwargs)
-        time.sleep(0.1)
 
-        for foreign_key_name, foreign_value in foreign_items.items():
-            foreign_model = cls.get_field(foreign_key_name).rel_model
-            foreign_instance = foreign_model.get(foreign_model.get_primary_field() == foreign_value)
-            setattr(instance, foreign_key_name, foreign_instance)
-            instance.save()
-            time.sleep(0.1)
+            for foreign_key_name, foreign_value in foreign_items.items():
+                foreign_model = cls.get_field(foreign_key_name).rel_model
+                foreign_instance = foreign_model.get(foreign_model.get_primary_field() == foreign_value)
+                setattr(instance, foreign_key_name, foreign_instance)
+                instance.save()
+                time.sleep(0.1)
 
-        return instance
+            return cls.get_by_id(primary_field_value)
 
     def smart_update(self, **kwargs):
         # with db.atomic():
