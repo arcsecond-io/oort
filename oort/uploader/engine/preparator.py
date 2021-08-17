@@ -38,10 +38,6 @@ class UploadPreparator(object):
     # ------ PROPERTIES ------------------------------------------------------------------------------------------------
 
     @property
-    def preparation_succeeded(self) -> bool:
-        return False
-
-    @property
     def api_kwargs(self) -> dict:
         test = os.environ.get('OORT_TESTS') == '1'
         kwargs = {'debug': self._identity.debug, 'test': test, 'upload_key': self._identity.upload_key}
