@@ -212,6 +212,10 @@ class UploadPack(object):
         return self._clean_folder_name.strip()
 
     @property
+    def root_folder_name(self) -> str:
+        return str(self._root_path)
+
+    @property
     def target_name(self) -> str:
         return self._upload.target_name.strip()
 
