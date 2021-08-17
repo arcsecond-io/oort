@@ -104,7 +104,7 @@ class UploadPreparator(object):
         # Kwargs used only for search, then kwargs for create.
         search_kwargs = {'tags': tag_folder}
         create_kwargs = {'name': self._pack.dataset_name,
-                         'tags': ','.join([tag_folder, tag_root, tag_origin, tag_uploader, tag_oort])}
+                         'tags': [tag_folder, tag_root, tag_origin, tag_uploader, tag_oort]}
 
         # Search for remote resource. If none found, create one.
         datasets_api = ArcsecondAPI.datasets(**self._api_kwargs)
