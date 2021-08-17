@@ -87,16 +87,7 @@ class FileUploader(object):
             self.update_upload(status=Status.UPLOADING.value, substatus=Substatus.CHECKING.value)
             exists_remotely = self._check_remote_resource_and_file()
 
-        except errors.UploadRemoteFileCheckError as error:
-            self._logger.info(f'{self.log_prefix} {str(error)}')
-            self.update_upload(status=Status.ERROR.value,
-                               substatus=Substatus.ERROR.value,
-                               error=str(error),
-                               ended=datetime.now(),
-                               progress=0,
-                               duration=0)
-
-        except Exception as error:
+        except (errors.UploadRemoteFileCheckError, Exception) as error:
             self._logger.info(f'{self.log_prefix} {str(error)}')
             self.update_upload(status=Status.ERROR.value,
                                substatus=Substatus.ERROR.value,
