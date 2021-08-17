@@ -58,31 +58,30 @@ class FileUploader(object):
         self._async_file_uploader: AsyncFileUploader
         if remote_resource_exists:
             self._logger.info(f"{self.log_prefix} Remote resource exists. Preparing 'Update' APIs.")
-            self._async_file_uploader, error = self._api.update(self._final_file_path.name,
-                                                                {'file': str(self._final_file_path)},
+            self._async_file_uploader, error = self._api.update(self._final_file_path.name, payload,
                                                                 callback=update_upload_progress)
         else:
             self._logger.info(f"{self.log_prefix} Remote resource does not exist. Preparing 'Create' APIs.")
-            self._async_file_uploader, error = self._api.create({'file': str(self._final_file_path)},
-                                                                callback=update_upload_progress)
+            self._async_file_uploader, error = self._api.create(payload, callback=update_upload_progress)
 
-        if error:
-            msg = f'{self.log_prefix} API preparation error for {str(self._final_file_path)}: {str(error)}'
-            self._logger.info(msg)
+        if error is not None:
+            msg = f'{self.log_prefix} API preparation error for {ffps}: {str(error)}'
+            self._logger.error(msg)
 
     def _check_remote_resource_and_file(self):
         _remote_resource_exists = False
         _remote_resource_has_file = False
 
+        # self._api contains a reference to the dataset.
         response, error = self._api.read(self._final_file_path.name)
 
-        if error:
+        if error is not None:
             if 'not found' in error.lower():
                 # Remote file resource doesn't exists remotely. self._api.create method is fine.
                 _remote_resource_exists = False
             else:
                 # If for some reason the resource is duplicated, we end up here.
-                self._logger.info(f'{self.log_prefix} Check remote file failed with error: {str(error)}')
+                self._logger.error(f'{self.log_prefix} Check remote file failed with error: {str(error)}')
                 raise errors.UploadRemoteFileCheckError(str(error))
         else:
             _remote_resource_exists = True
@@ -102,7 +101,7 @@ class FileUploader(object):
             exists_remotely = self._check_remote_resource_and_file()
 
         except (errors.UploadRemoteFileCheckError, Exception) as error:
-            self._logger.info(f'{self.log_prefix} {str(error)}')
+            self._logger.error(f'{self.log_prefix} {str(error)}')
             self.update_upload(status=Status.ERROR.value,
                                substatus=Substatus.ERROR.value,
                                error=str(error),
