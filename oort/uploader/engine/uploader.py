@@ -1,11 +1,13 @@
 import json
 import os
 import pathlib
+import socket
 from datetime import datetime
 
 from arcsecond import ArcsecondAPI
 from arcsecond.api.endpoints import AsyncFileUploader
 
+from oort import __version__
 from oort.shared.config import get_oort_logger
 from oort.shared.models import Status, Substatus
 from . import errors
