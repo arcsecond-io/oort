@@ -26,7 +26,7 @@ db = SqliteQueueDatabase(str(get_oort_db_file_path()),
                          autostart=True,
                          queue_max_size=64,
                          results_timeout=5.0,
-                         pragmas={'journal_mode': 'wal', 'cache_size': -1024 * 64})
+                         pragmas={'journal_mode': 'wal', 'cache_size': -1024 * 64, 'foreign_keys': 1})
 
 
 # Make sure write thread is stopped upon exit.
