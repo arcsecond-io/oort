@@ -34,8 +34,8 @@ def test_cli_watch_unknown_organisation():
 @use_test_database
 def test_cli_watch_unknown_membership():
     save_arcsecond_test_credentials(subdomain='saao')
-    Organisation.smart_create(subdomain='saao')
-    Organisation.smart_create(subdomain=TEST_LOGIN_ORG_SUBDOMAIN)
+    Organisation.create(subdomain='saao')
+    Organisation.create(subdomain=TEST_LOGIN_ORG_SUBDOMAIN)
     # Make the test
     runner = CliRunner()
     result = runner.invoke(watch, ['.', '-o', TEST_LOGIN_ORG_SUBDOMAIN])
@@ -47,7 +47,7 @@ def test_cli_watch_unknown_membership():
 def test_cli_watch_missing_org_telescope():
     save_arcsecond_test_credentials()
     # Create the watch command org to pass the org check.
-    Organisation.smart_create(subdomain=TEST_LOGIN_ORG_SUBDOMAIN)
+    Organisation.create(subdomain=TEST_LOGIN_ORG_SUBDOMAIN)
     # Make the test
     runner = CliRunner()
     with patch.object(ArcsecondAPI, 'list', return_value=([], None)) as mock_method_read:
@@ -61,7 +61,7 @@ def test_cli_watch_missing_org_telescope():
 def test_cli_watch_with_org_telescope():
     # Prepare
     save_arcsecond_test_credentials()
-    Organisation.smart_create(subdomain=TEST_LOGIN_ORG_SUBDOMAIN)
+    Organisation.create(subdomain=TEST_LOGIN_ORG_SUBDOMAIN)
     runner = CliRunner()
     telescope_uuid = str(uuid.uuid4())
     telescope_details = {'uuid': telescope_uuid, 'name': 'telescope name', 'coordinates': {}}

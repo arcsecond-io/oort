@@ -76,8 +76,8 @@ class UploadPack(object):
         except Upload.DoesNotExist:
             self._upload = Upload.create(file_path=self.clear_file_path)
 
-        self.update_upload(astronomer=self._identity.username,
-                           file_path_zipped=self.zipped_file_path)
+        self.upload.smart_update(astronomer=self._identity.username,
+                                 file_path_zipped=self.zipped_file_path)
 
         self._find_date_size_and_target_name()
 
@@ -114,9 +114,6 @@ class UploadPack(object):
             else:
                 file_uploader = uploader.FileUploader(self)
                 file_uploader.upload_file()
-
-    def update_upload(self, **kwargs) -> None:
-        self._upload = self._upload.smart_update(**kwargs)
 
     @property
     def log_prefix(self) -> str:
@@ -242,10 +239,10 @@ class UploadPack(object):
     def _find_date_size_and_target_name(self) -> None:
         _file_date, _target_name = self._find_date_and_target_name()
         _file_size, _zipped_file_size = self._find_sizes()
-        self.update_upload(file_date=_file_date,
-                           file_size=_file_size,
-                           file_size_zipped=_zipped_file_size,
-                           target_name=_target_name or '')
+        self.upload.smart_update(file_date=_file_date,
+                                 file_size=_file_size,
+                                 file_size_zipped=_zipped_file_size,
+                                 target_name=_target_name or '')
 
     def _find_sizes(self) -> Tuple[float, float]:
         _file_size = 0

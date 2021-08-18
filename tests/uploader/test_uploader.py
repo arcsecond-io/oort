@@ -28,8 +28,8 @@ db.create_tables([Organisation, Telescope, NightLog, Observation, Calibration, D
 def test_uploader_init_no_org():
     identity = Identity(TEST_LOGIN_USERNAME, TEST_LOGIN_UPLOAD_KEY, debug=True)
     pack = UploadPack(folder_path, fits_file_path, identity)
-    dataset = Dataset.smart_create(uuid=str(uuid.uuid4()))
-    pack.update_upload(dataset=dataset)
+    dataset = Dataset.create(uuid=str(uuid.uuid4()))
+    pack.upload.smart_update(dataset=dataset)
 
     with patch.object(ArcsecondAPI, 'datafiles') as mock_api:
         uploader = FileUploader(pack)
@@ -52,8 +52,8 @@ def test_uploader_init_org():
                         debug=True)
 
     pack = UploadPack(folder_path, fits_file_path, identity)
-    dataset = Dataset.smart_create(uuid=str(uuid.uuid4()))
-    pack.update_upload(dataset=dataset)
+    dataset = Dataset.create(uuid=str(uuid.uuid4()))
+    pack.upload.smart_update(dataset=dataset)
 
     with patch.object(ArcsecondAPI, 'datafiles') as mock_api:
         uploader = FileUploader(pack)
@@ -76,8 +76,8 @@ def test_uploader_init_org_custom_astronomer():
                         debug=True)
 
     pack = UploadPack(folder_path, fits_file_path, identity)
-    dataset = Dataset.smart_create(uuid=str(uuid.uuid4()))
-    pack.update_upload(dataset=dataset)
+    dataset = Dataset.create(uuid=str(uuid.uuid4()))
+    pack.upload.smart_update(dataset=dataset)
 
     with patch.object(ArcsecondAPI, 'datafiles') as mock_api:
         uploader = FileUploader(pack)

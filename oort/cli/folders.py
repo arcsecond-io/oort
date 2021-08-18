@@ -36,7 +36,7 @@ def check_remote_organisation(org_subdomain: str, debug: bool, verbose: bool):
         if error is not None:
             raise UnknownOrganisationOortCloudError(org_subdomain, str(error))
         else:
-            return Organisation.smart_create(subdomain=org_subdomain)
+            return Organisation.create(subdomain=org_subdomain)
 
 
 def check_local_astronomer_remote_organisation_membership(org_subdomain: str, debug: bool, verbose: bool) -> str:

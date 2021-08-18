@@ -43,7 +43,7 @@ class AsyncZipper(Thread):
                             time.sleep(10)
 
         except Exception as e:
-            self._upload = self._upload.smart_update(substatus=self._initial_substatus)
+            self._upload.smart_update(substatus=self._initial_substatus)
             pathlib.Path(self._zipped_file_path).unlink(missing_ok=True)
             self._logger.error(f'{self.log_prefix} [{str(e)}] Cancelling gzip of file: {self._file_path}.')
 

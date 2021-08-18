@@ -1,7 +1,6 @@
 import atexit
 import math
 import pathlib
-import time
 from datetime import datetime
 from enum import Enum
 
@@ -42,46 +41,11 @@ class BaseModel(Model):
 
     _primary_field = 'uuid'
 
-    @classmethod
-    def get_field(cls, name):
-        return cls._meta.sorted_fields[cls._meta.sorted_field_names.index(name)]
-
-    @classmethod
-    def get_primary_field(cls):
-        return cls.get_field(cls._primary_field or 'uuid')
-
-    @classmethod
-    def smart_create(cls, **kwargs):
-        primary_field_value = kwargs.get(cls.get_primary_field())
-        try:
-            instance = cls.get(**{cls.get_primary_field(): primary_field_value})
-            instance.smart_update(**kwargs)
-        except DoesNotExist:
-            foreign_items = {key: value for key, value in kwargs.items() if
-                             isinstance(cls.get_field(key), ForeignKeyField)}
-
-            for foreign_key_name in foreign_items.keys():
-                kwargs.pop(foreign_key_name)
-
-            instance = cls.create(**kwargs)
-
-            for foreign_key_name, foreign_value in foreign_items.items():
-                foreign_model = cls.get_field(foreign_key_name).rel_model
-                foreign_instance = foreign_model.get(foreign_model.get_primary_field() == foreign_value)
-                setattr(instance, foreign_key_name, foreign_instance)
-                instance.save()
-                time.sleep(0.1)
-
-            return cls.get_by_id(primary_field_value)
-
     def smart_update(self, **kwargs):
-        # with db.atomic():
-        primary_field = getattr(self.__class__, self._primary_field)
-        primary_field_value = getattr(self, self._primary_field)
-        # See https://docs.peewee-orm.com/en/latest/peewee/querying.html#atomic-updates
-        query = self.__class__.update(**kwargs).where(primary_field == primary_field_value)
-        query.execute()
-        return self.__class__.get_by_id(primary_field_value)
+        for k, v in kwargs.items():
+            if k in self.__class__._meta.sorted_field_names:
+                setattr(self, k, v)
+        self.save()
 
 
 class Organisation(BaseModel):
