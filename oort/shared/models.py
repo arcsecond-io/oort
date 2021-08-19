@@ -59,31 +59,31 @@ class Telescope(BaseModel):
     organisation = ForeignKeyField(Organisation, backref='telescopes', null=True)
 
 
-class NightLog(BaseModel):
-    uuid = UUIDField(unique=True)
-    date = CharField(default='')
-    telescope = ForeignKeyField(Telescope, backref='night_logs', null=True)
-    organisation = ForeignKeyField(Organisation, backref='night_logs', null=True)
-
-
-class Observation(BaseModel):
-    uuid = UUIDField(unique=True)
-    name = CharField(default='')
-    target_name = CharField(default='')
-    night_log = ForeignKeyField(NightLog, backref='observations', null=True)
-
-
-class Calibration(BaseModel):
-    uuid = UUIDField(unique=True)
-    name = CharField(default='')
-    night_log = ForeignKeyField(NightLog, backref='calibrations', null=True)
-
+# class NightLog(BaseModel):
+#     uuid = UUIDField(unique=True)
+#     date = CharField(default='')
+#     telescope = ForeignKeyField(Telescope, backref='night_logs', null=True)
+#     organisation = ForeignKeyField(Organisation, backref='night_logs', null=True)
+#
+#
+# class Observation(BaseModel):
+#     uuid = UUIDField(unique=True)
+#     name = CharField(default='')
+#     target_name = CharField(default='')
+#     night_log = ForeignKeyField(NightLog, backref='observations', null=True)
+#
+#
+# class Calibration(BaseModel):
+#     uuid = UUIDField(unique=True)
+#     name = CharField(default='')
+#     night_log = ForeignKeyField(NightLog, backref='calibrations', null=True)
+#
 
 class Dataset(BaseModel):
     uuid = UUIDField(unique=True)
     name = CharField(default='')
-    observation = ForeignKeyField(Observation, unique=True, null=True)
-    calibration = ForeignKeyField(Calibration, unique=True, null=True)
+    # observation = ForeignKeyField(Observation, unique=True, null=True)
+    # calibration = ForeignKeyField(Calibration, unique=True, null=True)
 
 
 class Status(Enum):
@@ -199,7 +199,7 @@ class Upload(BaseModel):
 
 
 db.connect(reuse_if_open=True)
-db.create_tables([Organisation, Telescope, NightLog, Observation, Calibration, Dataset, Upload])
+db.create_tables([Organisation, Telescope, Dataset, Upload])
 
 _migrator = SqliteMigrator(db)
 migrate(

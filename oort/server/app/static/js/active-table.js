@@ -5,7 +5,6 @@ Vue.component('active-table', {
   <tr>
     <th>Filename</th>
     <th>Dataset</th>
-    <th>Night Log</th>
     <th>Telescope</th>
     <th>Owner</th>
     <th>Size</th>
@@ -31,20 +30,6 @@ Vue.component('active-table', {
           {{ upload.dataset.name }}
         </a>
         <div class="subtitle">{{ upload.dataset.uuid }}</div>
-      </div>
-    </td>
-    <td>
-      <div v-if="upload.night_log && upload.night_log.date">
-        <a v-if="upload.organisation" :href='getOrganisationNightLogURL(upload)' target="_blank">
-          {{ upload.night_log.date }}
-        </a>
-        <a v-else :href='getNightLogURL(upload)' target="_blank">
-        {{ upload.night_log.date }}
-        </a>
-        <div class="subtitle">{{ upload.night_log.uuid }}</div>
-      </div>
-      <div v-else>
-        <span class="subtitle">(no night log)</span>
       </div>
     </td>
     <td>

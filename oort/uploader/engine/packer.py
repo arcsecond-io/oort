@@ -18,9 +18,7 @@ from oort.shared.config import get_oort_logger
 from oort.shared.constants import ZIP_EXTENSIONS, get_all_fits_extensions, get_all_xisf_extensions
 from oort.shared.identity import Identity
 from oort.shared.models import (
-    Calibration,
     FINISHED_SUBSTATUSES,
-    Observation,
     PREPARATION_DONE_SUBSTATUSES,
     Status,
     Substatus,

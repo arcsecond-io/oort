@@ -3,11 +3,11 @@ import socket
 from typing import Optional
 
 from arcsecond import ArcsecondAPI
+from peewee import DoesNotExist
 
 from oort import __version__
 from oort.shared.config import get_oort_logger
-from oort.shared.models import (Dataset, NightLog, Organisation, Status, Substatus,
-                                Telescope)
+from oort.shared.models import (Dataset, Organisation, Status, Substatus, Telescope)
 from . import errors
 
 
@@ -28,10 +28,13 @@ class UploadPreparator(object):
 
         # Do NOT mix debug and self._identity.debug
 
-        self._pack.update_upload(astronomer=self._identity.username)
+        self._pack.upload.smart_update(astronomer=self._identity.username)
         if self._identity.subdomain:
-            self._organisation = Organisation.smart_create(subdomain=self._identity.subdomain)
-            self._pack.update_upload(organisation=self._organisation)
+            try:
+                self._organisation = Organisation.get(subdomain=self._identity.subdomain)
+            except DoesNotExist:
+                self._organisation = Organisation.create(subdomain=self._identity.subdomain)
+            self._pack.upload.smart_update(organisation=self._organisation)
 
     # ------ PROPERTIES ------------------------------------------------------------------------------------------------
 
@@ -65,13 +68,14 @@ class UploadPreparator(object):
             response_list = response_list['results']
 
         if len(response_list) == 0:
-            self._logger.info(f'{self.log_prefix} No existing remote resource. Will create one.')
+            self._logger.info(f'{self.log_prefix} No existing remote resource in {str(api).upper()}. Will create one.')
             new_resource = None  # The resource doesn't exist.
         elif len(response_list) == 1:
-            self._logger.info(f'{self.log_prefix} One existing remote resource. Using it.')
+            self._logger.info(f'{self.log_prefix} One existing remote resource in {str(api).upper()}. Using it.')
             new_resource = response_list[0]  # The resource exists.
         else:  # Multiple resources found ??? Filter is not good, or something fishy is happening.
-            msg = f'Multiple resources found for API {api}? Choosing first.'
+            print(f'\n\n{response_list}\n\n')
+            msg = f'Multiple resources found for API {str(api).upper()}? Choosing first.'
             raise errors.UploadPreparationError(msg)
 
         return new_resource
@@ -92,95 +96,123 @@ class UploadPreparator(object):
 
     def _sync_dataset(self):
         self._logger.info(f'{self.log_prefix} Syncing DATASET...')
-        self._pack.update_upload(substatus=Substatus.SYNC_DATASET.value)
+        self._pack.upload.smart_update(substatus=Substatus.SYNC_DATASET.value)
 
         # Definition of meaningful tags
-        tag_folder = f'folder|{self._pack.clean_folder_name}'
-        tag_root = f'root|{self._pack.root_folder_name}'
-        tag_origin = f'origin|{socket.gethostname()}|'
-        tag_uploader = f'uploader|{ArcsecondAPI.username()}'
-        tag_oort = f'oort|{__version__}'
+        tag_telescope = f'oort|telescope|{self._identity.telescope}'
+        tag_folder = f'oort|folder|{self._pack.clean_folder_name}'
+        tag_root = f'oort|root|{self._pack.root_folder_name}'
+        tag_origin = f'oort|origin|{socket.gethostname()}'
+        tag_uploader = f'oort|uploader|{ArcsecondAPI.username()}'
+        tag_oort = f'oort|version|{__version__}'
+
+        tags = [tag_folder, tag_root, tag_origin, tag_uploader, tag_oort]
+        if self._identity.telescope:
+            tags.append(tag_telescope)
 
         # Kwargs used only for search, then kwargs for create.
-        search_kwargs = {'tags': tag_folder}
-        create_kwargs = {'name': self._pack.dataset_name,
-                         'tags': [tag_folder, tag_root, tag_origin, tag_uploader, tag_oort]}
+        search_kwargs = {'tags': tag_folder}  # Should we also include telescope?
+        create_kwargs = {'name': self._pack.dataset_name, 'tags': tags}
 
         # Search for remote resource. If none found, create one.
         datasets_api = ArcsecondAPI.datasets(**self._api_kwargs)
         dataset_dict = self._find_remote_resource(datasets_api, **search_kwargs)
         if dataset_dict is None:
             dataset_dict = self._create_remote_resource(datasets_api, **create_kwargs)
+        else:
+            datasets_api.update(dataset_dict['uuid'], create_kwargs)
 
-        # Create local resource.
-        self._dataset = Dataset.smart_create(**dataset_dict)
+        # Create local resource. But avoids pointing to (possibly) non-existing ForeignKeys for which
+        # we have only the uuid for now, not the local Database ID.
+        dataset_dict.pop('observation')
+        dataset_dict.pop('calibration')
+        try:
+            self._dataset = Dataset.get(uuid=dataset_dict['uuid'])
+        except DoesNotExist:
+            self._dataset = Dataset.create(**dataset_dict)
+        else:
+            self._dataset.smart_update(**dataset_dict)
         # Update Upload model data.
-        self._pack.update_upload(dataset=self._dataset)
+        self._pack.upload.smart_update(dataset=self._dataset)
 
     def _sync_telescope(self):
         self._logger.info(f'{self.log_prefix} Reading telescope {self._identity.telescope}...')
-        self._pack.update_upload(substatus=Substatus.SYNC_TELESCOPE.value)
+        self._pack.upload.smart_update(substatus=Substatus.SYNC_TELESCOPE.value)
 
         telescopes_api = ArcsecondAPI.telescopes(**self._api_kwargs)
         telescope_dict, error = telescopes_api.read(self._identity.telescope)
         if error is not None:
             raise errors.UploadPreparationAPIError(str(error))
 
-        self._telescope = Telescope.smart_create(**telescope_dict)
-        self._pack.update_upload(telescope=self._telescope)
-
-    def _sync_night_log(self):
-        self._logger.info(f'{self.log_prefix} Syncing NIGHT_LOG...')
-        self._pack.update_upload(substatus=Substatus.SYNC_NIGHTLOG.value)
-
-        # NightLogs are completely determined if they have a date and a telescope.
-        # Since a telescope is required for organisation uploads, NightLogs are completely determined
-        # for organisations. There will be an ambiguity for personal upload without telescope.
-        kwargs = {'date': self._pack.night_log_date_string}
-        if self._identity.telescope:
-            kwargs.update(telescope=self._identity.telescope)
+        try:
+            self._telescope = Telescope.get(uuid=telescope_dict['uuid'])
+        except DoesNotExist:
+            self._telescope = Telescope.create(**telescope_dict)
         else:
-            msg = f'{self.log_prefix} No Telescope provided for NightLog {self._pack.night_log_date_string}.'
-            self._logger.warn(msg)
+            self._telescope.smart_update(**telescope_dict)
+        self._pack.upload.smart_update(telescope=self._telescope)
 
-        night_log_api = ArcsecondAPI.nightlogs(**self._api_kwargs)
-        night_log_dict = self._find_remote_resource(night_log_api, **kwargs)
-        if night_log_dict is None:
-            night_log_dict = self._create_remote_resource(night_log_api, **kwargs)
-
-        self._night_log = NightLog.smart_create(**night_log_dict)
-
-    def _sync_observation_or_calibration(self):
-        # self._pack.remote_resources_name is either 'observations' or 'calibrations'
-        self._logger.info(f'{self.log_prefix} Syncing {self._pack.remote_resources_name[:-1].upper()}...')
-        self._pack.update_upload(substatus=Substatus.SYNC_OBS_OR_CALIB.value)
-
-        search_kwargs = {'night_log': str(self._night_log.uuid),
-                         'dataset': str(self._dataset.uuid)}
-
-        create_kwargs = {'night_log': str(self._night_log.uuid),
-                         'dataset': str(self._dataset.uuid),
-                         'name': self._pack.clean_folder_name}
-
-        if self._pack.resource_type == 'observation':
-            create_kwargs.update(target_name=self._pack.target_name)
-
-        resources_api = getattr(ArcsecondAPI, self._pack.remote_resources_name)(**self._api_kwargs)
-        resource_dict = self._find_remote_resource(resources_api, **search_kwargs)
-        if resource_dict is None:
-            resource_dict = self._create_remote_resource(resources_api, **create_kwargs)
-
-        # It will attach to NightLog automatically
-        self._obs_or_calib, = self._pack.resource_db_class.smart_create(**resource_dict)
-        # Attach Datasets and Observation/Calibration
-        self._dataset.smart_update(**{self._pack.resource_type: self._obs_or_calib})
+    # def _sync_night_log(self):
+    #     self._logger.info(f'{self.log_prefix} Syncing NIGHT_LOG...')
+    #     self._pack.upload.smart_update(substatus=Substatus.SYNC_NIGHTLOG.value)
+    #
+    #     # NightLogs are completely determined if they have a date and a telescope.
+    #     # Since a telescope is required for organisation uploads, NightLogs are completely determined
+    #     # for organisations. There will be an ambiguity for personal upload without telescope.
+    #     kwargs = {'date': self._pack.night_log_date_string}
+    #     if self._identity.telescope:
+    #         kwargs.update(telescope=self._identity.telescope)
+    #     else:
+    #         msg = f'{self.log_prefix} No Telescope provided for NightLog {self._pack.night_log_date_string}.'
+    #         self._logger.warn(msg)
+    #
+    #     night_log_api = ArcsecondAPI.nightlogs(**self._api_kwargs)
+    #     night_log_dict = self._find_remote_resource(night_log_api, **kwargs)
+    #     if night_log_dict is None:
+    #         night_log_dict = self._create_remote_resource(night_log_api, **kwargs)
+    #
+    #     try:
+    #         self._night_log = NightLog.get(uuid=night_log_dict['uuid'])
+    #     except DoesNotExist:
+    #         self._night_log = NightLog.create(**night_log_dict)
+    #     else:
+    #         self._night_log.smart_update(**night_log_dict)
+    #
+    # def _sync_observation_or_calibration(self):
+    #     # self._pack.remote_resources_name is either 'observations' or 'calibrations'
+    #     self._logger.info(f'{self.log_prefix} Syncing {self._pack.remote_resources_name[:-1].upper()}...')
+    #     self._pack.upload.smart_update(substatus=Substatus.SYNC_OBS_OR_CALIB.value)
+    #
+    #     search_kwargs = {'night_log': str(self._night_log.uuid),
+    #                      'dataset': str(self._dataset.uuid)}
+    #
+    #     create_kwargs = {'night_log': str(self._night_log.uuid),
+    #                      'dataset': str(self._dataset.uuid),
+    #                      'name': self._pack.clean_folder_name}
+    #
+    #     if self._pack.resource_type == 'observation':
+    #         create_kwargs.update(target_name=self._pack.target_name)
+    #         print(f'\n\n{create_kwargs}\n\n')
+    #
+    #     resources_api = getattr(ArcsecondAPI, self._pack.remote_resources_name)(**self._api_kwargs)
+    #     resource_dict = self._find_remote_resource(resources_api, **search_kwargs)
+    #     if resource_dict is None:
+    #         resource_dict = self._create_remote_resource(resources_api, **create_kwargs)
+    #
+    #     resource_dict.pop('night_log')
+    #     try:
+    #         self._obs_or_calib = self._pack.resource_db_class.get(uuid=resource_dict['uuid'])
+    #     except DoesNotExist:
+    #         self._obs_or_calib = self._pack.resource_db_class.create(**resource_dict)
+    #     else:
+    #         self._obs_or_calib.smart_update(**resource_dict)
+    #     self._obs_or_calib.smart_update(night_log=self._night_log)
+    #
+    #     self._dataset.smart_update(**{self._pack.resource_type: self._obs_or_calib})
 
     def prepare(self):
         self._logger.info(f'{self.log_prefix} Preparation started for {self._pack.final_file_name}')
-        self._pack.update_upload(status=Status.PREPARING.value)
-
-        preparation_succeeded = False
-        preparation_can_be_restarted = False
+        self._pack.upload.smart_update(status=Status.PREPARING.value)
 
         try:
             # Start by syncing Dataset. This is key: it MUST work by itself, without any dependency
@@ -192,28 +224,14 @@ class UploadPreparator(object):
             if self._identity.telescope:
                 self._sync_telescope()
 
-            if self._pack.night_log_date_string:
-                self._sync_night_log()
-                # No night log, no observation nor calibration possible.
-                self._sync_observation_or_calibration()  # observation or calibration
-
-        except errors.UploadPreparationFatalError as e:
-            self._logger.error(f'{self.log_prefix} Preparation failed for {self._pack.final_file_name} with error:')
-            self._logger.error(f'{str(e)}')
-            self._pack.update_upload(status=Status.ERROR.value, substatus=Substatus.ERROR.value, error=str(e))
+        except (errors.UploadPreparationFatalError, errors.UploadPreparationError) as e:
+            self._logger.error(f'{self.log_prefix} Preparation failed for {self._pack.final_file_name}: {str(e)}')
+            self._pack.upload.smart_update(status=Status.ERROR.value, substatus=Substatus.ERROR.value, error=str(e))
             preparation_succeeded = False
-            preparation_can_be_restarted = False
-
-        except errors.UploadPreparationError as e:
-            self._logger.error(f'{self.log_prefix} Preparation failed for {self._pack.final_file_name} with error:')
-            self._logger.error(f'{str(e)}')
-            self._pack.update_upload(status=Status.ERROR.value, substatus=Substatus.ERROR.value, error=str(e))
-            preparation_succeeded = False
-            preparation_can_be_restarted = True
 
         else:
             self._logger.info(f'{self.log_prefix} Preparation succeeded for {self._pack.final_file_name}')
-            self._pack.update_upload(status=Status.UPLOADING.value, substatus=Substatus.READY.value)
+            self._pack.upload.smart_update(status=Status.UPLOADING.value, substatus=Substatus.READY.value)
             preparation_succeeded = True
 
-        return preparation_succeeded, preparation_can_be_restarted
+        return preparation_succeeded
