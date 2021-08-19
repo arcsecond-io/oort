@@ -48,7 +48,25 @@ below nonetheless start with `oort` only.
 
 ## Commands
 
-### Start & Watch
+### Start & Upload
+
+Even if Oort primary philosophy is to watch for files in a folder, and automatically upload them to the cloud, it can be used in a pure "upload this
+folder, please" mode. Basically (the first one is to login to Arcsecond.io if not yet done):
+
+```bash
+oort login
+oort upload [OPTIONS] folder
+```
+
+The `OPTIONS` part of `oort watch` is important. There are three options:
+
+* `-o <subdomain>` (or `--organisation <subdomain>`) to specify that uploads of that folder will be sent to that organisation.
+* `-t <telescope uuid>` (or `--telescope <telescope uuid>`) to specify which telescope has been used. This option is mandatory for uploads to an
+  organisation, and optional for uploads to a personal account.
+* `-f` (or `--force`) to force the re-upload of the folder's content. Existing cloud files won't be modified by this command. Oort will simply reset
+  the local meta-data it keeps for every upload, and start over.
+
+### Start & ... Watch
 
 Oort primary philosophy is to watch for files in a folder, and automatically upload them to the cloud. **Do not watch your home folder!** But rather,
 watch only folders dedicated to contain data files and their auxiliary files.
