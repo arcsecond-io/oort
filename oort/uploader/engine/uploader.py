@@ -44,7 +44,7 @@ class FileUploader(object):
                                           progress=progress_percent,
                                           duration=duration)
                 if self._display_progress is True:
-                    click.echo(f"{progress_percent}% ({duration} sec)")
+                    print(f"{progress_percent:.2f}% ({duration:.2f} sec)", end="\r")
 
         ffps = str(self._final_file_path)
 
