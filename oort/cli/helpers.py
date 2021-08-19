@@ -7,7 +7,7 @@ from oort.shared.utils import get_formatted_bytes_size, get_formatted_size_times
 
 
 def display_command_summary(folders, username, upload_key, org_subdomain, org_role, telescope_details, zip):
-    click.echo("\n --- Folder(s) watch summary --- ")
+    click.echo(f"\n --- Folder{'s' if len(folders) > 1 else ''} summary --- ")
     click.echo(f" • Arcsecond username: @{username} (Upload key: {upload_key[:4]}••••)")
     if not org_subdomain:
         click.echo(" • Uploading to your *personal* account.")

@@ -325,16 +325,16 @@ def watch(state, folders, organisation=None, telescope=None, zip=False):
     every new file created in the folder tree will trigger a sync + upload
     process.
     """
+    click.echo(f"\n{80 * '*'}")
+    click.echo(" • BATCH MODE: command will give the prompt back, and uploads will occur in the background.")
+    click.echo(" • BATCH MODE: use the monitor server to follow the progress (type `oort open` to open it).")
+    click.echo(f"{80 * '*'}\n")
+
     try:
         username, upload_key, org_subdomain, org_role, telescope_details = \
             parse_upload_watch_options(organisation, telescope, state.debug, state.verbose)
     except InvalidWatchOptionsOortCloudError:
         return
-
-    click.echo(f"\n\n{80 * '*'}")
-    click.echo(" • BATCH MODE: command will give the prompt back, and uploads will occur in the background.")
-    click.echo(" • BATCH MODE: use the monitor server to follow the progress (type `oort open` to open it).")
-    click.echo(f"{80 * '*'}\n\n")
 
     display_command_summary(folders, username, upload_key, org_subdomain, org_role, telescope_details, zip)
 
