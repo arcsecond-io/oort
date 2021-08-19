@@ -223,16 +223,11 @@ class UploadPack(object):
         return self._upload.status == Status.OK.value and self._upload.substatus in FINISHED_SUBSTATUSES
 
     def _parse_type_and_dataset_name(self):
-        # No starting root, and no ending filename. Just the final folder.
-        self._clean_folder_name = str(self._raw_file_path.relative_to(self._root_path).parent)
-
+        # No ending filename. Just the final folder, including the root one! --------vvvvvv
+        self._clean_folder_name = str(self._raw_file_path.relative_to(self._root_path.parent).parent)
+        self._dataset_name = self._clean_folder_name
         _is_calib = any([c for c in CALIB_PREFIXES if c in self._clean_folder_name.lower()])
         self._type = ResourceType.CALIBRATION if _is_calib else ResourceType.OBSERVATION
-
-        if len(self._clean_folder_name.strip()) == 0 or self._clean_folder_name.strip() == '.':
-            self._clean_folder_name = f'(folder {self._root_path.name})'
-
-        self._dataset_name = self._clean_folder_name
 
     def _find_date_size_and_target_name(self) -> None:
         _file_date, _target_name = self._find_date_and_target_name()
