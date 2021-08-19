@@ -146,21 +146,18 @@ class UploadPreparator(object):
         self._pack.upload.smart_update(dataset=self._dataset)
 
     def _sync_telescope(self):
-        self._logger.info(f'{self.log_prefix} Reading telescope {self._identity.telescope}...')
-        self._pack.upload.smart_update(substatus=Substatus.SYNC_TELESCOPE.value)
-
-        telescopes_api = ArcsecondAPI.telescopes(**self._api_kwargs)
-        telescope_dict, error = telescopes_api.read(self._identity.telescope)
-        if error is not None:
-            raise errors.UploadPreparationAPIError(str(error))
-
         try:
-            self._telescope = Telescope.get(uuid=telescope_dict['uuid'])
+            self._telescope = Telescope.get(self._identity.telescope)
         except DoesNotExist:
-            self._telescope = Telescope.create(**telescope_dict)
+            self._logger.info(f'{self.log_prefix} Reading telescope {self._identity.telescope}...')
+            self._pack.upload.smart_update(substatus=Substatus.SYNC_TELESCOPE.value)
+            telescopes_api = ArcsecondAPI.telescopes(**self._api_kwargs)
+            telescope_dict, error = telescopes_api.read(self._identity.telescope)
+            if error is not None:
+                raise errors.UploadPreparationAPIError(str(error))
+            self._telescope.create(**telescope_dict)
         else:
-            self._telescope.smart_update(**telescope_dict)
-        self._pack.upload.smart_update(telescope=self._telescope)
+            self._pack.upload.smart_update(telescope=self._telescope)
 
     # def _sync_night_log(self):
     #     self._logger.info(f'{self.log_prefix} Syncing NIGHT_LOG...')
