@@ -125,7 +125,25 @@ class FileUploader(object):
 
         return _should_perform
 
-    def _perform(self):
+    def _process_error(self, error):
+        status, substatus, error = Status.ERROR.value, Substatus.ERROR.value, str(error)
+
+        try:
+            error_body = json.loads(error)
+        except Exception as err:
+            self._logger.error(str(err))
+        else:
+            if 'detail' in error_body.keys():
+                detail = error_body['detail']
+                error_content = detail[0] if isinstance(detail, list) and len(detail) > 0 else detail
+                if 'already exists in dataset' in error_content:
+                    status, substatus, error = Status.OK.value, Substatus.ALREADY_SYNCED.value, ''
+
+        self._upload.smart_update(status=status, substatus=substatus, error=error)
+
+    def upload_file(self):
+        self._logger.info(f'{self.log_prefix} Opening upload sequence.')
+
         if not self._check():
             return
 
@@ -147,25 +165,6 @@ class FileUploader(object):
             self._logger.info(msg)
             self._upload.smart_update(status=Status.OK.value, substatus=Substatus.DONE.value, error='')
 
-    def _process_error(self, error):
-        status, substatus, error = Status.ERROR.value, Substatus.ERROR.value, str(error)
-
-        try:
-            error_body = json.loads(error)
-        except Exception as err:
-            self._logger.error(str(err))
-        else:
-            if 'detail' in error_body.keys():
-                detail = error_body['detail']
-                error_content = detail[0] if isinstance(detail, list) and len(detail) > 0 else detail
-                if 'already exists in dataset' in error_content:
-                    status, substatus, error = Status.OK.value, Substatus.ALREADY_SYNCED.value, ''
-
-        self._upload.smart_update(status=status, substatus=substatus, error=error)
-
-    def upload_file(self):
-        self._logger.info(f'{self.log_prefix} Opening upload sequence.')
-        self._perform()
         self._logger.info(f'{self.log_prefix} Closing upload sequence.')
 
     @property
