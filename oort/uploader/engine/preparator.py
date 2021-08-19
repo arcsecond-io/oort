@@ -147,7 +147,7 @@ class UploadPreparator(object):
 
     def _sync_telescope(self):
         try:
-            self._telescope = Telescope.get(self._identity.telescope)
+            self._telescope = Telescope.get(uuid=self._identity.telescope)
         except DoesNotExist:
             self._logger.info(f'{self.log_prefix} Reading telescope {self._identity.telescope}...')
             self._pack.upload.smart_update(substatus=Substatus.SYNC_TELESCOPE.value)
@@ -155,7 +155,7 @@ class UploadPreparator(object):
             telescope_dict, error = telescopes_api.read(self._identity.telescope)
             if error is not None:
                 raise errors.UploadPreparationAPIError(str(error))
-            self._telescope.create(**telescope_dict)
+            self._telescope = Telescope.create(**telescope_dict)
         else:
             self._pack.upload.smart_update(telescope=self._telescope)
 
