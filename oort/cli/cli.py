@@ -254,12 +254,9 @@ def telescopes(state, organisation=None):
 @click.option('-f', '--force',
               required=False, nargs=1, type=click.BOOL, is_flag=True,
               help="Force the re-uploading of folder's content, resetting the local Uploads information. Default is False.")
-@click.option('-z', '--zip',
-              required=False, nargs=1, type=click.BOOL, is_flag=True,
-              help="Zip the data files (FITS and XISF) before sending to the cloud. Default is False.")
 @basic_options
 @pass_state
-def upload(state, folder, organisation=None, telescope=None, force=False, zip=False):
+def upload(state, folder, organisation=None, telescope=None, force=False):
     """
     Upload the content of a folder.
 
@@ -287,7 +284,7 @@ def upload(state, folder, organisation=None, telescope=None, force=False, zip=Fa
                             subdomain=org_subdomain or '',
                             role=org_role or '',
                             telescope=telescope_uuid,
-                            zip=zip,
+                            zip=False,
                             debug=state.debug)
 
         walk(folder, identity, force, debug=state.debug)
