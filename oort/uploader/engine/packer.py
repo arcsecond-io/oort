@@ -102,7 +102,7 @@ class UploadPack(object):
 
         if self.should_prepare:
             upload_preparator = preparator.UploadPreparator(self, debug=self._identity.debug)
-            preparation_succeeded, _ = upload_preparator.prepare()
+            preparation_succeeded = upload_preparator.prepare()
         else:
             self._logger.info(f'{self.log_prefix} Preparation already done for {item}.')
 
@@ -240,7 +240,7 @@ class UploadPack(object):
         self.upload.smart_update(file_date=_file_date,
                                  file_size=_file_size,
                                  file_size_zipped=_zipped_file_size,
-                                 target_name=_target_name or '')
+                                 target_name=_target_name or self._root_path.name or '')
 
     def _find_sizes(self) -> Tuple[float, float]:
         _file_size = 0
