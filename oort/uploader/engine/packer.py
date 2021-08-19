@@ -59,10 +59,11 @@ class UploadPack(object):
     """Class containing the logic to determine the dataset, the night_log and
      the observations/calibrations from filepath."""
 
-    def __init__(self, root_path: str, file_path: str, identity: Identity):
+    def __init__(self, root_path: str, file_path: str, identity: Identity, force: bool = False):
         self._identity = identity
         self._root_path = pathlib.Path(root_path)
         self._raw_file_path = pathlib.Path(file_path)
+        self._force = force
 
         self._logger = get_oort_logger('uploader', debug=identity.debug)
         self._parse_type_and_dataset_name()
@@ -74,6 +75,9 @@ class UploadPack(object):
         except Upload.DoesNotExist:
             self._upload = Upload.create(file_path=self.clear_file_path)
 
+        if self._force:
+            self._upload.reset_for_restart()
+
         self.upload.smart_update(astronomer=self._identity.username,
                                  file_path_zipped=self.zipped_file_path)
 
@@ -83,35 +87,33 @@ class UploadPack(object):
         if self.should_zip:
             zip = zipper.AsyncZipper(self.clear_file_path)
             zip.start()
-            return
 
-        if self.is_hidden_file:
+        elif self.is_hidden_file:
             self._logger.info(f'{self.log_prefix} {self.final_file_name} is an hidden file. Upload skipped.')
             self._archive(Substatus.SKIPPED_HIDDEN_FILE.value)
-            return
 
-        if self.is_empty_file:
+        elif self.is_empty_file:
             self._logger.info(f'{self.log_prefix} {self.final_file_name} is an empty file. Upload skipped.')
             self._archive(Substatus.SKIPPED_EMPTY_FILE.value)
-            return
 
-        # Still not 100% satisfactory...
-
-        item = f"{self.final_file_name} ({self._upload.substatus})"
-        preparation_succeeded = self._upload.dataset is not None
-
-        if self.should_prepare:
-            upload_preparator = preparator.UploadPreparator(self, debug=self._identity.debug)
-            preparation_succeeded = upload_preparator.prepare()
         else:
-            self._logger.info(f'{self.log_prefix} Preparation already done for {item}.')
+            item = f"{self.final_file_name} ({self._upload.substatus})"
+            preparation_succeeded = self._upload.dataset is not None
 
-        if preparation_succeeded:
-            if self.is_already_finished:
-                self._logger.info(f'{self.log_prefix} Upload already finished for {item}.')
+            if self.should_prepare:
+                upload_preparator = preparator.UploadPreparator(self, debug=self._identity.debug)
+                preparation_succeeded = upload_preparator.prepare()
             else:
-                file_uploader = uploader.FileUploader(self)
-                file_uploader.upload_file()
+                self._logger.info(f'{self.log_prefix} Preparation already done for {item}.')
+
+            if preparation_succeeded:
+                if self.is_already_finished:
+                    self._logger.info(f'{self.log_prefix} Upload already finished for {item}.')
+                else:
+                    file_uploader = uploader.FileUploader(self)
+                    file_uploader.upload_file()
+
+        return self._upload.status, self._upload.substatus, self._upload.error
 
     @property
     def log_prefix(self) -> str:

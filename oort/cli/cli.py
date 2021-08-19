@@ -1,5 +1,4 @@
 import os
-import pathlib
 import webbrowser
 
 import click
@@ -7,6 +6,7 @@ from arcsecond import ArcsecondAPI
 
 from oort import __version__
 from oort.cli.folders import (parse_upload_watch_options, save_upload_folders)
+from oort.cli.helpers import display_command_summary
 from oort.cli.options import State, basic_options
 from oort.cli.supervisor import (get_supervisor_processes_status,
                                  reconfigure_supervisor,
@@ -22,7 +22,9 @@ from oort.shared.config import (get_oort_config_upload_folder_sections,
                                 update_oort_config_upload_folder_sections_key)
 from oort.shared.constants import OORT_UPLOADER_FOLDER_DETECTION_TICK_SECONDS
 from oort.shared.errors import OortCloudError
+from oort.shared.identity import Identity
 from oort.shared.utils import tail
+from oort.uploader.engine.walker import walk
 
 pass_state = click.make_pass_decorator(State, ensure=True)
 
@@ -241,6 +243,56 @@ def telescopes(state, organisation=None):
         click.echo(s)
 
 
+@main.command(help='Directly upload a folder\'s content.')
+@click.argument('folder', required=True, nargs=1)
+@click.option('-o', '--organisation',
+              required=False, nargs=1,
+              help="The Organisation subdomain, if uploading to an organisation.")
+@click.option('-t', '--telescope',
+              required=False, nargs=1, type=click.STRING,
+              help="The UUID or the alias of the telescope acquiring data (mandatory for organisation uploads).")
+@click.option('-f', '--force',
+              required=False, nargs=1, type=click.BOOL, is_flag=True,
+              help="Force the re-uploading of folder's content, resetting the local Uploads information. Default is False.")
+@click.option('-z', '--zip',
+              required=False, nargs=1, type=click.BOOL, is_flag=True,
+              help="Zip the data files (FITS and XISF) before sending to the cloud. Default is False.")
+@basic_options
+@pass_state
+def upload(state, folder, organisation=None, telescope=None, force=False, zip=False):
+    """
+    Upload the content of a folder.
+
+    If an organisation is provided, a telescope UUID must also be provided.
+
+    Oort will start by walking through the folder tree and uploads files
+    according to the name of the subfolders (see main help). Once done,
+    every new file created in the folder tree will trigger a sync + upload
+    process.
+    """
+    try:
+        username, upload_key, org_subdomain, org_role, telescope_details = \
+            parse_upload_watch_options(organisation, telescope, state.debug, state.verbose)
+    except InvalidWatchOptionsOortCloudError:
+        return
+
+    display_command_summary([folder, ], username, upload_key, org_subdomain, org_role, telescope_details)
+
+    ok = input('\n   ----> OK? (Press Enter) ')
+
+    if ok.strip() == '':
+        telescope_uuid = telescope_details['uuid'] if telescope_details is not None else None
+        identity = Identity(username=username,
+                            upload_key=upload_key,
+                            subdomain=org_subdomain or '',
+                            role=org_role or '',
+                            telescope=telescope_uuid,
+                            zip=zip,
+                            debug=state.debug)
+
+        walk(folder, identity, force, debug=state.debug)
+
+
 @main.command(help='Start watching a folder for files.')
 @click.argument('folders', required=True, nargs=-1)
 @click.option('-o', '--organisation',
@@ -249,7 +301,7 @@ def telescopes(state, organisation=None):
 @click.option('-t', '--telescope',
               required=False, nargs=1, type=click.STRING,
               help="The UUID or the alias of the telescope acquiring data (in the case of organisation uploads).")
-@click.option('-z', '--zip',
+@click.option('-z', '--zip', is_flag=True,
               required=False, nargs=1, type=click.BOOL,
               help="Zip the data files (FITS and XISF) before sending to the cloud. Default is False.")
 # @click.option('--astronomer',
@@ -275,33 +327,7 @@ def watch(state, folders, organisation=None, telescope=None, zip=False):
     except InvalidWatchOptionsOortCloudError:
         return
 
-    click.echo(" --- Folder(s) watch summary --- ")
-    click.echo(f" • Arcsecond username: @{username} (Upload key: {upload_key[:4]}••••)")
-    if not org_subdomain:
-        click.echo(" • Uploading to your *personal* account.")
-    else:
-        click.echo(f" • Uploading to organisation account '{org_subdomain}' (as {org_role}).")
-
-    if telescope_details:
-        msg = f" • Night Logs will be linked to telescope '{telescope_details.get('name')}' "
-        if telescope_details.get('alias', ''):
-            msg += f"alias \"{telescope_details.get('alias')}\" "
-        msg += f"({telescope_details.get('uuid')}))"
-        click.echo(msg)
-    else:
-        click.echo(" • No designated telescope.")
-
-    home_path = pathlib.Path.home()
-    existing_folders = [section.get('path') for section in get_oort_config_upload_folder_sections()]
-
-    click.echo(f" • Folder path{'s' if len(folders) > 1 else ''}:")
-    for folder in folders:
-        folder_path = pathlib.Path(folder).expanduser().resolve()
-        click.echo(f"   > {str(folder_path.parent if folder_path.is_file() else folder_path)}")
-        if folder_path == home_path:
-            click.echo("   >>> Warning: This watched folder is your HOME folder. <<<")
-        if str(folder_path) in existing_folders:
-            click.echo("   >>> Warning: This folder is already watched. Continuing will override its parameters. <<<")
+    display_command_summary(folders, username, upload_key, org_subdomain, org_role, telescope_details)
 
     ok = input('\n   ----> OK? (Press Enter) ')
 
