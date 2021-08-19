@@ -31,7 +31,7 @@ def walk(folder_path: str, identity: Identity, force, debug: bool):
             continue
 
         pack = packer.UploadPack(str(root_path), str(file_path), identity, force=force)
-        status, substatus, error = pack.prepare_and_upload_file()
+        status, substatus, error = pack.prepare_and_upload_file(display_progress=True)
         if status == Status.OK.value:
             success_uploads.append(str(file_path))
         else:

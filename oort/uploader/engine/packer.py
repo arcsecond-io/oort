@@ -83,7 +83,7 @@ class UploadPack(object):
 
         self._find_date_size_and_target_name()
 
-    def prepare_and_upload_file(self):
+    def prepare_and_upload_file(self, display_progress: bool = False):
         if self.should_zip:
             zip = zipper.AsyncZipper(self.clear_file_path)
             zip.start()
@@ -110,7 +110,7 @@ class UploadPack(object):
                 if self.is_already_finished:
                     self._logger.info(f'{self.log_prefix} Upload already finished for {item}.')
                 else:
-                    file_uploader = uploader.FileUploader(self)
+                    file_uploader = uploader.FileUploader(self, display_progress)
                     file_uploader.upload_file()
 
         return self._upload.status, self._upload.substatus, self._upload.error

@@ -4,6 +4,7 @@ import pathlib
 import socket
 from datetime import datetime
 
+import click
 from arcsecond import ArcsecondAPI
 from arcsecond.api.endpoints import AsyncFileUploader
 
@@ -14,12 +15,13 @@ from . import errors
 
 
 class FileUploader(object):
-    def __init__(self, pack):
+    def __init__(self, pack, display_progress: bool = False):
         self._logger = get_oort_logger('uploader', debug=True)
 
         self._pack = pack
         self._upload = self._pack.upload
         self._final_file_path = pathlib.Path(self._pack.final_file_path)
+        self._display_progress = display_progress
 
         is_test_context = bool(os.environ.get('OORT_TESTS') == '1')
         self._api = ArcsecondAPI.datafiles(dataset=str(self._upload.dataset.uuid),  # will be used as request prefix
@@ -36,10 +38,13 @@ class FileUploader(object):
         # Callback allowing for the server monitor to display the percentage of progress of the upload.
         def update_upload_progress(event, progress_percent):
             if progress_percent > self._upload.progress + 0.1 or progress_percent > 99:
+                duration = (datetime.now() - self._upload.started).total_seconds()
                 self._upload.smart_update(status=Status.UPLOADING.value,
                                           substatus=Substatus.UPLOADING.value,
                                           progress=progress_percent,
-                                          duration=(datetime.now() - self._upload.started).total_seconds())
+                                          duration=duration)
+                if self._display_progress is True:
+                    click.echo(f"{progress_percent}% ({duration} sec)")
 
         ffps = str(self._final_file_path)
 
