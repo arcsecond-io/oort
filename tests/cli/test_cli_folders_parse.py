@@ -7,6 +7,7 @@ from oort.cli.folders import parse_upload_watch_options
 from oort.server.errors import (
     InvalidOrgMembershipOortCloudError,
     InvalidOrganisationTelescopeOortCloudError,
+    InvalidTelescopeOortCloudError,
     InvalidWatchOptionsOortCloudError
 )
 from tests.utils import (ORG_DETAILS,
@@ -70,7 +71,7 @@ def test_cli_folders_no_org_but_with_invalid_telescope():
     clear_oort_test_folders()
 
     with patch.object(ArcsecondAPI, 'read', return_value=(None, ArcsecondError())) as mock_method_read:
-        with pytest.raises(InvalidOrganisationTelescopeOortCloudError):
+        with pytest.raises(InvalidTelescopeOortCloudError):
             parse_upload_watch_options(None, TEL_UUID, True)
 
         assert mock_method_read.call_count == 1
