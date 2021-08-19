@@ -297,7 +297,7 @@ def upload(state, folder, organisation=None, telescope=None, force=False):
         walk(folder, identity, force, debug=state.debug)
 
 
-@main.command(help='Start watching a folder for files.')
+@main.command(help='Start watching a folder content for uploading files in batch/background mode.')
 @click.argument('folders', required=True, nargs=-1)
 @click.option('-o', '--organisation',
               required=False, nargs=1,
