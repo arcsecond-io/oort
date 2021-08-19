@@ -264,10 +264,6 @@ def watch(state, folders, organisation=None, telescope=None, zip=False):
 
     If an organisation is provided, a telescope UUID must also be provided.
 
-    If a custom astronomer is provided, it means files will be uploaded to that
-    particular *personal* account. It can be used by telescope hosting organisations
-    uploading files on behalf of someone.
-
     Oort will start by walking through the folder tree and uploads files
     according to the name of the subfolders (see main help). Once done,
     every new file created in the folder tree will trigger a sync + upload
