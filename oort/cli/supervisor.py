@@ -167,13 +167,13 @@ def stop_supervisor_processes(*args, debug=True):
     logger.debug('Stop done.')
 
 
-def update_supervisor_processes(*args, debug=True):
-    logger = get_oort_logger('cli', debug=debug)
-    logger.info('(Re)Starting Oort processes.')
-    if len(args) == 0:
-        args = DEFAULT_PROCESSES
-    subprocess.run(["supervisorctl", "-c", get_oort_supervisor_conf_file_path(), "update", "all"] + list(args))
-    logger.debug('Restart done.')
+# def update_supervisor_processes(*args, debug=True):
+#     logger = get_oort_logger('cli', debug=debug)
+#     logger.info('(Re)Starting Oort processes.')
+#     if len(args) == 0:
+#         args = DEFAULT_PROCESSES
+#     subprocess.run(["supervisorctl", "-c", str(get_oort_supervisor_conf_file_path()), "update", "all"] + list(args))
+#     logger.debug('Restart done.')
 
 
 def get_supervisor_processes_status(*args, debug=True):
