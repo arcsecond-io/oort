@@ -92,6 +92,14 @@ class UploadPreparator(object):
             self._logger.info(f'{self.log_prefix} Remote resource created.')
             return remote_resource
 
+    def _update_remote_resource(self, api: ArcsecondAPI, uuid, **kwargs) -> None:
+        self._logger.info(f'{self.log_prefix} Updating remote resource...')
+        _, error = api.update(uuid, kwargs)
+        if error is not None:
+            self._logger.warn(f'{self.log_prefix} Failed to update remote resource. Ignoring, and moving on.')
+        else:
+            self._logger.info(f'{self.log_prefix} Remote resource updated.')
+
     # ------ SYNC ------------------------------------------------------------------------------------------------------
 
     def _sync_dataset(self):
@@ -120,7 +128,7 @@ class UploadPreparator(object):
         if dataset_dict is None:
             dataset_dict = self._create_remote_resource(datasets_api, **create_kwargs)
         else:
-            datasets_api.update(dataset_dict['uuid'], create_kwargs)
+            self._update_remote_resource(datasets_api, dataset_dict['uuid'], **create_kwargs)
 
         # Create local resource. But avoids pointing to (possibly) non-existing ForeignKeys for which
         # we have only the uuid for now, not the local Database ID.
