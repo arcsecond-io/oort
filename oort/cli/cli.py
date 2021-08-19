@@ -280,7 +280,7 @@ def upload(state, folder, organisation=None, telescope=None, force=False):
     except InvalidWatchOptionsOortCloudError:
         return
 
-    display_command_summary([folder, ], username, upload_key, org_subdomain, org_role, telescope_details)
+    display_command_summary([folder, ], username, upload_key, org_subdomain, org_role, telescope_details, False, True)
 
     ok = input('\n   ----> OK? (Press Enter) ')
 
@@ -331,12 +331,12 @@ def watch(state, folders, organisation=None, telescope=None, zip=False):
     except InvalidWatchOptionsOortCloudError:
         return
 
-    display_command_summary(folders, username, upload_key, org_subdomain, org_role, telescope_details)
     click.echo(f"\n\n{80 * '*'}")
     click.echo(" • BATCH MODE: command will give the prompt back, and uploads will occur in the background.")
     click.echo(" • BATCH MODE: use the monitor server to follow the progress (type `oort open` to open it).")
     click.echo(f"{80 * '*'}\n\n")
 
+    display_command_summary(folders, username, upload_key, org_subdomain, org_role, telescope_details, zip)
 
     ok = input('\n   ----> OK? (Press Enter) ')
 
