@@ -26,8 +26,7 @@ def walk(folder_path: str, identity: Identity, force, debug: bool):
     ignore_count = 0
     for file_path in root_path.glob('**/*'):
         # Skipping both hidden files and hidden directories.
-        if any([part for part in file_path.parts if len(part) > 0 and part[0] == '.']) or not file_path.is_file():
-            ignore_count += 1
+        if is_hidden(file_path) or not file_path.is_file():
             continue
 
         pack = packer.UploadPack(str(root_path), str(file_path), identity, force=force)

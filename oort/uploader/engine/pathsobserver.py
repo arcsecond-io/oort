@@ -10,6 +10,7 @@ from oort.shared.config import get_oort_config_upload_folder_sections, get_oort_
 from oort.shared.constants import OORT_UPLOADER_FOLDER_DETECTION_TICK_SECONDS
 from oort.shared.identity import Identity
 from oort.shared.models import Upload
+from oort.shared.utils import is_hidden
 from . import eventhandler
 
 
@@ -85,7 +86,7 @@ class PathsObserver(Observer):
         file_count, event_count, ignore_count = 0, 0, 0
         for path in root_path.glob('**/*'):
             # Skipping both hidden files and hidden directories.
-            if any([part for part in path.parts if len(part) > 0 and part[0] == '.']) or not path.is_file():
+            if is_hidden(path) or not path.is_file():
                 continue
 
             file_count += 1

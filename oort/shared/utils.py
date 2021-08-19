@@ -87,3 +87,6 @@ def get_formatted_bytes_size(size):
     i = math.floor(math.log10(1.0 * size) / math.log10(k))
     return f"{(size / math.pow(k, i)):.2f} {units[i]}"
 
+
+def is_hidden(path):
+    return any([part for part in path.parts if len(part) > 0 and part[0] == '.'])
