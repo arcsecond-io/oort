@@ -8,8 +8,8 @@ from click import UUID
 from peewee import DoesNotExist
 
 from oort.server.errors import (InvalidAstronomerOortCloudError, InvalidOrgMembershipOortCloudError,
-                                InvalidOrganisationTelescopeOortCloudError,
-                                InvalidOrganisationUploadKeyOortCloudError, InvalidWatchOptionsOortCloudError,
+                                InvalidOrganisationTelescopeOortCloudError, InvalidOrganisationUploadKeyOortCloudError,
+                                InvalidTelescopeOortCloudError, InvalidWatchOptionsOortCloudError,
                                 UnknownOrganisationOortCloudError)
 from oort.shared.config import get_oort_logger
 from oort.shared.identity import Identity
@@ -73,10 +73,10 @@ def list_organisation_telescopes(org_subdomain: str, debug: bool, verbose: bool)
 
 # The organisation is actually optional. It allows to check for a telescope
 # also in the case of a custom astronomer.
-def check_organisation_telescope(telescope_uuid: Optional[Union[str, UUID]],
-                                 org_subdomain: Optional[str],
-                                 debug: bool,
-                                 verbose: bool) -> Optional[dict]:
+def check_telescope(telescope_uuid: Optional[Union[str, UUID]],
+                    org_subdomain: Optional[str],
+                    debug: bool,
+                    verbose: bool) -> Optional[dict]:
     click.echo("Fetching telescope details...")
 
     test = os.environ.get('OORT_TESTS') == '1'
@@ -86,7 +86,10 @@ def check_organisation_telescope(telescope_uuid: Optional[Union[str, UUID]],
 
     telescope_detail, error = ArcsecondAPI.telescopes(**kwargs).read(str(telescope_uuid))
     if error is not None:
-        raise InvalidOrganisationTelescopeOortCloudError(str(telescope_uuid), str(error))
+        if org_subdomain:
+            raise InvalidOrganisationTelescopeOortCloudError(str(telescope_uuid), org_subdomain, str(error))
+        else:
+            raise InvalidTelescopeOortCloudError(str(telescope_uuid), str(error))
 
     if telescope_detail is not None and telescope_detail.get('coordinates', None) is None:
         site_uuid = telescope_detail.get('observing_site', None)
@@ -149,7 +152,7 @@ def parse_upload_watch_options(organisation: Optional[str] = None,
     # In every case, check for telescope details if a UUID is provided.
     telescope_details = None
     if telescope_uuid:
-        telescope_details = check_organisation_telescope(telescope_uuid, org_subdomain, debug, verbose)
+        telescope_details = check_telescope(telescope_uuid, org_subdomain, debug, verbose)
 
     # Validation of the uploader #
 
