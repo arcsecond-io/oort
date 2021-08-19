@@ -52,7 +52,7 @@ def test_preparator_init_with_org():
     pack = UploadPack(folder_path, fits_file_path, identity)
     with patch.object(ArcsecondAPI, 'is_logged_in', return_value=True), \
             patch.object(UploadPreparator, 'prepare') as mock_method_prepare, \
-            patch.object(ArcsecondAPI, 'read', return_value=(org_details, None)) as mock_method_read:
+            patch.object(ArcsecondAPI, 'read', return_value=(org_details, None)):
         assert Organisation.select().count() == 0
         prep = UploadPreparator(pack, identity)
 
@@ -107,9 +107,9 @@ def test_preparator_prepare_no_org_no_telescope():
     ds = {'uuid': str(uuid.uuid4()), 'name': pack.dataset_name}
 
     with patch.object(ArcsecondAPI, 'is_logged_in', return_value=True), \
-            patch.object(ArcsecondAPI, 'list', return_value=([], None)) as mock_method_list, \
+            patch.object(ArcsecondAPI, 'list', return_value=([], None)), \
             patch.object(ArcsecondAPI, 'datasets', return_value=ArcsecondAPI(test=True)) as mock_method_datasets, \
-            patch.object(ArcsecondAPI, 'create', return_value=(ds, None)) as mock_method_create:
+            patch.object(ArcsecondAPI, 'create', return_value=(ds, None)):
         up = UploadPreparator(pack, identity)
         up.prepare()
 
@@ -151,9 +151,9 @@ def test_preparator_prepare_with_org_and_telescope():
 
     with patch.object(ArcsecondAPI, 'is_logged_in', return_value=True), \
             patch.object(ArcsecondAPI, 'read') as mock_method_read, \
-            patch.object(ArcsecondAPI, 'list', return_value=([], None)) as mock_method_list, \
+            patch.object(ArcsecondAPI, 'list', return_value=([], None)), \
             patch.object(ArcsecondAPI, 'datasets', return_value=ArcsecondAPI(test=True)) as mock_method_datasets, \
-            patch.object(ArcsecondAPI, 'create', return_value=(ds, None)) as mock_method_create:
+            patch.object(ArcsecondAPI, 'create', return_value=(ds, None)):
         mock_method_read.side_effect = [(TEL_DETAILS, None), (ORG_DETAILS, None)]
 
         up = UploadPreparator(pack, identity)

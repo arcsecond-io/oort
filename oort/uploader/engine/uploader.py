@@ -4,7 +4,6 @@ import pathlib
 import socket
 from datetime import datetime
 
-import click
 from arcsecond import ArcsecondAPI
 from arcsecond.api.endpoints import AsyncFileUploader
 

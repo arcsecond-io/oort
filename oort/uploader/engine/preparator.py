@@ -132,8 +132,10 @@ class UploadPreparator(object):
 
         # Create local resource. But avoids pointing to (possibly) non-existing ForeignKeys for which
         # we have only the uuid for now, not the local Database ID.
-        if 'observation' in dataset_dict.keys(): dataset_dict.pop('observation')
-        if 'calibration' in dataset_dict.keys(): dataset_dict.pop('calibration')
+        if 'observation' in dataset_dict.keys():
+            dataset_dict.pop('observation')
+        if 'calibration' in dataset_dict.keys():
+            dataset_dict.pop('calibration')
         try:
             self._dataset = Dataset.get(uuid=dataset_dict['uuid'])
         except DoesNotExist:

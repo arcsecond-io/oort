@@ -52,6 +52,7 @@ class InvalidTelescopeOortCloudError(OortCloudError):
             msg += f'\n{error_string}'
         super().__init__(msg)
 
+
 class InvalidOrganisationTelescopeOortCloudError(OortCloudError):
     def __init__(self, telescope_uuid, org_subdomain, error_string=''):
         msg = f'Telescope with UUID {telescope_uuid} unknown within organisation {org_subdomain}.'
