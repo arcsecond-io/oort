@@ -6,7 +6,7 @@ from unittest.mock import patch
 from arcsecond.api.main import ArcsecondAPI
 
 from oort.shared.identity import Identity
-from oort.shared.models import Calibration, Dataset, NightLog, Observation, Organisation, Telescope, Upload, db
+from oort.shared.models import Dataset, Organisation, Telescope, Upload, db
 from oort.uploader.engine.packer import UploadPack
 from oort.uploader.engine.uploader import FileUploader
 from tests.utils import (TEST_CUSTOM_UPLOAD_KEY, TEST_CUSTOM_USERNAME, TEST_LOGIN_ORG_ROLE, TEST_LOGIN_ORG_SUBDOMAIN,
@@ -21,7 +21,7 @@ fits_file_path = os.path.join(folder_path, fits_file_name)
 telescope_uuid = '44f5bee9-a557-4264-86d6-c877d5013788'
 
 db.connect(reuse_if_open=True)
-db.create_tables([Organisation, Telescope, NightLog, Observation, Calibration, Dataset, Upload])
+db.create_tables([Organisation, Telescope, Dataset, Upload])
 
 
 @use_test_database

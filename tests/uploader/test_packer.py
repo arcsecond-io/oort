@@ -46,7 +46,7 @@ def test_packer_calib_bias():
         assert pack.resource_type == 'calibration'
         assert pack.remote_resources_name == 'calibrations'
         # Check name of dataset respect folder name
-        assert pack.dataset_name == path.split('/')[-2]
+        assert pack.dataset_name == '/'.join(path.split('/')[-3:-1])
 
 
 @use_test_database
@@ -73,7 +73,7 @@ def test_packer_calib_dark():
         assert pack.resource_type == 'calibration'
         assert pack.remote_resources_name == 'calibrations'
         # Check name of dataset respect folder name
-        assert pack.dataset_name == path.split('/')[-2]
+        assert pack.dataset_name == '/'.join(path.split('/')[-3:-1])
 
 
 @use_test_database
@@ -100,7 +100,7 @@ def test_packer_calibs_flat_no_filter():
         assert pack.resource_type == 'calibration'
         assert pack.remote_resources_name == 'calibrations'
         # Check name of dataset respect folder name
-        assert pack.dataset_name == path.split('/')[-2]
+        assert pack.dataset_name == '/'.join(path.split('/')[-3:-1])
 
 
 @use_test_database
@@ -127,7 +127,7 @@ def test_packer_calibs_flat_with_filter():
         assert pack.resource_type == 'calibration'
         assert pack.remote_resources_name == 'calibrations'
         # Check name of dataset respect folder name
-        assert pack.dataset_name == path.split('/')[-3] + '/' + path.split('/')[-2]
+        assert pack.dataset_name == '/'.join(path.split('/')[-4:-1])
 
 
 @use_test_database
@@ -154,7 +154,7 @@ def test_packer_observation_no_filter():
         # assert pack.resource_type == 'observation'
         # assert pack.remote_resources_name == 'observations'
         # Check name of dataset respect folder name
-        assert pack.dataset_name == 'HD5980'
+        assert pack.dataset_name == '/'.join(path.split('/')[-3:-1])
 
 
 @use_test_database
@@ -181,7 +181,7 @@ def test_packer_observation_with_filter():
         # assert pack.resource_type == 'observation'
         # assert pack.remote_resources_name == 'observations'
         # Check name of dataset respect folder name
-        assert pack.dataset_name == 'HD5980/Halpha'
+        assert pack.dataset_name == '/'.join(path.split('/')[-4:-1])
 
 
 @use_test_database
@@ -208,7 +208,7 @@ def test_packer_observation_with_double_filter():
         # assert pack.resource_type == 'observation'
         # assert pack.remote_resources_name == 'observations'
         # Check name of dataset respect folder name
-        assert pack.dataset_name == 'Tests/HD5980/Halpha'
+        assert pack.dataset_name == '/'.join(path.split('/')[-5:-1])
 
 
 @use_test_database
@@ -235,7 +235,7 @@ def test_packer_calibration_no_date_obs():
         # assert pack.resource_type == 'calibration'
         # assert pack.remote_resources_name == 'calibrations'
         # Check name of dataset respect folder name
-        assert pack.dataset_name == 'Biases'
+        assert pack.dataset_name == '/'.join(path.split('/')[-3:-1])
 
 
 @use_test_database
@@ -262,7 +262,7 @@ def test_packer_calibration_no_fits_no_xisf():
         # assert pack.resource_type == 'calibration'
         # assert pack.remote_resources_name == 'calibrations'
         # Check name of dataset respect folder name
-        assert pack.dataset_name == 'Biases'
+        assert pack.dataset_name == '/'.join(path.split('/')[-3:-1])
 
 
 @use_test_database

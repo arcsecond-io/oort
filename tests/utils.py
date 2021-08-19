@@ -28,6 +28,8 @@ TEL_UUID = str(uuid.uuid4())
 TEL_DETAILS = {'uuid': TEL_UUID, 'name': 'telescope name', 'coordinates': {}}
 ORG_DETAILS = {'subdomain': TEST_LOGIN_ORG_SUBDOMAIN}
 ORG_MEMBERSHIPS = {TEST_LOGIN_ORG_SUBDOMAIN: TEST_LOGIN_ORG_ROLE}
+
+
 # CUSTOM_ASTRONOMER = ('custom', '1-2-3-4-5-6-7-8-9')
 # CUSTOM_ASTRONOMER_DETAILS = {'username': CUSTOM_ASTRONOMER[0], 'key': CUSTOM_ASTRONOMER[1]}
 # UPLOAD_KEYS = [{'username': CUSTOM_ASTRONOMER[0], 'key': CUSTOM_ASTRONOMER[1]}]
