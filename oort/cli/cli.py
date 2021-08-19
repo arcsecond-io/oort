@@ -280,7 +280,7 @@ def upload(state, folder, organisation=None, telescope=None, force=False):
     except InvalidWatchOptionsOortCloudError:
         return
 
-    display_command_summary([folder, ], username, upload_key, org_subdomain, org_role, telescope_details, False, True)
+    display_command_summary([folder, ], username, upload_key, org_subdomain, org_role, telescope_details, False)
 
     ok = input('\n   ----> OK? (Press Enter) ')
 

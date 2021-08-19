@@ -6,14 +6,7 @@ from oort.shared.config import (get_oort_config_upload_folder_sections)
 from oort.shared.utils import get_formatted_bytes_size, get_formatted_size_times, is_hidden
 
 
-def display_command_summary(folders,
-                            username,
-                            upload_key,
-                            org_subdomain,
-                            org_role,
-                            telescope_details,
-                            zip,
-                            speed=False):
+def display_command_summary(folders, username, upload_key, org_subdomain, org_role, telescope_details, zip):
     click.echo("\n --- Folder(s) watch summary --- ")
     click.echo(f" • Arcsecond username: @{username} (Upload key: {upload_key[:4]}••••)")
     if not org_subdomain:
@@ -43,7 +36,6 @@ def display_command_summary(folders,
             click.echo("   >>> Warning: This folder is your HOME folder. <<<")
         if str(folder_path) in existing_folders:
             click.echo("   >>> Warning: This folder is already watched. <<<")
-        if speed is True:
-            size = sum(f.stat().st_size for f in folder_path.glob('**/*') if f.is_file() and not is_hidden(f))
-            click.echo(f"   > Volume: {get_formatted_bytes_size(size)} in total in this folder.")
-            click.echo(f"   > Estimated time: {get_formatted_size_times(size)}")
+        size = sum(f.stat().st_size for f in folder_path.glob('**/*') if f.is_file() and not is_hidden(f))
+        click.echo(f"   > Volume: {get_formatted_bytes_size(size)} in total in this folder.")
+        click.echo(f"   > Estimated time: {get_formatted_size_times(size)}")
