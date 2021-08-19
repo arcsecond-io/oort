@@ -46,7 +46,9 @@ $ pip install oort-cloud --upgrade
 Note that a PyPi package named `oort` (without the `-cloud`) already exists (unfortunately), and has nothing to do with our case. The CLI commands
 below nonetheless start with `oort` only.
 
-## Start & Watch
+## Commands
+
+### Start & Watch
 
 Oort primary philosophy is to watch for files in a folder, and automatically upload them to the cloud. **Do not watch your home folder!** But rather,
 watch only folders dedicated to contain data files and their auxiliary files.
@@ -62,8 +64,8 @@ oort watch [OPTIONS] folder1 folder2 ...
 The `OPTIONS` part of `oort watch` is important. There are three options:
 
 * `-o <subdomain>` (or `--organisation <subdomain>`) to specify that uploads of that folder will be sent to that organisation.
-* `-t <telescope uuid>` (or `--telescope <telescope uuid>`) to specify to which telescope the Night Logs must be attached. This option is mandatory for
-  uploads to an organisation, and optional for uploads to a personal account.
+* `-t <telescope uuid>` (or `--telescope <telescope uuid>`) to specify which telescope has been used. This option is mandatory for uploads to an
+  organisation, and optional for uploads to a personal account.
 * `-z` (or `--zip`) to automatically gzip data files (FITS and XISF, other files aren't touched) before upload. Default is False. Note that switching
   zip on will modify the content of the folder (replacing files with zipped ones), hence impacting a possible backup system. Moreover, zipping will
   require some CPU resource.
@@ -75,7 +77,7 @@ any new file being added inside the watched folder (and in all of its subfolders
 
 **All non-hidden files will be uploaded.** And data files can be compressed automatically before upload. See below for details.
 
-## Manage and Monitor
+### Manage and Monitor
 
 * `oort login` to login to Arcsecond.io first.
 * `oort status` to check the status of the two processes (see below)
@@ -92,12 +94,10 @@ There is no need of using `sudo` in any case with oort.
 
 ## How does it work?
 
-### An Uploader process and a Server process
-
 Oort-Cloud works by managing 2 processes:
 
-• An **uploader**, which takes care of creating/syncing the right Night Logs, Observations and Calibrations, as well as Datasets and Datafiles in
-Arcsecond.io (either in your personal account, or your Organisation). And then upload the files.
+• An **uploader**, which takes care of creating/syncing the Datasets and Datafiles objects in Arcsecond.io (either in your personal account, or your
+Organisation). And then upload the files.
 
 • A **server** (small local web server), which allow you to observe, control and setup what is happening in the uploader (and find what happened before
 too).
@@ -114,7 +114,7 @@ the PC where data is sent to, and still being monitored from a remote PC without
 you work on PC17. Oort watch command has been issued on PC42. From PC17 you can monitor what happens on PC42 by simply visiting
 <code>http://&lt;ip address of pc42&gt;:5000 </code>.
 
-### File extensions
+## File extensions
 
 All non-hidden files found in the watch folder or one of its subfolder will be uploaded. Files can have an extension or not (for instance `README`
 files will also be uploaded).
@@ -128,7 +128,7 @@ as well as `.xisf` ones.
 
 Moreover, these extensions can be augmented with the following zipped file extensions: `.zip`, `.gz`, `.bz2`
 
-### File compression
+## File compression
 
 Files to be uploaded can be already compressed or not. Oort is able to deal with any of them transparently.
 
@@ -143,115 +143,8 @@ Of course, if the folder is read-only for its user, no zipping will be made.
 
 ## Folder structure and Data organisation
 
-**Oort is using the folder structure to infer the type and organisation of files.**
-
-Organisation is as follow: Data files are put inside Datasets, and to each dataset is attached one (and only one) of an Observation or a Calibration
-object. The latter will be used inside Arcsecond.io for various packaging tasks.
-
-If data is consistently from the same observing night in a single folder, this means that **1 folder (or subfolder) = 1 dataset = 1 observation (or
-calibration)**. In other words, the more organised are your files, the more easily Oort replicates this in the cloud.
-
-To determine whether this is an Observation or a Calibration, oort will use the full folder pathname. If it doesn't detect any calibration keywords (
-see below), it will choose an Observation.
-
-The detection of a Calibration relies on 4 simple *keywords*: <code>bias</code>, <code>dark</code>, <code>flat</code> and <code>calib</code> (all
-case-insensitive). For instance, if the folder on disk contains the word "Bias" (case-insensitive) somewhere in its path, the data files will be put
-inside a Calibration object, associated with a Dataset whose name is that of the folder. The keyword doesn't need to be isolated. A folder with a
-name <code>ccd7_biases_bin1</code> will be detected as Calibration.
-
-All other folder names are considered as target names, and put inside Observations containers. For instance, FITS or XISF files found
-in `<root>/NGC3603/mosaic/Halpha` will be put in an Observation (not a Calibration, since there is no special keyword found), and its Dataset will be
-named identically `NGC3603/mosaic/Halpha`.
-
-See below for an exhaustive table of examples.
-
-### Night Log dates
-
-Observations and Calibrations are grouped inside Night Logs objects.
-
-To determine the Night Log date, Oort reads the FITS or XISF header and look for any of the following keywords: `DATE`, `DATE-OBS` and `DATE_OBS`. If
-there are no timezone information, dates are assumed to be local ones.
-
-**"Nights" run from local noon to local noon.** That is, all data files whose date is in the morning, until 12am, is considered as part of the night
-that just finished. The Night Log date is that of the starting noon.
-
-### Folder structure examples
-
-#### `<root>/NGC3603/Halpha/Mosaic1.fits`
-
-with Local time `Sep. 9, 2020, 2pm` will give:
-
-| NL Date | Type | Dataset name | Filename | Data Type |
- ---- | ---- | ------------ | --- | --- |
-| `2020-09-09` | Obs | `NGC3603/Halpha` | `Mosaic1.fits.gz` | FITS |
-
-<br/>
-
-#### `<root>/Calibration/MasterBias.xisf`
-
-with Local time `Sep. 21, 2020, 9am` will give:
-
-| NL Date | Type | Dataset name | Filename | Data Type |
- ---- | ---- | ------------ | --- | --- |
-| `2020-09-20` | Calib | `Calibration` | `MasterBias.xisf` | XISF |
-
-<br/>
-
-#### `<root>/Tests/Flats/U/U1.fit.gz`
-
-with Local time `Sep. 30, 2020, 01am` will give:
-
-| NL Date | Type | Dataset name | Filename | Data Type |
- ---- | ---- | ------------ | --- | --- |
-| `2020-09-30` | Calib | `Tests/Flats/U` | `U1.fit.gz` | FITS |
-
-<br/>
-
-#### `<root>/NGC3603_V_2x2.fit`
-
-with Local time `Oct. 15, 2020, 04am` will give:
-
-| NL Date | Type | Dataset name | Filename | Data Type |
- ---- | ---- | ------------ | --- | --- |
-| `2020-10-15` | Obs | `(folder <root>)` | `NGC3603_V_2x2.fit` | FITS |
-
-<br/>
-
-#### `<root>/GRO_J1655-40.FITS` but no `DATE`, not `DATE-OBS` nor `DATE_OBS` found
-
-| NL Date | Type | Dataset name | Filename | Data Type |
- ---- | ---- | ------------ | --- | --- |
-| (none) | (None) | `(folder <root>)` | `GRO_J1655-40.FITS` | FITS |
-
-There will be no Observation or Calibration created when there is no Night Log present, for which the date is mandatory.
-
-<br/>
-
-#### `<root>/folder1/passwords.csv` (be careful with password files!...)
-
-| NL Date | Type | Dataset name | Filename | Data Type |
- ---- | ---- | ------------ | --- | --- |
-| (none) | (None) | `folder1` | `passwords.csv` | (None) |
-
-<br/>
-
-#### `<root>/folder1/folder2/folder3/README`
-
-| NL Date | Type | Dataset name | Filename | Data Type |
- ---- | ---- | ------------ | --- | --- |
-| (none) | (None) | `folder1/folder2/folder3` | `README` | (None) |
-
-<br/>
-
-#### `<root>/subfolder/.svn/revision.log`
-
-Will not be uploaded because it is inside a hidden folder (starting with a `.`).
-
-<br/>
-
-#### `<root>/folder2/subfolder/.config`
-
-Will not be uploaded because it is an hidden file (starting with a `.`).
+Oort is using the folder structure to infer organisation of files inside datasets. And there is one simple rule to know: **1 folder (or subfolder) = 1
+dataset**. The rule is voluntarily simple to make Oort focused and reliable. Subsequent re-organisation, renaming etc will occur on the backend.
 
 ## Additional things you must be aware of
 
