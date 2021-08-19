@@ -139,6 +139,7 @@ def status(state):
 @pass_state
 def start(state):
     start_supervisor_processes(debug=state.debug)
+    get_supervisor_processes_status(debug=state.debug)
 
 
 @main.command(help='Stop Oort processes.')
@@ -146,6 +147,7 @@ def start(state):
 @pass_state
 def stop(state):
     stop_supervisor_processes(debug=state.debug)
+    get_supervisor_processes_status(debug=state.debug)
 
 
 @main.command(help='Stop Oort process and deamon, reconfigure, and restart everything.')
