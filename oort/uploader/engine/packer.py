@@ -186,9 +186,9 @@ class UploadPack(object):
         x = 0 if self._upload.file_date.hour >= 12 else 1
         return (self._upload.file_date - timedelta(days=x)).date().isoformat()
 
-    @property
-    def resource_db_class(self):
-        return Observation if self._type == ResourceType.OBSERVATION else Calibration
+    # @property
+    # def resource_db_class(self):
+    #     return Observation if self._type == ResourceType.OBSERVATION else Calibration
 
     @property
     def remote_resources_name(self) -> str:

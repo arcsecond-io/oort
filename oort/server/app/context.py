@@ -13,7 +13,7 @@ from oort.shared.config import (
     get_oort_config_upload_folder_sections,
     get_oort_config_value
 )
-from oort.shared.models import (Dataset, Status, Upload)
+from oort.shared.models import (Status, Upload)
 
 
 class BoostedJSONEncoder(JSONEncoder):
@@ -95,19 +95,19 @@ class Context:
         finished_count = finished_query.count()
         skipped_count = finished_query.where(Upload.substatus.startswith('skipped')).count()
 
-        def _ff(u):
-            # fill and flatten
-            u['night_log'] = {}
-            if u.get('dataset', None) is not None:
-                ds = Dataset.get(Dataset.uuid == u['dataset']['uuid'])
-                # if ds.observation is not None:
-                #     u['observation'] = model_to_dict(ds.observation, recurse=False)
-                # if ds.calibration is not None:
-                #     u['calibration'] = model_to_dict(ds.calibration, recurse=False)
-                # obs_or_calib = ds.observation or ds.calibration
-                # if obs_or_calib:
-                #     u['night_log'] = model_to_dict(obs_or_calib.night_log, recurse=False)
-            return u
+        # def _ff(u):
+        #     fill and flatten
+        # u['night_log'] = {}
+        # if u.get('dataset', None) is not None:
+        #     ds = Dataset.get(Dataset.uuid == u['dataset']['uuid'])
+        # if ds.observation is not None:
+        #     u['observation'] = model_to_dict(ds.observation, recurse=False)
+        # if ds.calibration is not None:
+        #     u['calibration'] = model_to_dict(ds.calibration, recurse=False)
+        # obs_or_calib = ds.observation or ds.calibration
+        # if obs_or_calib:
+        #     u['night_log'] = model_to_dict(obs_or_calib.night_log, recurse=False)
+        # return u
 
         return {
             'counts': {
@@ -118,13 +118,13 @@ class Context:
                 'finished': finished_count,
                 'skipped': skipped_count
             },
-            'pending': [_ff(model_to_dict(u, max_depth=1)) for u in
+            'pending': [model_to_dict(u, max_depth=1) for u in
                         pending_query.limit(1000).order_by(Upload.created).iterator()],
-            'current': [_ff(model_to_dict(u, max_depth=1)) for u in
+            'current': [model_to_dict(u, max_depth=1) for u in
                         current_query.order_by(Upload.created).iterator()],
-            'finished': [_ff(model_to_dict(u, max_depth=1)) for u in
+            'finished': [model_to_dict(u, max_depth=1) for u in
                          finished_query.limit(1000).order_by(-Upload.ended).iterator()],
-            'errors': [_ff(model_to_dict(u, max_depth=1)) for u in
+            'errors': [model_to_dict(u, max_depth=1) for u in
                        error_query.limit(1000).order_by(Upload.created).iterator()]
         }
 
