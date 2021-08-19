@@ -1,9 +1,12 @@
 from pathlib import Path
 
+import click
+
 from oort.cli.folders import check_remote_organisation
 from oort.shared.config import get_oort_logger
 from oort.shared.identity import Identity
 from oort.shared.models import Status
+from oort.shared.utils import is_hidden
 from oort.uploader.engine import packer
 
 
@@ -23,11 +26,16 @@ def walk(folder_path: str, identity: Identity, force, debug: bool):
 
     failed_uploads = []
     success_uploads = []
-    ignore_count = 0
+
+    index = 0
+    total_count = sum(1 for f in root_path.glob('**/*') if f.is_file() and not is_hidden(f))
     for file_path in root_path.glob('**/*'):
         # Skipping both hidden files and hidden directories.
         if is_hidden(file_path) or not file_path.is_file():
             continue
+
+        index += 1
+        click.echo(f"\n{log_prefix} File {index} / {total_count} ({index / total_count * 100:.2f}%)\n")
 
         pack = packer.UploadPack(str(root_path), str(file_path), identity, force=force)
         status, substatus, error = pack.prepare_and_upload_file(display_progress=True)
