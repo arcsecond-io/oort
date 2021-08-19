@@ -79,6 +79,27 @@ def get_username():
     import pwd
 
     return pwd.getpwuid(os.getuid())[0]
+
+
+def get_formatted_time(seconds):
+    if seconds > 86400:
+        return f"{seconds / 86400:.1f}d"
+    elif seconds > 3600:
+        return f"{seconds / 3600:.1f}h"
+    elif seconds > 60:
+        return f"{seconds / 60:.1f}m"
+    else:
+        return f"{seconds:.1f}s"
+
+
+def get_formatted_size_times(size):
+    total = f"{get_formatted_time(size / pow(10, 4))} on 10 kB/s, "
+    total += f"{get_formatted_time(size / pow(10, 5))} on 100 kB/s, "
+    total += f"{get_formatted_time(size / pow(10, 6))} on 1 MB/s, "
+    total += f"{get_formatted_time(size / pow(10, 7))} on 10 MB/s"
+    return total
+
+
 def get_formatted_bytes_size(size):
     if size == 0:
         return '0 Bytes'
