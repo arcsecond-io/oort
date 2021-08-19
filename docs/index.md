@@ -1,25 +1,22 @@
-# Welcome to the Oort Documentation
+# Welcome to the Oort documentation
 
-Oort is the open-source super-easy-to-use tool for automatically and continuously uploading to [Arcsecond.io](https://www.arcsecond.io)
-files that are inside a folder.
+Oort is the command-line open-source super-easy-to-use tool for uploading data to [Arcsecond.io](https://www.arcsecond.io).
 
 [Arcsecond.io](https://www.arcsecond.io) is a comprehensive cloud platform for astronomical observations, for individual astronomers, collaborations
-and observatories.
+and observatories. Arcsecond's cloud storage backend is [Amazon's S3](https://aws.amazon.com/s3/), and Oort has been thoroughly tested on recent Linux
+and macOS operating systems (it may need some tweaks on Windows).
 
-Cloud storage backend is [Amazon's S3](https://aws.amazon.com/s3/), and Oort has been thoroughly tested on recent Linux and macOS operating systems
-(it may need some tweaks on Windows).
+**Oort is a pure uploading tool, not a two-ways syncing tool.** A file that is deleted locally will remain in the cloud if already uploaded. Change of
+files in the cloud have no effect locally either.
 
-**Oort is a pure push up tool, not a two-ways syncing tool.** A file that is deleted locally will remain in the cloud if already uploaded. Change of
-files in the cloud have no effect locally either. Oort works in the background, in batch mode. When one or more folders started to be "watched", any
-new file inside them is sent to the cloud.
+Oort can be used by an observatory, when data is acquired during the night and are saved on disk. Upon save, files will be immediately sent to the
+cloud in an orderly manner, organised inside datasets, in the background. Or it can be used by individual astronomers or science groups who want to
+easily upload their data archive.
 
-Oort can be used by an observatory, to store data specifically for that organisation. For that, the organisation must have been registered first, and
-subdomain defined. See also the `--organisation` option below. Or by individual astronomers who want to store data in a cloud dedicated to astronomical
-data.
+If you are an observatory, or an astronomical consortium, or any institute interested in storing astronomical data in the
+cloud, [contact us](mailto:team@arcsecond.io). We would be happy to open a portal for you to see and try to upload data.
 
-[Contact us](mailto:team@arcsecond.io). We would be happy to open a portal for you to see and try to upload data.
-
-Oort comes with a small local web server to monitor the uploader, and this is what it looks like when running:
+In batch mode, Oort comes with a small local web server to monitor the uploader, and this is what it looks like when running:
 ![https://arcsecond-io.github.io/oort/assets/oort-screenshot-uploading.png](./assets/oort-screenshot-uploading.png)
 (<a href="https://arcsecond-io.github.io/oort/assets/oort-screenshot-uploading.png">enlarge</a>)
 
@@ -43,58 +40,78 @@ Upgrade oort-cloud:
 $ pip install oort-cloud --upgrade
 ```
 
-Note that a PyPi package named `oort` (without the `-cloud`) already exists (unfortunately), and has nothing to do with our case. The CLI commands
-below nonetheless start with `oort` only.
+## Datasets
 
-## Direct mode
+Oort is using the folder structure to infer organisation of files inside datasets. And there is one simple rule to know: **1 folder (or subfolder) = 1
+dataset**. The rule is voluntarily simple to make Oort focused and reliable. Subsequent re-organisation, renaming etc will occur on the online
+platform.
 
-Oort can be used in a pure "upload this folder right now, please", a.k.a "direct" mode. It is suited for cases where a folder contains existing files
-of data, and the content of the folder won;'t change over time. (Note that, if it does, the command can be safely re-run).
+Moreover, for every file on disk, there will be a DataFile object. All these DataFiles are grouped inside the corresponding Dataset.
 
-Here are the commands (the first one is to login to Arcsecond.io if not yet done):
+Datasets and DataFiles will be tagged with various information (folder name, telescope UUID etc) to help Arcsecond's backend post-process the files.
+
+## Oort has two different modes
+
+Oort has two modes, which can be used simultaneously. Make sure to login first in any case:
 
 ```bash
 oort login
+```
+
+### Direct mode
+
+Oort can be used in a pure "upload this folder right now, please" manner, a.k.a the "direct" mode. It is suited for cases where a folder contains
+existing files of data, and the content of the folder won't change over time. (Note that if it does, the command can be safely re-run).
+
+**All non-hidden files will be uploaded.** Be careful to choose folders that contain only data you want to send to the cloud. Of course, in case of a
+mistake, the data can later on be deleted from the various Data pages available on [https://www.arcsecond.io](https://www.arcsecond.io).
+
+Here are the command for basic direct upload:
+
+```bash
 oort upload [OPTIONS] folder
 ```
 
-The `OPTIONS` part of `oort watch` is important. There are three options:
+There are three `OPTIONS`:
 
-* `-o <subdomain>` (or `--organisation <subdomain>`) to specify that uploads of that folder will be sent to that organisation.
-* `-t <telescope uuid>` (or `--telescope <telescope uuid>`) to specify which telescope has been used. This option is mandatory for uploads to an
-  organisation, and optional for uploads to a personal account.
+* `-o <subdomain>` (or `--organisation <subdomain>`) to tell Oort to send files to an organisation account.
+* `-t <telescope uuid>` (or `--telescope <telescope uuid>`) to specify the telescope with which that data must be associated. This option is mandatory
+  for uploads to an organisation account, and optional for uploads to a personal account.
 * `-f` (or `--force`) to force the re-upload of the folder's content. As always, existing files in the cloud will never be modified or overwritten.
   Simply, Oort will reset the local metadata it keeps for every upload, and start over.
 
-Oort will summarise the settings associated with the folder, and ask for confirmation before proceeding.
+The `upload` command will summarise the settings associated with the folder, and ask for confirmation before proceeding.
 
-**All non-hidden files will be uploaded.** And data files can be compressed automatically before upload. See below for details.
-
-## Batch / background mode
+### Batch / background mode
 
 Oort batch mode works by watching for files in a folder, and automatically upload them to the cloud in the background. This mode is designed for "live
 mode" where data files are being sent to a folder, during the night. Hence the content of the folder changes over time.
 
-Oort has an almost-no-step-3 usage (the first one is to login to Arcsecond.io if not yet done):
+**All non-hidden files will be uploaded.** Be careful to choose folders that contain only data you want to send to the cloud. Of course, in case of a
+mistake, the data can later on be deleted from the various Data pages available on [https://www.arcsecond.io](https://www.arcsecond.io).
+
+To start, or restart the Oort batch mode, including the uploader and the server (see below), simply issue the command once:
 
 ```bash
-oort login
 oort restart
+```
+
+Then, to tell Oort which folder(s) to watch for existing and future files, the command is:
+
+```bash
 oort watch [OPTIONS] folder1 folder2 ...
 ```
 
 The `OPTIONS` part of `oort watch` is important. There are three options:
 
-* `-o <subdomain>` (or `--organisation <subdomain>`) to specify that uploads of that folder will be sent to that organisation.
-* `-t <telescope uuid>` (or `--telescope <telescope uuid>`) to specify which telescope has been used. This option is mandatory for uploads to an
-  organisation, and optional for uploads to a personal account.
+* `-o <subdomain>` (or `--organisation <subdomain>`) to tell Oort to send files to an organisation account.
+* `-t <telescope uuid>` (or `--telescope <telescope uuid>`) to specify the telescope with which that data must be associated. This option is mandatory
+  for uploads to an organisation account, and optional for uploads to a personal account.
 * `-z` (or `--zip`) to automatically gzip data files (FITS and XISF, other files aren't touched) before upload. Default is False. Note that switching
   zip on will modify the content of the folder (replacing files with zipped ones), hence impacting a possible backup system. Moreover, zipping will
-  require some CPU resource.
+  require some CPU resource. On the other hand, it will reduce the bandwidth usage and storage footprint.
 
-Oort will summarise the settings associated with the new watched folder, and ask for confirmation before proceeding.
-
-**All non-hidden files will be uploaded.** And data files can be compressed automatically before upload. See below for details.
+The `watch` command will summarise the settings associated with the new watched folder, and ask for confirmation before proceeding.
 
 ### How does the batch mode work?
 
@@ -117,55 +134,55 @@ you work on PC17. Oort watch command has been issued on PC42. From PC17 you can 
 
 ### All batch mode commands
 
+Use:
+
 * `oort start`, to start the batch-uploader and the monitor-server.
 * `oort stop` to stop the batch-uploader and the monitor-server
 * `oort restart`, in case you need a full reconfiguration and restart.
 * `oort status` to check the status of the two processes.
-* `oort logs` to read the latest batch-uploader logs in the terminal.
+* `oort logs` to display the latest batch-uploader logs in the terminal.
 * `oort open` to open the monitor web server in the default browser
+* `oort folders` to display a list of the folders watched abd their settings.
 
-## Other commands
+## Other Oort commands
 
-* `oort folders` to display a list of the folders watched in background.
+Use:
+
 * `oort telescopes` to get a list of telescopes available.
-* `oort login` to login to Arcsecond.io first.
+* `oort login` to login to your personal Arcsecond.io account.
+* `oort --version` to display Oort version
 * `oort` or `oort --help` for a complete help.
 
-All commands have dedicated help accessible with `oort <command> --help`
+All commands have a dedicated help accessible with `oort <command> --help`
 
 There is no need of using `sudo` in any case with oort.
 
-## File extensions
+## How files are treated
+
+### File extensions
 
 All non-hidden files found in the watch folder or one of its subfolder will be uploaded. Files can have an extension or not (for instance `README`
-files will also be uploaded).
-**Hidden files starting with a dot will not be uploaded.**
+files will also be uploaded). Hidden files starting with a dot will not be uploaded.
 
-As for the data, **Oort support XISF and FITS files, zipped or not.**
-Oort will accept files with the following FITS filename extensions:
+As for the data, **Oort support XISF and FITS files, zipped or not.** Oort will accept files with the following FITS filename extensions:
 `.fits`, `.fit`, `.fts`, `.ft`, `.mt`, `.imfits`, `.imfit`, `.uvfits`,
 `.uvfit`, `.pha`, `.rmf`, `.arf`, `.rsp`, `.pi`
 as well as `.xisf` ones.
 
 Moreover, these extensions can be augmented with the following zipped file extensions: `.zip`, `.gz`, `.bz2`
 
-## File compression
+### File compression
 
 Files to be uploaded can be already compressed or not. Oort is able to deal with any of them transparently.
 
 If a XISF or FITS file is being detected and the zip option is set (in the `watch` command), it will be zipped (with standard)
-`gzip` compression before being uploaded. The compression is made locally just beside the original file, which will be deleting once zip is done (as
-would a normal `gzip` command do in the terminal).
+`gzip` compression before being uploaded. The compression is made locally just beside the original file. That latter file will be deleted once the zip
+is done (as would a normal `gzip` command do in the terminal).
 
 **Oort includes an interruption handler that will stop any zip process running**, would any problem occurs preventing the process to complete. More
 precisely it will stop zip processes on `SIGINT`, `SIGQUIT` and `SIGTERM`.
 
 Of course, if the folder is read-only for its user, no zipping will be made.
-
-## Folder structure and Data organisation
-
-Oort is using the folder structure to infer organisation of files inside datasets. And there is one simple rule to know: **1 folder (or subfolder) = 1
-dataset**. The rule is voluntarily simple to make Oort focused and reliable. Subsequent re-organisation, renaming etc will occur on the backend.
 
 ## Additional things you must be aware of
 
@@ -178,3 +195,4 @@ dataset**. The rule is voluntarily simple to make Oort focused and reliable. Sub
   modification, or improvement. Please, use the standard GitHub pull-request mechanism.
 * The only auxiliary data that is collected and attached as tag of the files and datasets are the machine hostname (the output of the `uname -n`
   command). See inside `oort/uploader/engine/preparator.py` and `uploader.py` for the line `socket.gethostname()`.
+* Oort keeps all its meta data inside a hidden folder in `~/.oort`. Be careful not modifying the content of it without knowing what you do.
