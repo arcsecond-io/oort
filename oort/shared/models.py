@@ -1,5 +1,4 @@
 import atexit
-import math
 import pathlib
 from datetime import datetime
 from enum import Enum
@@ -19,8 +18,9 @@ from playhouse.sqliteq import SqliteQueueDatabase
 
 from oort.shared.config import get_oort_db_file_path
 from oort.shared.constants import ZIP_EXTENSIONS
-
 # Create global instance 'db'
+from oort.shared.utils import get_formatted_bytes_size
+
 db = SqliteQueueDatabase(str(get_oort_db_file_path()),
                          use_gevent=False,
                          autostart=True,
@@ -173,12 +173,7 @@ class Upload(BaseModel):
 
     def get_formatted_size(self) -> str:
         size = self.file_size or self.file_size_zipped or 0
-        if size == 0:
-            return '0 Bytes'
-        k = 1024
-        units = ['Bytes', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
-        i = math.floor(math.log10(1.0 * size) / math.log10(k))
-        return f"{(size / math.pow(k, i)):.2f} {units[i]}"
+        return get_formatted_bytes_size(size)
 
     def archive(self, substatus):
         return self.smart_update(status=Status.OK.value, substatus=substatus, ended=datetime.now())

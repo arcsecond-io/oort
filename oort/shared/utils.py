@@ -1,4 +1,5 @@
 import datetime
+import math
 import os
 import random
 import string
@@ -78,3 +79,11 @@ def get_username():
     import pwd
 
     return pwd.getpwuid(os.getuid())[0]
+def get_formatted_bytes_size(size):
+    if size == 0:
+        return '0 Bytes'
+    k = 1024
+    units = ['Bytes', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
+    i = math.floor(math.log10(1.0 * size) / math.log10(k))
+    return f"{(size / math.pow(k, i)):.2f} {units[i]}"
+
