@@ -46,12 +46,12 @@ $ pip install oort-cloud --upgrade
 Note that a PyPi package named `oort` (without the `-cloud`) already exists (unfortunately), and has nothing to do with our case. The CLI commands
 below nonetheless start with `oort` only.
 
-## Commands
+## Direct mode
 
-### Start & Upload
+Oort can be used in a pure "upload this folder right now, please", a.k.a "direct" mode. It is suited for cases where a folder contains existing files
+of data, and the content of the folder won;'t change over time. (Note that, if it does, the command can be safely re-run).
 
-Even if Oort primary philosophy is to watch for files in a folder, and automatically upload them to the cloud, it can be used in a pure "upload this
-folder, please" mode. Basically (the first one is to login to Arcsecond.io if not yet done):
+Here are the commands (the first one is to login to Arcsecond.io if not yet done):
 
 ```bash
 oort login
@@ -63,13 +63,17 @@ The `OPTIONS` part of `oort watch` is important. There are three options:
 * `-o <subdomain>` (or `--organisation <subdomain>`) to specify that uploads of that folder will be sent to that organisation.
 * `-t <telescope uuid>` (or `--telescope <telescope uuid>`) to specify which telescope has been used. This option is mandatory for uploads to an
   organisation, and optional for uploads to a personal account.
-* `-f` (or `--force`) to force the re-upload of the folder's content. Existing cloud files won't be modified by this command. Oort will simply reset
-  the local meta-data it keeps for every upload, and start over.
+* `-f` (or `--force`) to force the re-upload of the folder's content. As always, existing files in the cloud will never be modified or overwritten.
+  Simply, Oort will reset the local metadata it keeps for every upload, and start over.
 
-### Start & ... Watch
+Oort will summarise the settings associated with the folder, and ask for confirmation before proceeding.
 
-Oort primary philosophy is to watch for files in a folder, and automatically upload them to the cloud. **Do not watch your home folder!** But rather,
-watch only folders dedicated to contain data files and their auxiliary files.
+**All non-hidden files will be uploaded.** And data files can be compressed automatically before upload. See below for details.
+
+## Batch / background mode
+
+Oort batch mode works by watching for files in a folder, and automatically upload them to the cloud in the background. This mode is designed for "live
+mode" where data files are being sent to a folder, during the night. Hence the content of the folder changes over time.
 
 Oort has an almost-no-step-3 usage (the first one is to login to Arcsecond.io if not yet done):
 
@@ -90,47 +94,46 @@ The `OPTIONS` part of `oort watch` is important. There are three options:
 
 Oort will summarise the settings associated with the new watched folder, and ask for confirmation before proceeding.
 
-After a `oort watch` command is issued, oort will first walk through the whole folder tree and upload existing files. Then it will detect and upload
-any new file being added inside the watched folder (and in all of its subfolders).
-
 **All non-hidden files will be uploaded.** And data files can be compressed automatically before upload. See below for details.
 
-### Manage and Monitor
-
-* `oort login` to login to Arcsecond.io first.
-* `oort status` to check the status of the two processes (see below)
-* `oort update` to update processes after upgrade Oort version.
-* `oort open` to open the web server in the default browser
-* `oort logs` to read the latest logs in the terminal.
-
-And:
-
-* `oort restart`, in case you need a full restart.
-* `oort` or `oort --help` for a complete help.
-
-There is no need of using `sudo` in any case with oort.
-
-## How does it work?
+### How does the batch mode work?
 
 Oort-Cloud works by managing 2 processes:
 
-• An **uploader**, which takes care of creating/syncing the Datasets and Datafiles objects in Arcsecond.io (either in your personal account, or your
-Organisation). And then upload the files.
+• A **batch-uploader**, which takes care of creating/syncing the Datasets and Datafiles objects in Arcsecond.io (either in your personal account, or
+your Organisation). And then upload the files.
 
-• A **server** (small local web server), which allow you to observe, control and setup what is happening in the uploader (and find what happened before
-too).
+• A **monitor-server** (small local web server), which allow you to observe, control and setup what is happening in the uploader (and find what
+happened before too).
 
-A subset of the `oort` subcommands is dedicated to start, stop and get status of these two processes. These processes are managed by a
-small `supervisord`
-daemon.
+These processes are **managed** (by a small `supervisord` daemon), that is, they are automatically restarted if they crash.
 
-These processes are **managed**, that is, they are automatically restarted if they crash. Use the command `oort logs` to get the latest logs of these
-processes.
+### Why 0.0.0.0:5000 ?
 
 The little web server that Oort starts locally has the address <code>http://0.0.0.0:5000 </code>. With such IP address, the oort processes can run in
 the PC where data is sent to, and still being monitored from a remote PC without login. Say for instance the PC that receives all the data is PC42 and
 you work on PC17. Oort watch command has been issued on PC42. From PC17 you can monitor what happens on PC42 by simply visiting
 <code>http://&lt;ip address of pc42&gt;:5000 </code>.
+
+### All batch mode commands
+
+* `oort start`, to start the batch-uploader and the monitor-server.
+* `oort stop` to stop the batch-uploader and the monitor-server
+* `oort restart`, in case you need a full reconfiguration and restart.
+* `oort status` to check the status of the two processes.
+* `oort logs` to read the latest batch-uploader logs in the terminal.
+* `oort open` to open the monitor web server in the default browser
+
+## Other commands
+
+* `oort folders` to display a list of the folders watched in background.
+* `oort telescopes` to get a list of telescopes available.
+* `oort login` to login to Arcsecond.io first.
+* `oort` or `oort --help` for a complete help.
+
+All commands have dedicated help accessible with `oort <command> --help`
+
+There is no need of using `sudo` in any case with oort.
 
 ## File extensions
 
