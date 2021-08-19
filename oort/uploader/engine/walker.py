@@ -11,7 +11,7 @@ def walk(folder_path: str, identity: Identity, force, debug: bool):
     if identity.subdomain:
         check_remote_organisation(identity.subdomain, debug, verbose=False)
 
-    log_prefix = ['[Walker]']
+    log_prefix = '[Walker]'
     logger = get_oort_logger('walker', debug=debug)
     logger.info(f"{log_prefix} Starting upload walk through {folder_path} and its subfolders...")
     logger.warn(f"{log_prefix} Force flag is {'True' if force else 'False'}")
