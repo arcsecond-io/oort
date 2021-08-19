@@ -4,14 +4,14 @@ import subprocess
 from configparser import ConfigParser
 from datetime import datetime
 
-from oort.shared.config import (get_oort_logger, get_oort_config_file_path, get_oort_config_socket_file_path,
+from oort.shared.config import (get_oort_config_file_path, get_oort_config_socket_file_path, get_oort_logger,
                                 get_oort_supervisor_conf_file_path, get_oort_supervisord_log_file_path,
                                 get_oort_supervisord_pid_file_path)
 from oort.shared.constants import OORT_SUPERVISOR_SOCK_FILENAME
 from oort.shared.utils import get_username
 
-SERVER_PROCESS = 'oort-server'
-UPLOADER_PROCESS = 'oort-uploader'
+SERVER_PROCESS = 'oort-monitor-server'
+UPLOADER_PROCESS = 'oort-batch-uploader'
 DEFAULT_PROCESSES = [SERVER_PROCESS, UPLOADER_PROCESS]
 
 
@@ -51,12 +51,13 @@ def reconfigure_supervisor(debug=False):
     conf.set('inet_http_server', 'port', '127.0.0.1:9001')
 
     spec = importlib.util.find_spec('oort')
-    for command in ['server', 'uploader']:
-        command_path = os.path.join(os.path.dirname(spec.origin), command, 'main.py')
+    for command in DEFAULT_PROCESSES:
+        short_command = command.split('-')[-1]
+        command_path = os.path.join(os.path.dirname(spec.origin), short_command, 'main.py')
         # Making sure they are executable
         os.chmod(command_path, 0o744)
 
-        section_name = f'program:oort-{command}'
+        section_name = f'program:{command}'
         if section_name not in conf.sections():
             conf.add_section(section_name)
 
@@ -132,7 +133,7 @@ def stop_supervisor_daemon(debug=False):
     logger.info('Stopping supervisord (if any)...')
 
     conf = ConfigParser()
-    conf.read(get_oort_supervisor_conf_file_path())
+    conf.read(str(get_oort_supervisor_conf_file_path()))
     if 'supervisord' not in conf.sections():
         logger.debug('No supervisord section in config file.')
         return
@@ -152,7 +153,7 @@ def start_supervisor_processes(*args, debug=True):
     logger.debug('Starting Oort processes...')
     if len(args) == 0:
         args = DEFAULT_PROCESSES
-    subprocess.run(["supervisorctl", "-c", get_oort_supervisor_conf_file_path(), "start"] + list(args))
+    subprocess.run(["supervisorctl", "-c", str(get_oort_supervisor_conf_file_path()), "start"] + list(args))
     logger.debug('Start done.')
 
 
@@ -161,7 +162,7 @@ def stop_supervisor_processes(*args, debug=True):
     if len(args) == 0:
         args = DEFAULT_PROCESSES
     logger.info('Stopping Oort processes (if any)...')
-    subprocess.run(["supervisorctl", "-c", get_oort_supervisor_conf_file_path(), "stop"] + list(args),
+    subprocess.run(["supervisorctl", "-c", str(get_oort_supervisor_conf_file_path()), "stop"] + list(args),
                    capture_output=True)
     logger.debug('Stop done.')
 
@@ -178,5 +179,5 @@ def update_supervisor_processes(*args, debug=True):
 def get_supervisor_processes_status(*args, debug=True):
     logger = get_oort_logger('cli', debug=debug)
     logger.debug('Getting status of Oort processes...')
-    subprocess.run(["supervisorctl", "-c", get_oort_supervisor_conf_file_path(), "status"] + list(args))
+    subprocess.run(["supervisorctl", "-c", str(get_oort_supervisor_conf_file_path()), "status"] + list(args))
     logger.debug('Getting status done.')

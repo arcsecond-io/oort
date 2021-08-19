@@ -42,7 +42,8 @@ def get_oort_db_file_path() -> Path:
 
 
 def get_oort_supervisor_conf_file_path() -> Path:
-    return _get_directory_path() / 'supervisord.conf'
+    suffix = '-tests' if os.environ.get('OORT_TESTS') == '1' else ''
+    return _get_directory_path() / f'supervisord{suffix}.conf'
 
 
 def get_oort_logger(process_name, debug=False) -> Logger:
