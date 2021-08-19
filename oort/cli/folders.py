@@ -77,7 +77,7 @@ def check_telescope(telescope_uuid: Optional[Union[str, UUID]],
                     org_subdomain: Optional[str],
                     debug: bool,
                     verbose: bool) -> Optional[dict]:
-    click.echo("Fetching telescope details...")
+    click.echo(" • Fetching telescope details...")
 
     test = os.environ.get('OORT_TESTS') == '1'
     kwargs = {'debug': debug, 'test': test, 'verbose': verbose}
