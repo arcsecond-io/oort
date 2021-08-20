@@ -113,12 +113,7 @@ class FileUploader(object):
         else:
             if exists_remotely:
                 self._logger.info(f'{self.log_prefix} Already synced.')
-                self._upload.smart_update(status=Status.OK.value,
-                                          substatus=Substatus.ALREADY_SYNCED.value,
-                                          error='',
-                                          ended=datetime.now(),
-                                          progress=0,
-                                          duration=0)
+                self._upload.smart_update(status=Status.OK.value, substatus=Substatus.ALREADY_SYNCED.value)
             else:
                 _should_perform = True
 
