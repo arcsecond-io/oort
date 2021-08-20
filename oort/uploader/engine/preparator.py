@@ -159,64 +159,6 @@ class UploadPreparator(object):
         else:
             self._pack.upload.smart_update(telescope=self._telescope)
 
-    # def _sync_night_log(self):
-    #     self._logger.info(f'{self.log_prefix} Syncing NIGHT_LOG...')
-    #     self._pack.upload.smart_update(substatus=Substatus.SYNC_NIGHTLOG.value)
-    #
-    #     # NightLogs are completely determined if they have a date and a telescope.
-    #     # Since a telescope is required for organisation uploads, NightLogs are completely determined
-    #     # for organisations. There will be an ambiguity for personal upload without telescope.
-    #     kwargs = {'date': self._pack.night_log_date_string}
-    #     if self._identity.telescope:
-    #         kwargs.update(telescope=self._identity.telescope)
-    #     else:
-    #         msg = f'{self.log_prefix} No Telescope provided for NightLog {self._pack.night_log_date_string}.'
-    #         self._logger.warn(msg)
-    #
-    #     night_log_api = ArcsecondAPI.nightlogs(**self._api_kwargs)
-    #     night_log_dict = self._find_remote_resource(night_log_api, **kwargs)
-    #     if night_log_dict is None:
-    #         night_log_dict = self._create_remote_resource(night_log_api, **kwargs)
-    #
-    #     try:
-    #         self._night_log = NightLog.get(uuid=night_log_dict['uuid'])
-    #     except DoesNotExist:
-    #         self._night_log = NightLog.create(**night_log_dict)
-    #     else:
-    #         self._night_log.smart_update(**night_log_dict)
-    #
-    # def _sync_observation_or_calibration(self):
-    #     # self._pack.remote_resources_name is either 'observations' or 'calibrations'
-    #     self._logger.info(f'{self.log_prefix} Syncing {self._pack.remote_resources_name[:-1].upper()}...')
-    #     self._pack.upload.smart_update(substatus=Substatus.SYNC_OBS_OR_CALIB.value)
-    #
-    #     search_kwargs = {'night_log': str(self._night_log.uuid),
-    #                      'dataset': str(self._dataset.uuid)}
-    #
-    #     create_kwargs = {'night_log': str(self._night_log.uuid),
-    #                      'dataset': str(self._dataset.uuid),
-    #                      'name': self._pack.clean_folder_name}
-    #
-    #     if self._pack.resource_type == 'observation':
-    #         create_kwargs.update(target_name=self._pack.target_name)
-    #         print(f'\n\n{create_kwargs}\n\n')
-    #
-    #     resources_api = getattr(ArcsecondAPI, self._pack.remote_resources_name)(**self._api_kwargs)
-    #     resource_dict = self._find_remote_resource(resources_api, **search_kwargs)
-    #     if resource_dict is None:
-    #         resource_dict = self._create_remote_resource(resources_api, **create_kwargs)
-    #
-    #     resource_dict.pop('night_log')
-    #     try:
-    #         self._obs_or_calib = self._pack.resource_db_class.get(uuid=resource_dict['uuid'])
-    #     except DoesNotExist:
-    #         self._obs_or_calib = self._pack.resource_db_class.create(**resource_dict)
-    #     else:
-    #         self._obs_or_calib.smart_update(**resource_dict)
-    #     self._obs_or_calib.smart_update(night_log=self._night_log)
-    #
-    #     self._dataset.smart_update(**{self._pack.resource_type: self._obs_or_calib})
-
     def prepare(self):
         self._logger.info(f'{self.log_prefix} Preparation started for {self._pack.final_file_name}')
         self._pack.upload.smart_update(status=Status.PREPARING.value)
