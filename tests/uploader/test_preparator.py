@@ -49,7 +49,6 @@ def test_preparator_init_no_org():
 
 @use_test_database
 def test_preparator_init_with_org():
-    clear_arcsecond_test_credentials()
     save_arcsecond_test_credentials()
 
     identity = Identity(TEST_LOGIN_USERNAME,
