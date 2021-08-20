@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 
 from arcsecond import ArcsecondAPI
 from click.testing import CliRunner
@@ -72,6 +72,7 @@ def test_cli_upload_with_org_telescope_answer_nope():
 
     # Run
     with patch.object(ArcsecondAPI, 'read', return_value=(TEL_DETAILS, None)) as mock_method_read, \
+            patch('oort.uploader.engine.walker.walk') as mock_method_walk, \
             patch('builtins.input', return_value='Nope'):
         result = runner.invoke(upload, ['.', '-o', TEST_LOGIN_ORG_SUBDOMAIN, '-t', TEL_UUID])
 
@@ -79,25 +80,26 @@ def test_cli_upload_with_org_telescope_answer_nope():
         assert result.exit_code == 0
         assert f"arcsecond username: @{TEST_LOGIN_USERNAME}" in result.output.lower()
         assert f"uploading to organisation account '{TEST_LOGIN_ORG_SUBDOMAIN}'" in result.output.lower()
-        # mock_method_walk.assert_not_called()
+        mock_method_walk.assert_not_called()
         mock_method_read.assert_called_once()
 
-#
-# @use_test_database
-# def test_cli_upload_with_org_telescope_answer_yep():
-#     # Prepare
-#     save_arcsecond_test_credentials()
-#     Organisation.create(subdomain=TEST_LOGIN_ORG_SUBDOMAIN)
-#     runner = CliRunner()
-#
-#     with patch.object(ArcsecondAPI, 'read', return_value=(TEL_DETAILS, None)) as mock_method_read, \
-#             patch('builtins.input', return_value='\n'):
-#         # Run
-#         result = runner.invoke(upload, ['.', '-o', TEST_LOGIN_ORG_SUBDOMAIN, '-t', TEL_UUID])
-#
-#         # Assert
-#         assert result.exit_code == 0
-#         assert f"arcsecond username: @{TEST_LOGIN_USERNAME}" in result.output.lower()
-#         assert f"uploading to organisation account '{TEST_LOGIN_ORG_SUBDOMAIN}'" in result.output.lower()
-#         # mock_method_walk.assert_called_once()
-#         mock_method_read.assert_called_once()
+
+@use_test_database
+def test_cli_upload_with_org_telescope_answer_yep():
+    # Prepare
+    save_arcsecond_test_credentials()
+    Organisation.create(subdomain=TEST_LOGIN_ORG_SUBDOMAIN)
+    runner = CliRunner()
+
+    with patch.object(ArcsecondAPI, 'read', return_value=(TEL_DETAILS, None)) as mock_method_read, \
+            patch('oort.uploader.engine.walker.walk') as mock_method_walk, \
+            patch('builtins.input', return_value='\n'):
+        # Run
+        result = runner.invoke(upload, ['.', '-o', TEST_LOGIN_ORG_SUBDOMAIN, '-t', TEL_UUID])
+
+        # Assert
+        assert result.exit_code == 0
+        assert f"arcsecond username: @{TEST_LOGIN_USERNAME}" in result.output.lower()
+        assert f"uploading to organisation account '{TEST_LOGIN_ORG_SUBDOMAIN}'" in result.output.lower()
+        mock_method_read.assert_called_once()
+        mock_method_walk.assert_called_once_with('.', ANY, False, debug=False)
