@@ -54,10 +54,11 @@ def get_oort_logger(process_name, debug=False) -> Logger:
     if len(logger.handlers) == 0:
         formatter = Formatter('%(asctime)s - %(name)s[' + process_name + '] - %(levelname)s - %(message)s')
 
-        file_handler = FileHandler(str(get_oort_log_file_path()))
-        file_handler.setLevel(DEBUG if debug else INFO)
-        file_handler.setFormatter(formatter)
-        logger.addHandler(file_handler)
+        if os.environ.get('OORT_TESTS') != '1':
+            file_handler = FileHandler(str(get_oort_log_file_path()))
+            file_handler.setLevel(DEBUG if debug else INFO)
+            file_handler.setFormatter(formatter)
+            logger.addHandler(file_handler)
 
         console_handler = StreamHandler()
         console_handler.setLevel(DEBUG if debug else INFO)
