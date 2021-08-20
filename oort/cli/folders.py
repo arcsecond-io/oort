@@ -112,7 +112,7 @@ def check_remote_astronomer(username: str, upload_key: str, debug: bool, verbose
         raise InvalidAstronomerOortCloudError(username, upload_key, error_string=str(error))
 
 
-def check_organisation_uploadkeys(org_subdomain: str, username: str, upload_key: str, debug: bool, verbose: bool):
+def check_organisation_shared_keys(org_subdomain: str, username: str, upload_key: str, debug: bool, verbose: bool):
     test = os.environ.get('OORT_TESTS') == '1'
     kwargs = {'debug': debug, 'test': test, 'verbose': verbose, 'organisation': org_subdomain}
 
@@ -190,7 +190,7 @@ def parse_upload_watch_options(organisation: Optional[str] = None,
     #
     #     # Check that the custom astronomer has a valid upload_key for the given organisation.
     #     # This is where the knot is. This check can only be made by a member of the registered organisation.
-    #     check_organisation_uploadkeys(org_subdomain, username, upload_key, debug, verbose)
+    #     check_organisation_shared_keys(org_subdomain, username, upload_key, debug, verbose)
 
     return username, upload_key, org_subdomain, org_role, telescope_details
 
