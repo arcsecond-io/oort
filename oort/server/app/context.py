@@ -40,18 +40,18 @@ class Context:
 
     def _get_uploader_state(self):
         try:
-            _info = self._uploader.supervisor.getProcessInfo('oort-uploader')
+            _info = self._uploader.supervisor.getProcessInfo('oort-batch-uploader')
         except (ConnectionRefusedError, CannotSendRequest) as e:
             return str(e)[:30] + '...'
         else:
             return _info.get('statename')
 
     def updateUploader(self, action):
-        _info = self._uploader.supervisor.getProcessInfo('oort-uploader')
+        _info = self._uploader.supervisor.getProcessInfo('oort-batch-uploader')
         if action == 'stop' and _info.get('statename') == 'RUNNING':
-            self._uploader.supervisor.stopProcess('oort-uploader')
+            self._uploader.supervisor.stopProcess('oort-batch-uploader')
         elif action == 'start' and _info.get('statename') == 'STOPPED':
-            self._uploader.supervisor.startProcess('oort-uploader')
+            self._uploader.supervisor.startProcess('oort-batch-uploader')
 
     def to_dict(self):
         return {
