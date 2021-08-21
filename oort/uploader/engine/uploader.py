@@ -45,28 +45,19 @@ class FileUploader(object):
                 if self._display_progress is True:
                     print(f"{progress_percent:.2f}% ({duration:.2f} sec)", end="\r")
 
-        ffps = str(self._final_file_path)
-
-        tag_filepath = f'filepath|{ffps}'
-        tag_folder = f'folder|{self._pack.clean_folder_name}'
-        tag_root = f'root|{self._pack.root_folder_name}'
-        tag_origin = f'origin|{socket.gethostname()}|'
-        tag_uploader = f'uploader|{ArcsecondAPI.username()}'
-        tag_oort = f'oort|{__version__}'
-
-        payload = {'file': ffps, 'tags': [tag_filepath, tag_folder, tag_root, tag_origin, tag_uploader, tag_oort]}
-
         self._async_file_uploader: AsyncFileUploader
         if remote_resource_exists:
             self._logger.info(f"{self.log_prefix} Remote resource exists. Preparing 'Update' APIs.")
-            self._async_file_uploader, error = self._api.update(self._final_file_path.name, payload,
+            self._async_file_uploader, error = self._api.update(self._final_file_path.name,
+                                                                {'file': str(self._final_file_path)},
                                                                 callback=update_upload_progress)
         else:
             self._logger.info(f"{self.log_prefix} Remote resource does not exist. Preparing 'Create' APIs.")
-            self._async_file_uploader, error = self._api.create(payload, callback=update_upload_progress)
+            self._async_file_uploader, error = self._api.create({'file': str(self._final_file_path)},
+                                                                callback=update_upload_progress)
 
         if error is not None:
-            msg = f'{self.log_prefix} API preparation error for {ffps}: {str(error)}'
+            msg = f'{self.log_prefix} API preparation error for {str(self._final_file_path)}: {str(error)}'
             self._logger.error(msg)
 
     def _check_remote_resource_and_file(self):
@@ -135,32 +126,48 @@ class FileUploader(object):
 
         self._upload.smart_update(status=status, substatus=substatus, error=error)
 
-    def upload_file(self):
-        self._logger.info(f'{self.log_prefix} Opening upload sequence.')
-
-        if not self._check():
-            return
-
+    def _perform_upload(self):
         self._upload.smart_update(status=Status.UPLOADING.value, substatus=Substatus.STARTING.value, error='')
-        self._logger.info(f'{self.log_prefix} Starting upload ({self._upload.get_formatted_size()})')
+
+        file_size = self._upload.get_formatted_size()
+        self._logger.info(f'{self.log_prefix} Starting upload ({file_size})')
 
         self._async_file_uploader.start()
         _, upload_error = self._async_file_uploader.finish()
 
         ended = datetime.now()
-        self._upload.smart_update(ended=ended, progress=0, duration=(ended - self._upload.started).total_seconds())
+        duration = (ended - self._upload.started).total_seconds()
+        self._upload.smart_update(ended=ended, progress=0, duration=duration)
 
         if upload_error:
             self._logger.info(f'{self.log_prefix} {str(upload_error)}')
             self._process_upload_error(upload_error)
         else:
-            msg = f'{self.log_prefix} Successfully uploaded {self._upload.get_formatted_size()}'
-            msg += f' in {self._upload.duration} seconds.'
-            self._logger.info(msg)
+            self._logger.info(f'{self.log_prefix} Successfully uploaded {file_size} in {duration} seconds.')
             self._upload.smart_update(status=Status.OK.value, substatus=Substatus.DONE.value, error='')
 
+    def _update_file_tags(self):
+        tag_filepath = f'oort|filepath|{str(self._final_file_path)}'
+        tag_folder = f'oort|folder|{self._pack.clean_folder_name}'
+        tag_root = f'oort|root|{self._pack.root_folder_name}'
+        tag_origin = f'oort|origin|{socket.gethostname()}|'
+        tag_uploader = f'oort|uploader|{ArcsecondAPI.username()}'
+        tag_oort = f'oort|version|{__version__}'
+
+        tags = [tag_filepath, tag_folder, tag_root, tag_origin, tag_uploader, tag_oort]
+        _, error = self._api.update(self._final_file_path.name, {'tags': tags})
+
+        if error is not None:
+            self._logger.error(f'{self.log_prefix} {str(error)}')
+
+    def upload_file(self):
+        self._logger.info(f'{self.log_prefix} Opening upload sequence.')
         if self._should_perform_upload():
+            self._perform_upload()
         self._logger.info(f'{self.log_prefix} Closing upload sequence.')
+
+        self._logger.info(f'{self.log_prefix} Updating file tags.')
+        self._update_file_tags()
 
     @property
     def is_started(self):
