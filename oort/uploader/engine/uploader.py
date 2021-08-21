@@ -93,7 +93,7 @@ class FileUploader(object):
 
         return _remote_resource_has_file
 
-    def _check(self):
+    def _should_perform_upload(self):
         _should_perform = False
         self._upload.smart_update(started=datetime.now())
 
@@ -159,6 +159,7 @@ class FileUploader(object):
             self._logger.info(msg)
             self._upload.smart_update(status=Status.OK.value, substatus=Substatus.DONE.value, error='')
 
+        if self._should_perform_upload():
         self._logger.info(f'{self.log_prefix} Closing upload sequence.')
 
     @property
