@@ -119,7 +119,7 @@ class FileUploader(object):
 
         return _should_perform
 
-    def _process_error(self, error):
+    def _process_upload_error(self, error):
         status, substatus, error = Status.ERROR.value, Substatus.ERROR.value, str(error)
 
         try:
@@ -152,7 +152,7 @@ class FileUploader(object):
 
         if upload_error:
             self._logger.info(f'{self.log_prefix} {str(upload_error)}')
-            self._process_error(upload_error)
+            self._process_upload_error(upload_error)
         else:
             msg = f'{self.log_prefix} Successfully uploaded {self._upload.get_formatted_size()}'
             msg += f' in {self._upload.duration} seconds.'
