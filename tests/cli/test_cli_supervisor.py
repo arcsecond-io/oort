@@ -14,7 +14,8 @@ from oort.shared.config import get_oort_supervisor_conf_file_path
 
 def test_reconfigure_supervisor():
     supervisor_conf_file_path = get_oort_supervisor_conf_file_path()
-    supervisor_conf_file_path.unlink(missing_ok=True)
+    if supervisor_conf_file_path.exists():
+        supervisor_conf_file_path.unlink()  # avoid missing_ok=True parameter which doesn't exist in all Python versions
     reconfigure_supervisor()
     conf = ConfigParser()
     conf.read(str(supervisor_conf_file_path))
