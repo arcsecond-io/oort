@@ -42,11 +42,38 @@ $ pip install oort-cloud --upgrade
 
 ## Datasets
 
-Oort is using the folder structure to infer organisation of files inside datasets. And there is one simple rule to know: **1 folder (or subfolder) = 1
-dataset**. The rule is voluntarily simple to make Oort focused and reliable. Subsequent re-organisation, renaming etc will occur on the online
-platform.
+Oort is using the folder structure to put files inside datasets. And there is one simple rule to know: **1 folder (or subfolder) = 1 dataset**. The
+rule is voluntarily simple to make Oort focused and reliable. Subsequent re-organisation, renaming etc will occur on the online platform.
 
 Moreover, for every file on disk, there will be a DataFile object. All these DataFiles are grouped inside the corresponding Dataset.
+
+For instance, for a folder structure on disk, where Oort has been instructed to upload the content of the folder `data`:
+
+```
+data
+│   README.md
+│   file001.txt    
+│
+└───folder1
+│   │   file011.fits
+│   │   file012.xisf
+│   │
+│   └───subfolder1
+│       │   .hidden_file111.txt
+│       │   file112.asf
+│       │   ...
+│   
+└───folder2
+    │   file021.jpeg
+    │   file022.fts
+```
+
+There will be 4 datasets, with the following names:
+
+* `data` containing `README.md` and `file001.txt`
+* `data/folder1` containing `file011.fits` and `file012.xisf`
+* `data/folder1/subfolder1` containing `file112.asf` only
+* `data/folder2` containing `file021.jpeg` and `file022.fts`
 
 Datasets and DataFiles will be tagged with various information (folder name, telescope UUID etc) to help Arcsecond's backend post-process the files.
 
@@ -80,7 +107,7 @@ There are three `OPTIONS`:
 * `-f` (or `--force`) to force the re-upload of the folder's content. As always, existing files in the cloud will never be modified or overwritten.
   Simply, Oort will reset the local metadata it keeps for every upload, and start over.
 
-The `upload` command will summarise the settings associated with the folder, and ask for confirmation before proceeding.
+The `upload` command will summarise its settings and ask for confirmation before proceeding.
 
 ### Batch / background mode
 
@@ -111,7 +138,7 @@ The `OPTIONS` part of `oort watch` is important. There are three options:
   zip on will modify the content of the folder (replacing files with zipped ones), hence impacting a possible backup system. Moreover, zipping will
   require some CPU resource. On the other hand, it will reduce the bandwidth usage and storage footprint.
 
-The `watch` command will summarise the settings associated with the new watched folder, and ask for confirmation before proceeding.
+The `watch` command will summarise its settings and ask for confirmation before proceeding.
 
 ### How does the batch mode work?
 
@@ -128,9 +155,12 @@ These processes are **managed** (by a small `supervisord` daemon), that is, they
 ### Why 0.0.0.0:5000 ?
 
 The little web server that Oort starts locally has the address <code>http://0.0.0.0:5000 </code>. With such IP address, the oort processes can run in
-the PC where data is sent to, and still being monitored from a remote PC without login. Say for instance the PC that receives all the data is PC42 and
-you work on PC17. Oort watch command has been issued on PC42. From PC17 you can monitor what happens on PC42 by simply visiting
-<code>http://&lt;ip address of pc42&gt;:5000 </code>.
+the PC where data is sent to, and still being monitored from a remote PC without login.
+
+It is particularly useful for observatories managing various PCs with different roles.
+
+Say for instance the PC that receives all the data is PC42 and you work on PC17. Oort watch command has been issued on PC42. From PC17 you can monitor
+what happens on PC42 by simply visiting <code>http://&lt;ip address of pc42&gt;:5000 </code>.
 
 ### All batch mode commands
 
@@ -148,8 +178,8 @@ Use:
 
 Use:
 
-* `oort telescopes` to get a list of telescopes available.
-* `oort login` to login to your personal Arcsecond.io account.
+* `oort telescopes` to get a list of telescopes available (filtered to an organisation with the `-o <subdomain>` option).
+* `oort login` to login to your personal Arcsecond.io account and fetch your personal upload key.
 * `oort --version` to display Oort version
 * `oort` or `oort --help` for a complete help.
 
@@ -191,8 +221,8 @@ Of course, if the folder is read-only for its user, no zipping will be made.
   these credentials safe**.
 * Note that `oort login` fetches a limited-scope upload key, just enough to perform its task.
 * If uploading for an organisation, Oort must necessarily be run by a member of it (quite obviously).
-* This tool is open-source obviously to let anyone it doesn't send or use data that has not explicitly marked for uploading. It is also open for
+* This tool is open-source obviously to let anyone sees it doesn't send or use data that has not explicitly marked for uploading. It is also open for
   modification, or improvement. Please, use the standard GitHub pull-request mechanism.
-* The only auxiliary data that is collected and attached as tag of the files and datasets are the machine hostname (the output of the `uname -n`
+* The only auxiliary data that is collected and attached as tag of the files and datasets is the machine hostname (the output of the `uname -n`
   command). See inside `oort/uploader/engine/preparator.py` and `uploader.py` for the line `socket.gethostname()`.
-* Oort keeps all its meta data inside a hidden folder in `~/.oort`. Be careful not modifying the content of it without knowing what you do.
+* Oort keeps all its metadata inside a hidden folder in `~/.oort`. Be careful not modifying the content of it without knowing what you do.
