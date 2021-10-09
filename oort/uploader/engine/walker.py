@@ -19,7 +19,7 @@ def walk(folder_string: str, identity: Identity, force, debug: bool):
     logger.info(f"{log_prefix} Starting upload walk through {folder_string} and its subfolders...")
     logger.warn(f"{log_prefix} Force flag is {'True' if force else 'False'}")
 
-    root_path = Path(folder_string)
+    root_path = Path(folder_string).resolve()
     # Just in case we pass a file...
     if root_path.is_file():
         root_path = root_path.parent
