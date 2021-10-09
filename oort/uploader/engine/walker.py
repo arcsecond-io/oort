@@ -10,16 +10,16 @@ from oort.shared.utils import is_hidden
 from oort.uploader.engine import packer
 
 
-def walk(folder_path: str, identity: Identity, force, debug: bool):
+def walk(folder_string: str, identity: Identity, force, debug: bool):
     if identity.subdomain:
         check_remote_organisation(identity.subdomain, debug, verbose=False)
 
     log_prefix = '[Walker]'
     logger = get_oort_logger('walker', debug=debug)
-    logger.info(f"{log_prefix} Starting upload walk through {folder_path} and its subfolders...")
+    logger.info(f"{log_prefix} Starting upload walk through {folder_string} and its subfolders...")
     logger.warn(f"{log_prefix} Force flag is {'True' if force else 'False'}")
 
-    root_path = Path(folder_path)
+    root_path = Path(folder_string)
     # Just in case we pass a file...
     if root_path.is_file():
         root_path = root_path.parent
@@ -44,7 +44,7 @@ def walk(folder_path: str, identity: Identity, force, debug: bool):
         else:
             failed_uploads.append((str(file_path), substatus, error))
 
-    msg = f'{log_prefix} Finished upload walk inside folder {folder_path} '
+    msg = f'{log_prefix} Finished upload walk inside folder {folder_string} '
     msg += f'with {len(success_uploads)} successful uploads and {len(failed_uploads)} failed.'
     logger.info(msg)
 
