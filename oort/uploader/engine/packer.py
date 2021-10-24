@@ -64,8 +64,10 @@ class UploadPack(object):
         self._root_path = pathlib.Path(root_path)
         self._raw_file_path = pathlib.Path(file_path)
         self._force = force
-
         self._logger = get_oort_logger('uploader', debug=identity.debug)
+
+    def collect_file_info(self):
+        self._logger.info(f'{self.log_prefix} {self.final_file_name} Collecting info...')
         self._parse_type_and_dataset_name()
 
         # Will work whatever the raw file path extension (zipped or not), and
