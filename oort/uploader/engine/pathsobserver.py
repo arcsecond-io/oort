@@ -81,8 +81,11 @@ class PathsObserver(Observer):
         watcher = self.schedule(event_handler, folder_path, recursive=True)
         self._mapping[folder_path] = {'watcher': watcher, 'handler': event_handler}
 
-        if initial_walk is True:
-            threading.Thread(target=self._start_initial_walk, args=(folder_path, event_handler)).start()
+        # Perform collect-only quick initial walk in a synchronous way...
+        self._start_initial_walk(folder_path, event_handler)
+
+        # ...then launch the upload loop.
+        event_handler.launch_restart_loop()
 
     def _start_initial_walk(self, folder_path, event_handler):
         self._logger.info(f'{self.log_prefix} Starting initial walk inside folder {folder_path}...')
@@ -106,6 +109,9 @@ class PathsObserver(Observer):
                     self._logger.info(msg)
             else:
                 event_count += 1
+                # The dispatch of this event will trigger the collect of basic info about the file, and create
+                # an entry in the Upload DB. No zip, no upload, no preparation whatsoever. This is handled by
+                # the event_handler's "restart_uploads" loop.
                 event = FileCreatedEvent(str(path))
                 event_handler.dispatch(event)
             time.sleep(0.01)
@@ -116,8 +122,6 @@ class PathsObserver(Observer):
         msg = f'{self.log_prefix} Initial walk inside folder {folder_path} '
         msg += f'dispatched {event_count} events for {file_count} files.'
         self._logger.info(msg)
-
-        event_handler.launch_restart_loop()
 
     def forget_folder(self, folder_path: str) -> None:
         if folder_path in self._mapping.keys():
