@@ -86,11 +86,7 @@ class UploadPack(object):
         self._find_date_size_and_target_name()
 
     def prepare_and_upload_file(self, display_progress: bool = False):
-        if self.should_zip:
-            zip = zipper.AsyncZipper(self.clear_file_path)
-            zip.start()
-
-        elif self.is_hidden_file:
+        if self.is_hidden_file:
             self._logger.info(f'{self.log_prefix} {self.final_file_name} is an hidden file. Upload skipped.')
             self._archive(Substatus.SKIPPED_HIDDEN_FILE.value)
 
@@ -100,13 +96,22 @@ class UploadPack(object):
 
         else:
             item = f"{self.final_file_name} ({self._upload.substatus})"
-            preparation_succeeded = self._upload.dataset is not None
 
-            if self.should_prepare:
+            if self.should_zip:
+                # Yes, using AsyncZipper in a non-asynchronous manner for now...
+                zip = zipper.AsyncZipper(self.clear_file_path)
+                zip.start()
+                zip.join(300)
+                if zip.is_alive():
+                    self._logger.info(f'{self.log_prefix} Zipped timeout for {item}.')
+                    return self._upload.status, self._upload.substatus, self._upload.error
+
+            if self.is_already_prepared:
+                self._logger.info(f'{self.log_prefix} Preparation already done for {item}.')
+                preparation_succeeded = True
+            else:
                 upload_preparator = preparator.UploadPreparator(self, debug=self._identity.debug)
                 preparation_succeeded = upload_preparator.prepare()
-            else:
-                self._logger.info(f'{self.log_prefix} Preparation already done for {item}.')
 
             if preparation_succeeded:
                 if self.is_already_finished:
@@ -219,8 +224,8 @@ class UploadPack(object):
         return self._upload.target_name.strip()
 
     @property
-    def should_prepare(self) -> bool:
-        return self._upload.substatus not in PREPARATION_DONE_SUBSTATUSES or self._upload.dataset is None
+    def is_already_prepared(self) -> bool:
+        return self._upload.substatus in PREPARATION_DONE_SUBSTATUSES or self._upload.dataset is not None
 
     @property
     def is_already_finished(self) -> bool:
