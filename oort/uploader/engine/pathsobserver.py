@@ -46,7 +46,7 @@ class PathsObserver(Observer):
             identity = Identity.from_folder_section(folder_section)
 
             if folder_path in mapping_keys:
-                # Folder is already watched. We need to update its config only if identity is differnt.
+                # Folder is already watched. We need to update its config only if identity is different.
                 handler = self._mapping.get(folder_path).get('handler')
                 if handler is not None and identity != handler.identity:
                     self._unschedule_watch(folder_path)
@@ -54,6 +54,7 @@ class PathsObserver(Observer):
             else:
                 self._schedule_watch(folder_path, identity, initial_walk=True)
 
+        # Every OORT_UPLOADER_FOLDER_DETECTION_TICK_SECONDS seconds, new folders are being checked.
         threading.Timer(OORT_UPLOADER_FOLDER_DETECTION_TICK_SECONDS, self._detect_watched_folders).start()
 
     def _unschedule_watch(self, folder_path: str) -> None:
