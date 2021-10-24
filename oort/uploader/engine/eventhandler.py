@@ -70,7 +70,7 @@ class DataFileHandler(FileSystemEventHandler):
                 file_size = src_path.stat().st_size
                 time.sleep(0.1)
 
-            # Pack will be identical for file and its zipped counter-part.
+            # Pack will be identical for file and its zipped counterpart.
             pack = packer.UploadPack(str(self._root_path), event.src_path, self._identity)
             pack.prepare_and_upload_file()  # will take care of zipping
 
