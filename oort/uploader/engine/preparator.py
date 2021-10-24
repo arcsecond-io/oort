@@ -3,6 +3,7 @@ import socket
 from typing import Optional
 
 from arcsecond import ArcsecondAPI
+from arcsecond.api.error import ArcsecondRequestTimeoutError
 from peewee import DoesNotExist
 
 from oort import __version__
@@ -57,7 +58,11 @@ class UploadPreparator(object):
     # ------ REMOTE ----------------------------------------------------------------------------------------------------
 
     def _find_remote_resource(self, api: ArcsecondAPI, **kwargs) -> Optional[dict]:
-        response_list, error = api.list(**kwargs)
+        try:
+            response_list, error = api.list(**kwargs)
+        except ArcsecondRequestTimeoutError:
+            # Retrying request in the case of first one timing out.
+            response_list, error = api.list(**kwargs)
 
         # An error occurred. Deal with it.
         if error is not None:
@@ -83,7 +88,11 @@ class UploadPreparator(object):
     def _create_remote_resource(self, api: ArcsecondAPI, **kwargs) -> Optional[dict]:
         self._logger.info(f'{self.log_prefix} Creating remote resource...')
 
-        remote_resource, error = api.create(kwargs)
+        try:
+            remote_resource, error = api.create(kwargs)
+        except ArcsecondRequestTimeoutError:
+            # Retrying request in the case of first one timing out.
+            remote_resource, error = api.create(kwargs)
 
         if error is not None:
             msg = f'Failed to create resource in {api} endpoint: {str(error)}'
@@ -94,7 +103,12 @@ class UploadPreparator(object):
 
     def _update_remote_resource(self, api: ArcsecondAPI, uuid, **kwargs) -> None:
         self._logger.info(f'{self.log_prefix} Updating remote resource...')
-        _, error = api.update(uuid, kwargs)
+        try:
+            _, error = api.update(uuid, kwargs)
+        except ArcsecondRequestTimeoutError:
+            # Retrying request in the case of first one timing out.
+            _, error = api.create(kwargs)
+
         if error is not None:
             self._logger.warn(f'{self.log_prefix} Failed to update remote resource. Ignoring, and moving on.')
         else:
