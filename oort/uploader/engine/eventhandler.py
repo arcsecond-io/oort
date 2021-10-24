@@ -72,7 +72,10 @@ class DataFileHandler(FileSystemEventHandler):
 
             # Pack will be identical for file and its zipped counterpart.
             pack = packer.UploadPack(str(self._root_path), event.src_path, self._identity)
-            pack.prepare_and_upload_file()  # will take care of zipping
+            # Next line will take care only of parsing file, and preparing Upload DB instance.
+            # It should NOT start heavy work, but instead returns quickly to let the initial walk
+            # go through the whole file tree.
+            pack.collect_file_info()
 
     def on_moved(self, event):
         relative_path = pathlib.Path(event.src_path).relative_to(self._root_path)
