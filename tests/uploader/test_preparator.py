@@ -1,4 +1,5 @@
 import importlib
+import os
 import pathlib
 import socket
 import uuid
@@ -94,7 +95,7 @@ def test_preparator_prepare_no_org_no_telescope():
 
         assert result is True
         mock_method_datasets.assert_called_with(test=True, debug=True, upload_key=TEST_LOGIN_UPLOAD_KEY)
-        mock_method_list.assert_called_with(tags='oort|folder|fixtures')
+        mock_method_list.assert_called_with(tags=['oort|folder|fixtures', f"oort|root|{folder_path}"])
         mock_method_create.assert_called_with({'name': 'fixtures', 'tags': TAGS})
 
 

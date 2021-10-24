@@ -9,7 +9,7 @@ def test_cli_version():
     runner = CliRunner()
     result = runner.invoke(main, ['--version'])
     assert result.exit_code == 0 and not result.exception
-    assert re.match('[0-9].[0-9].[0-9]', result.output)
+    assert re.match('[0-9].[0-9]{1,2}.[0-9]{1,2}', result.output)
 
 
 def test_cli_global_help():
