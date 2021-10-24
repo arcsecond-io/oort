@@ -28,6 +28,8 @@ db.create_tables([Organisation, Telescope, Dataset, Upload])
 def test_uploader_init_no_org():
     identity = Identity(TEST_LOGIN_USERNAME, TEST_LOGIN_UPLOAD_KEY, debug=True)
     pack = UploadPack(folder_path, fits_file_path, identity)
+    pack.collect_file_info()
+
     dataset = Dataset.create(uuid=str(uuid.uuid4()))
     pack.upload.smart_update(dataset=dataset)
 
@@ -52,6 +54,8 @@ def test_uploader_init_org():
                         debug=True)
 
     pack = UploadPack(folder_path, fits_file_path, identity)
+    pack.collect_file_info()
+
     dataset = Dataset.create(uuid=str(uuid.uuid4()))
     pack.upload.smart_update(dataset=dataset)
 
@@ -76,6 +80,8 @@ def test_uploader_init_org_custom_astronomer():
                         debug=True)
 
     pack = UploadPack(folder_path, fits_file_path, identity)
+    pack.collect_file_info()
+
     dataset = Dataset.create(uuid=str(uuid.uuid4()))
     pack.upload.smart_update(dataset=dataset)
 

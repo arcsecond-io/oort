@@ -30,6 +30,8 @@ def test_packer_calib_bias():
 
         pack = UploadPack(str(root_path), path, identity)
         assert pack is not None
+
+        pack.collect_file_info()
         assert pack.upload is not None
         # Check detection of FITS or XISF is OK
         assert pack.is_data_file is True
@@ -59,6 +61,8 @@ def test_packer_calib_dark():
 
         pack = UploadPack(str(root_path), path, identity)
         assert pack is not None
+
+        pack.collect_file_info()
         # Check detection of FITS or XISF is OK
         assert pack.is_data_file is True
         assert pack.upload.file_path == path
@@ -86,6 +90,8 @@ def test_packer_calibs_flat_no_filter():
 
         pack = UploadPack(str(root_path), path, identity)
         assert pack is not None
+
+        pack.collect_file_info()
         # Check detection of FITS or XISF is OK
         assert pack.is_data_file is True
         assert pack.upload.file_path == path
@@ -113,6 +119,8 @@ def test_packer_calibs_flat_with_filter():
 
         pack = UploadPack(str(root_path), path, identity)
         assert pack is not None
+
+        pack.collect_file_info()
         # Check detection of FITS or XISF is OK
         assert pack.is_data_file is True
         assert pack.upload.file_path == path
@@ -140,6 +148,8 @@ def test_packer_observation_no_filter():
 
         pack = UploadPack(str(root_path), path, identity)
         assert pack is not None
+
+        pack.collect_file_info()
         # Check detection of FITS or XISF is OK
         assert pack.is_data_file is True
         assert pack.upload.file_path == path
@@ -167,6 +177,8 @@ def test_packer_observation_with_filter():
 
         pack = UploadPack(str(root_path), path, identity)
         assert pack is not None
+
+        pack.collect_file_info()
         # Check detection of FITS or XISF is OK
         assert pack.is_data_file is True
         assert pack.upload.file_path == path
@@ -194,6 +206,8 @@ def test_packer_observation_with_double_filter():
 
         pack = UploadPack(str(root_path), path, identity)
         assert pack is not None
+
+        pack.collect_file_info()
         # Check detection of FITS or XISF is OK
         assert pack.is_data_file is True
         assert pack.upload.file_path == path
@@ -221,6 +235,8 @@ def test_packer_calibration_no_date_obs():
 
         pack = UploadPack(str(root_path), path, identity)
         assert pack is not None
+
+        pack.collect_file_info()
         # Check detection of FITS or XISF is OK
         assert pack.is_data_file is True
         assert pack.upload.file_path == path
@@ -248,6 +264,8 @@ def test_packer_calibration_no_fits_no_xisf():
 
         pack = UploadPack(str(root_path), path, identity)
         assert pack is not None
+
+        pack.collect_file_info()
         # Check detection of FITS or XISF is OK
         assert pack.is_data_file is False
         assert pack.upload.file_path == path
@@ -273,6 +291,7 @@ def test_packer_no_telescope_date_after_noon():
             patch.object(UploadPack, '_find_fits_file_date_and_target_name', return_value=(obs_date, "target")), \
             patch.object(UploadPack, '_find_xisf_file_date_and_target_name', return_value=(None, "")):
         pack = UploadPack(str(root_path), path, identity)
+        pack.collect_file_info()
         assert pack.night_log_date_string == '2020-03-21'
 
 
@@ -284,6 +303,7 @@ def test_packer_no_telescope_date_before_noon():
             patch.object(UploadPack, '_find_fits_file_date_and_target_name', return_value=(obs_date, "target")), \
             patch.object(UploadPack, '_find_xisf_file_date_and_target_name', return_value=(None, "")):
         pack = UploadPack(str(root_path), path, identity)
+        pack.collect_file_info()
         assert pack.night_log_date_string == '2020-03-20'
 
 
@@ -293,6 +313,7 @@ def test_packer_no_telescope_date_before_noon():
 def test_packer_non_data_non_zipped():
     path = str(fixture_path / 'non_data_non_zipped.txt')
     pack = UploadPack(str(root_path), path, identity)
+    pack.collect_file_info()
     assert pack.is_data_file is False
     assert pack.is_hidden_file is False
     assert pack.clear_file_exists is True
@@ -304,6 +325,7 @@ def test_packer_non_data_non_zipped():
 def test_packer_non_data_non_zipped_added_gz():
     path = str(fixture_path / 'non_data_non_zipped.txt.gz')
     pack = UploadPack(str(root_path), path, identity)
+    pack.collect_file_info()
     assert pack.is_data_file is False
     assert pack.is_hidden_file is False
     assert pack.clear_file_exists is True
@@ -315,6 +337,7 @@ def test_packer_non_data_non_zipped_added_gz():
 def test_packer_non_data_zipped():
     path = str(fixture_path / 'non_data_zipped.txt.gz')
     pack = UploadPack(str(root_path), path, identity)
+    pack.collect_file_info()
     assert pack.is_data_file is False
     assert pack.is_hidden_file is False
     assert pack.clear_file_exists is False
@@ -326,6 +349,7 @@ def test_packer_non_data_zipped():
 def test_packer_data_clear_with_zipped():
     path = str(fixture_path / 'data_zipped_with_clear.fits')
     pack = UploadPack(str(root_path), path, identity)
+    pack.collect_file_info()
     assert pack.is_data_file is True
     assert pack.is_hidden_file is False
     assert pack.clear_file_exists is True
@@ -337,6 +361,7 @@ def test_packer_data_clear_with_zipped():
 def test_packer_data_clear_with_zipped_added_gz():
     path = str(fixture_path / 'data_zipped_with_clear.fits.gz')
     pack = UploadPack(str(root_path), path, identity)
+    pack.collect_file_info()
     assert pack.is_data_file is True
     assert pack.is_hidden_file is False
     assert pack.clear_file_exists is True
@@ -348,6 +373,7 @@ def test_packer_data_clear_with_zipped_added_gz():
 def test_packer_data_zip_with_clear():
     path = str(fixture_path / 'data_zipped_with_clear.fits.zip')
     pack = UploadPack(str(root_path), path, identity)
+    pack.collect_file_info()
     assert pack.is_data_file is True
     assert pack.is_hidden_file is False
     assert pack.clear_file_exists is True
@@ -359,6 +385,7 @@ def test_packer_data_zip_with_clear():
 def test_packer_data_gzip_with_clear():
     path = str(fixture_path / 'data_zipped_with_clear.fits.gz')
     pack = UploadPack(str(root_path), path, identity)
+    pack.collect_file_info()
     assert pack.is_data_file is True
     assert pack.is_hidden_file is False
     assert pack.clear_file_exists is True
@@ -370,6 +397,7 @@ def test_packer_data_gzip_with_clear():
 def test_packer_data_bz2_with_clear():
     path = str(fixture_path / 'data_zipped_with_clear.fits.bz2')
     pack = UploadPack(str(root_path), path, identity)
+    pack.collect_file_info()
     assert pack.is_data_file is True
     assert pack.is_hidden_file is False
     assert pack.clear_file_exists is True
@@ -381,6 +409,7 @@ def test_packer_data_bz2_with_clear():
 def test_packer_data_clear_no_clear():
     path = str(fixture_path / 'data_zipped_no_clear.fits')
     pack = UploadPack(str(root_path), path, identity)
+    pack.collect_file_info()
     assert pack.is_data_file is True
     assert pack.is_hidden_file is False
     assert pack.clear_file_exists is False
@@ -392,6 +421,7 @@ def test_packer_data_clear_no_clear():
 def test_packer_data_zip_no_clear():
     path = str(fixture_path / 'data_zipped_no_clear.fits.zip')
     pack = UploadPack(str(root_path), path, identity)
+    pack.collect_file_info()
     assert pack.is_data_file is True
     assert pack.is_hidden_file is False
     assert pack.clear_file_exists is False
@@ -403,6 +433,7 @@ def test_packer_data_zip_no_clear():
 def test_packer_data_gzip_no_clear():
     path = str(fixture_path / 'data_zipped_no_clear.fits.gz')
     pack = UploadPack(str(root_path), path, identity)
+    pack.collect_file_info()
     assert pack.is_data_file is True
     assert pack.is_hidden_file is False
     assert pack.clear_file_exists is False
@@ -414,6 +445,7 @@ def test_packer_data_gzip_no_clear():
 def test_packer_data_bz2_no_clear():
     path = str(fixture_path / 'data_zipped_no_clear.fits.bz2')
     pack = UploadPack(str(root_path), path, identity)
+    pack.collect_file_info()
     assert pack.is_data_file is True
     assert pack.is_hidden_file is False
     assert pack.clear_file_exists is False
@@ -425,6 +457,7 @@ def test_packer_data_bz2_no_clear():
 def test_packer_data_pure_zip():
     path = str(fixture_path / 'dummy.zip')
     pack = UploadPack(str(root_path), path, identity)
+    pack.collect_file_info()
     assert pack.clear_file_path.endswith('dummy.zip')
 
 
@@ -432,4 +465,5 @@ def test_packer_data_pure_zip():
 def test_packer_data_txt_zip():
     path = str(fixture_path / 'dummy.txt.zip')
     pack = UploadPack(str(root_path), path, identity)
+    pack.collect_file_info()
     assert pack.clear_file_path.endswith('dummy.txt')

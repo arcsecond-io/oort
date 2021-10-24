@@ -39,6 +39,7 @@ def test_preparator_init_no_org():
 
     identity = Identity(TEST_LOGIN_USERNAME, TEST_LOGIN_UPLOAD_KEY, debug=True)
     pack = UploadPack(str(folder_path), str(fits_file_path), identity)
+    pack.collect_file_info()
 
     with patch.object(UploadPreparator, 'prepare') as mock_method:
         prep = UploadPreparator(pack, identity)
@@ -59,6 +60,8 @@ def test_preparator_init_with_org():
                         debug=True)
 
     pack = UploadPack(str(folder_path), str(fits_file_path), identity)
+    pack.collect_file_info()
+
     with patch.object(ArcsecondAPI, 'is_logged_in', return_value=True), \
             patch.object(UploadPreparator, 'prepare') as mock_method_prepare, \
             patch.object(ArcsecondAPI, 'read', return_value=(ORG_DETAILS, None)):
@@ -77,6 +80,7 @@ def test_preparator_prepare_no_org_no_telescope():
 
     identity = Identity(TEST_LOGIN_USERNAME, TEST_LOGIN_UPLOAD_KEY, debug=True)
     pack = UploadPack(str(folder_path), str(fits_file_path), identity)
+    pack.collect_file_info()
     assert identity.telescope is None
 
     ds = {'uuid': str(uuid.uuid4()), 'name': pack.dataset_name}
@@ -106,6 +110,7 @@ def test_preparator_prepare_with_org_and_telescope():
                         debug=True)
 
     pack = UploadPack(str(folder_path), str(fits_file_path), identity)
+    pack.collect_file_info()
     assert identity.telescope is not None
 
     ds = {'uuid': str(uuid.uuid4()), 'name': pack.dataset_name}
