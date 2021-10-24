@@ -128,13 +128,15 @@ class UploadPreparator(object):
         tag_uploader = f'oort|uploader|{ArcsecondAPI.username()}'
         tag_oort = f'oort|version|{__version__}'
 
-        tags = [tag_folder, tag_root, tag_origin, tag_uploader, tag_oort]
+        search_tags = [tag_folder, tag_root]
+        create_tags = [tag_folder, tag_root, tag_origin, tag_uploader, tag_oort]
         if self._identity.telescope:
-            tags.append(tag_telescope)
+            search_tags.append(tag_telescope)
+            create_tags.append(tag_telescope)
 
         # Kwargs used only for search, then kwargs for create.
-        search_kwargs = {'tags': tag_folder}  # Should we also include telescope?
-        create_kwargs = {'name': self._pack.dataset_name, 'tags': tags}
+        search_kwargs = {'tags': search_tags}
+        create_kwargs = {'name': self._pack.dataset_name, 'tags': create_tags}
 
         # Search for remote resource. If none found, create one.
         datasets_api = ArcsecondAPI.datasets(**self._api_kwargs)
