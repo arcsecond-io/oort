@@ -40,8 +40,16 @@ class PathsObserver(Observer):
 
     def _detect_watched_folders(self):
         mapping_keys = self._mapping.keys()
+        folder_sections = get_oort_config_upload_folder_sections()
 
-        for folder_section in get_oort_config_upload_folder_sections():
+        # Unschedule all paths that are not observed anymore.
+        folder_section_paths = [section.get('path') for section in folder_sections]
+        for mapping_key in mapping_keys:
+            if mapping_key not in folder_section_paths:
+                self.unschedule(mapping_key)
+
+        # Now, schedule, if not yet done, all folders to be watched.
+        for folder_section in folder_sections:
             folder_path = folder_section.get('path')
             identity = Identity.from_folder_section(folder_section)
 
