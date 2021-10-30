@@ -65,10 +65,8 @@ class UploadPack(object):
         self._root_path = pathlib.Path(root_path)
         self._raw_file_path = pathlib.Path(file_path)
         self._force = force
-        self._logger = get_oort_logger('uploader', debug=identity.debug)
 
-    def collect_file_info(self):
-        self._logger.info(f'{self.log_prefix} {self.final_file_name} Collecting info...')
+        self._logger = get_oort_logger('uploader', debug=identity.debug)
         self._parse_type_and_dataset_name()
 
         # Will work whatever the raw file path extension (zipped or not), and
@@ -78,12 +76,11 @@ class UploadPack(object):
         except Upload.DoesNotExist:
             self._upload = Upload.create(file_path=self.clear_file_path)
 
+    def collect_file_info(self):
+        self._logger.info(f'{self.log_prefix} {self.final_file_name} Collecting info...')
         if self._force:
             self._upload.reset_for_restart()
-
-        self.upload.smart_update(astronomer=self._identity.username,
-                                 file_path_zipped=self.zipped_file_path)
-
+        self.upload.smart_update(astronomer=self._identity.username, file_path_zipped=self.zipped_file_path)
         self._find_date_size_and_target_name()
 
     def prepare_and_upload_file(self, display_progress: bool = False):
@@ -143,9 +140,7 @@ class UploadPack(object):
         return self.identity.zip and \
                self.is_data_file and \
                self.clear_file_exists and \
-               not self.zipped_file_exists and \
-               self._upload.substatus != Substatus.ZIPPING.value and \
-               os.access(str(self._root_path), os.W_OK)
+               os.access(str(self._root_path), os.W_OK)  # checking the folder is writable
 
     @property
     def final_file_path(self):
