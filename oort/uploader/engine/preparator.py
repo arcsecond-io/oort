@@ -117,7 +117,7 @@ class UploadPreparator(object):
     # ------ SYNC ------------------------------------------------------------------------------------------------------
 
     def _sync_dataset(self):
-        self._logger.info(f'{self.log_prefix} Syncing DATASET...')
+        self._logger.info(f'{self.log_prefix} Opening sync DATASET sequence...')
         self._pack.upload.smart_update(substatus=Substatus.SYNC_DATASET.value)
 
         # Definition of meaningful tags
@@ -160,6 +160,7 @@ class UploadPreparator(object):
             self._dataset.smart_update(**dataset_dict)
         # Update Upload model data.
         self._pack.upload.smart_update(dataset=self._dataset)
+        self._logger.info(f'{self.log_prefix} Closing sync DATASET sequence.')
 
     def _sync_telescope(self):
         try:
