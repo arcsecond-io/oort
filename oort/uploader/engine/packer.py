@@ -2,6 +2,7 @@ import bz2
 import gzip
 import os
 import pathlib
+import subprocess
 import warnings
 import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta

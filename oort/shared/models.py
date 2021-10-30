@@ -126,7 +126,6 @@ FINISHED_SUBSTATUSES = [Substatus.DONE.value,
 
 PREPARATION_DONE_SUBSTATUSES = [Substatus.CHECKING.value,
                                 Substatus.READY.value,
-                                Substatus.RESTART.value,
                                 Substatus.STARTING.value,
                                 Substatus.UPLOADING.value] + FINISHED_SUBSTATUSES
 
