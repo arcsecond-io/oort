@@ -13,6 +13,7 @@ Vue.component('active-table', {
     <th>Started</th>
     <th>Ended</th>
     <th>Duration</th>
+    <th></th>
   </tr>
   </thead>
   <tbody>
@@ -66,6 +67,9 @@ Vue.component('active-table', {
     <td>{{ upload.started }}</td>
     <td>{{ upload.ended }}</td>
     <td>{{ upload.duration.toFixed(1) }} s</td>
+    <td>
+      <button class="btn btn-sm btn-primary-black" @click="sendRetryCommand(upload)">Restart</button>
+    </td>
   </tr>
   </tbody>
 </table>
@@ -99,6 +103,11 @@ Vue.component('active-table', {
           bar.style.width = progress.toFixed(1).toString() + '%'
         }
       })
+    }
+  },
+  methods: {
+    sendRetryCommand (upload) {
+      fetch('/retry?ids=' + upload.id.toString())
     }
   }
 })
