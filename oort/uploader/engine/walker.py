@@ -27,6 +27,7 @@ def walk(folder_string: str, identity: Identity, force, debug: bool):
     total_file_count = sum(1 for f in root_path.glob('**/*') if f.is_file() and not is_hidden(f))
 
     # --- first pass
+    log_prefix = '[Walker - pass 1/2]'
     logger.info(f"{log_prefix} Making a first pass to collect info on files...")
 
     index = 0
@@ -44,6 +45,7 @@ def walk(folder_string: str, identity: Identity, force, debug: bool):
     logger.info(f"\n{log_prefix} Finished collecting file info inside folder {folder_string}.\n")
 
     # --- second pass
+    log_prefix = '[Walker - pass 2/2]'
     logger.info(f"{log_prefix} Starting second pass to actually upload files...")
 
     failed_uploads = []
@@ -65,16 +67,14 @@ def walk(folder_string: str, identity: Identity, force, debug: bool):
         else:
             failed_uploads.append((str(file_path), substatus, error))
 
-    msg = f"\n{log_prefix} Finished upload walk inside folder {folder_string} "
-    msg += f"with {len(success_uploads)} successful uploads and {len(failed_uploads)} failed."
+    msg = f"{log_prefix}\n\n\nFinished upload walk inside folder {folder_string} "
+    msg += f"with {len(success_uploads)} successful uploads and {len(failed_uploads)} failed.\n\n"
     logger.info(msg)
 
     if len(failed_uploads) > 0:
         logger.error(f'{log_prefix} Here are the failed uploads:')
         for path, substatus, error in failed_uploads:
             logger.error(f'{path} ({substatus}) {error}')
-
-    logger.info("\n")
 
 # if __name__ == '__main__':
 #     root_path = sys.argv[1]
