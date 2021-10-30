@@ -41,7 +41,7 @@ class BaseModel(Model):
 
     _primary_field = 'uuid'
 
-    def smart_update(self, **kwargs):
+    def smart_update(self, **kwargs) -> None:
         for k, v in kwargs.items():
             if k in self.__class__._meta.sorted_field_names:
                 setattr(self, k, v)
@@ -175,22 +175,22 @@ class Upload(BaseModel):
         size = self.file_size or self.file_size_zipped or 0
         return get_formatted_bytes_size(size)
 
-    def archive(self, substatus):
-        return self.smart_update(status=Status.OK.value, substatus=substatus, ended=datetime.now())
+    def archive(self, substatus) -> None:
+        self.smart_update(status=Status.OK.value, substatus=substatus, ended=datetime.now())
 
-    def reset_for_restart(self):
-        return self.smart_update(status=Status.NEW.value,
-                                 substatus=Substatus.RESTART.value,
-                                 progress=0,
-                                 started=None,
-                                 ended=None,
-                                 duration=0,
-                                 error='',
-                                 dataset=None,
-                                 file_date=None,
-                                 file_size=0,
-                                 file_size_zipped=0,
-                                 target_name='')
+    def reset_for_restart(self) -> None:
+        self.smart_update(status=Status.NEW.value,
+                          substatus=Substatus.RESTART.value,
+                          progress=0,
+                          started=None,
+                          ended=None,
+                          duration=0,
+                          error='',
+                          dataset=None,
+                          file_date=None,
+                          file_size=0,
+                          file_size_zipped=0,
+                          target_name='')
 
 
 db.connect(reuse_if_open=True)
