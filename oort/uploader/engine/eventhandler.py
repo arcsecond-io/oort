@@ -50,6 +50,7 @@ class DataFileHandler(FileSystemEventHandler):
             count += 1
 
             pack = packer.UploadPack(str(self._root_path), upload.file_path, self._identity)
+            pack.collect_file_info()
             pack.prepare_and_upload_file()  # will take care of zipping
             time.sleep(0.01)
 
