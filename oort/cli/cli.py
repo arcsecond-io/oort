@@ -251,13 +251,18 @@ def telescopes(state, organisation=None):
               help="The Organisation subdomain, if uploading to an organisation.")
 @click.option('-t', '--telescope',
               required=False, nargs=1, type=click.STRING,
-              help="The UUID or the alias of the telescope acquiring data (mandatory for organisation uploads).")
+              help="The UUID or the alias of the telescope acquiring the data (mandatory only for organisation "
+                   "uploads).")
 @click.option('-f', '--force',
               required=False, nargs=1, type=click.BOOL, is_flag=True,
-              help="Force the re-uploading of folder's content, resetting the local Uploads information. Default is False.")
+              help="Force the re-uploading of folder's content, resetting the local Uploads information. Default is "
+                   "False.")
+@click.option('-z', '--zip',
+              required=False, nargs=1, type=click.BOOL, is_flag=True,
+              help="Zip the data files (FITS and XISF) before sending to the cloud. Default is False.")
 @basic_options
 @pass_state
-def upload(state, folder, organisation=None, telescope=None, force=False):
+def upload(state, folder, organisation=None, telescope=None, force=False, zip=False):
     """
     Upload the content of a folder.
 
@@ -279,7 +284,7 @@ def upload(state, folder, organisation=None, telescope=None, force=False):
     except InvalidWatchOptionsOortCloudError:
         return
 
-    display_command_summary([folder, ], username, upload_key, org_subdomain, org_role, telescope_details, False)
+    display_command_summary([folder, ], username, upload_key, org_subdomain, org_role, telescope_details, zip)
 
     ok = input('\n   ----> OK? (Press Enter) ')
 
@@ -290,7 +295,7 @@ def upload(state, folder, organisation=None, telescope=None, force=False):
                             subdomain=org_subdomain or '',
                             role=org_role or '',
                             telescope=telescope_uuid,
-                            zip=False,
+                            zip=zip,
                             debug=state.debug)
 
         from oort.uploader.engine.walker import walk
