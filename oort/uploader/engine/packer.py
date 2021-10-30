@@ -98,6 +98,9 @@ class UploadPack(object):
             item = f"{self.final_file_name} ({self._upload.substatus})"
 
             if self.should_zip:
+                if self.zipped_file_exists and not self._is_file_correctly_zipped(self.zipped_file_path):
+                    self._suppress_corrupted_zipped_file(self.zipped_file_path)
+
                 # Yes, using AsyncZipper in a non-asynchronous manner for now...
                 zip = zipper.AsyncZipper(self.clear_file_path)
                 zip.start()
@@ -360,3 +363,8 @@ class UploadPack(object):
 
     def _archive(self, substatus) -> None:
         self._upload = self._upload.archive(substatus=substatus, ended=datetime.now())
+    def _is_file_correctly_zipped(self, file_path_gz):
+        return subprocess.check_output(['gzip', '-t', file_path_gz]) == b''
+
+    def _suppress_corrupted_zipped_file(self, file_path_gz):
+        return pathlib.Path(file_path_gz).unlink()
