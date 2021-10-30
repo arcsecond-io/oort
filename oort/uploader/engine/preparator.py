@@ -135,7 +135,7 @@ class UploadPreparator(object):
             create_tags.append(tag_telescope)
 
         # Kwargs used only for search, then kwargs for create.
-        search_kwargs = {'tags': search_tags}
+        search_kwargs = {'tags': ','.join(search_tags)}
         create_kwargs = {'name': self._pack.dataset_name, 'tags': create_tags}
 
         # Search for remote resource. If none found, create one.
