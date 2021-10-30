@@ -4,7 +4,6 @@ Vue.component('pending-table', {
   <thead>
   <tr>
     <th>Filename</th>
-    <th>Owner</th>
     <th>Size</th>
     <th>Status</th>
   </tr>
@@ -14,10 +13,6 @@ Vue.component('pending-table', {
     <td>
       <span class="subtitle">&lt;root&gt;/</span><span><strong>{{ getFilePath(upload, root_path) }}</strong></span>
       <div><span class="subtitle">Obs Date:</span> {{ upload.file_date }}</div>
-    </td>
-    <td>
-      <a v-if="upload.organisation" :href='getOrganisationURL(upload)' target="_blank">{{ upload.organisation.subdomain }}</a>
-      <a v-else-if="upload.astronomer" :href='getProfileURL(upload)' target="_blank">@{{ upload.astronomer }}</a>
     </td>
     <td>
       {{ getFormattedSize(upload.file_size || upload.file_size_zipped) }}
