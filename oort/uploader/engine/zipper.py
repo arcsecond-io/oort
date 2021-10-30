@@ -20,6 +20,7 @@ class AsyncZipper(Thread):
         self._file_path = file_path
         self._zipped_file_path = file_path + '.gz'
         self._upload = Upload.get(Upload.file_path == file_path)
+        assert self._upload is not None
         self._initial_substatus = self._upload.substatus
         self._logger = get_oort_logger('uploader', debug=debug)
 
