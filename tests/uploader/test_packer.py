@@ -354,7 +354,7 @@ def test_packer_data_clear_with_zipped():
     assert pack.is_hidden_file is False
     assert pack.clear_file_exists is True
     assert pack.zipped_file_exists is True
-    assert pack.should_zip is False
+    assert pack.should_zip is True
 
 
 @use_test_database
@@ -366,7 +366,7 @@ def test_packer_data_clear_with_zipped_added_gz():
     assert pack.is_hidden_file is False
     assert pack.clear_file_exists is True
     assert pack.zipped_file_exists is True
-    assert pack.should_zip is False
+    assert pack.should_zip is True
 
 
 @use_test_database
@@ -378,7 +378,7 @@ def test_packer_data_zip_with_clear():
     assert pack.is_hidden_file is False
     assert pack.clear_file_exists is True
     assert pack.zipped_file_exists is True
-    assert pack.should_zip is False
+    assert pack.should_zip is True
 
 
 @use_test_database
@@ -390,7 +390,7 @@ def test_packer_data_gzip_with_clear():
     assert pack.is_hidden_file is False
     assert pack.clear_file_exists is True
     assert pack.zipped_file_exists is True
-    assert pack.should_zip is False
+    assert pack.should_zip is True
 
 
 @use_test_database
@@ -402,7 +402,7 @@ def test_packer_data_bz2_with_clear():
     assert pack.is_hidden_file is False
     assert pack.clear_file_exists is True
     assert pack.zipped_file_exists is True
-    assert pack.should_zip is False
+    assert pack.should_zip is True
 
 
 @use_test_database
