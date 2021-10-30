@@ -362,7 +362,8 @@ class UploadPack(object):
         return target_name
 
     def _archive(self, substatus) -> None:
-        self._upload = self._upload.archive(substatus=substatus, ended=datetime.now())
+        self._upload.archive(substatus=substatus, ended=datetime.now())
+
     def _is_file_correctly_zipped(self, file_path_gz):
         return subprocess.check_output(['gzip', '-t', file_path_gz]) == b''
 
