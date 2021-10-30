@@ -189,7 +189,7 @@ class UploadPack(object):
 
     @property
     def is_empty_file(self):
-        return self._upload.file_size == 0 and self._upload.file_size_zipped == 0
+        return self._find_sizes() == (0, 0)
 
     @property
     def night_log_date_string(self) -> str:
