@@ -16,6 +16,10 @@ def _get_directory_path() -> Path:
     return path
 
 
+def get_oort_directory_path() -> Path:
+    return _get_directory_path()
+
+
 def get_oort_config_file_path() -> Path:
     return _get_directory_path() / 'config.ini'
 

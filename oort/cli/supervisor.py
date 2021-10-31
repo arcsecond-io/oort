@@ -4,8 +4,8 @@ import subprocess
 from configparser import ConfigParser
 from datetime import datetime
 
-from oort.shared.config import (get_oort_config_file_path, get_oort_config_socket_file_path, get_oort_logger,
-                                get_oort_supervisor_conf_file_path, get_oort_supervisord_log_file_path,
+from oort.shared.config import (get_oort_config_file_path, get_oort_config_socket_file_path, get_oort_directory_path,
+                                get_oort_logger, get_oort_supervisor_conf_file_path, get_oort_supervisord_log_file_path,
                                 get_oort_supervisord_pid_file_path)
 from oort.shared.constants import OORT_SUPERVISOR_SOCK_FILENAME
 from oort.shared.utils import get_username
@@ -39,6 +39,7 @@ def reconfigure_supervisor(debug=False):
     # section: supervisord:
     conf.set('supervisord', 'logfile', str(get_oort_supervisord_log_file_path()))
     conf.set('supervisord', 'pidfile', str(get_oort_supervisord_pid_file_path()))
+    conf.set('supervisord', 'childlogdir', str(get_oort_directory_path()))
     # conf.set('supervisord', 'user', get_username())
 
     # section: supervisorctl
