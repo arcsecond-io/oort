@@ -153,4 +153,5 @@ class PathObserverManager(Thread):
 
     def stop_observers(self):
         for observer in self._mapping.values():
-            observer.stop()
+            if observer.is_alive():
+                observer.stop()
