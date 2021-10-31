@@ -30,6 +30,6 @@ if __name__ == "__main__":
     debug = len(sys.argv) > 1 and sys.argv[1] in ['-d', '--debug']
     manager.debug = debug
 
-    logger.info('Starting thread of PathsObserver...')
+    logger.info('Starting thread of PathObserverManager...')
     manager.start()
     manager.join()
