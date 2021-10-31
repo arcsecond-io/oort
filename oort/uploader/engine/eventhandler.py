@@ -1,4 +1,4 @@
-import pathlib
+from pathlib import Path
 import threading
 import time
 
@@ -11,9 +11,9 @@ from . import packer
 
 
 class DataFileHandler(FileSystemEventHandler):
-    def __init__(self, path: str, identity: Identity, tick=5.0, debug=False):
+    def __init__(self, path: Path, identity: Identity, tick=5.0, debug=False):
         super().__init__()
-        self._root_path = pathlib.Path(path)
+        self._root_path = path
         self._identity = identity
         self._debug = debug
         self._logger = get_oort_logger('uploader', debug=self._debug)
@@ -58,7 +58,7 @@ class DataFileHandler(FileSystemEventHandler):
         threading.Timer(self._tick, self._restart_uploads).start()
 
     def on_created(self, event):
-        src_path = pathlib.Path(event.src_path)
+        src_path = Path(event.src_path)
 
         if src_path.is_file() and not str(src_path.name).startswith('.'):
             relative_path = src_path.relative_to(self._root_path)
@@ -79,13 +79,13 @@ class DataFileHandler(FileSystemEventHandler):
             pack.collect_file_info()
 
     def on_moved(self, event):
-        relative_path = pathlib.Path(event.src_path).relative_to(self._root_path)
+        relative_path = Path(event.src_path).relative_to(self._root_path)
         self._logger.info(f'{self.log_prefix} {event.event_type}: {str(relative_path)}')
 
     def on_deleted(self, event):
-        relative_path = pathlib.Path(event.src_path).relative_to(self._root_path)
+        relative_path = Path(event.src_path).relative_to(self._root_path)
         self._logger.info(f'{self.log_prefix} {event.event_type}: {str(relative_path)}')
 
     def on_modified(self, event):
-        relative_path = pathlib.Path(event.src_path).relative_to(self._root_path)
+        relative_path = Path(event.src_path).relative_to(self._root_path)
         self._logger.info(f'{self.log_prefix} {event.event_type}: {str(relative_path)}')
