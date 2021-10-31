@@ -112,6 +112,7 @@ class PathsObserver(Observer):
                 # The dispatch of this event will trigger the collect of basic info about the file, and create
                 # an entry in the Upload DB. No zip, no upload, no preparation whatsoever. This is handled by
                 # the event_handler's "restart_uploads" loop.
+                self._logger.info(f'{self.log_prefix} Dispatching file event for {str(path)}.')
                 event = FileCreatedEvent(str(path))
                 event_handler.dispatch(event)
             time.sleep(0.01)
