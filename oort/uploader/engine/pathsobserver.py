@@ -91,7 +91,6 @@ class PathObserverManager(Thread):
         self._mapping = {}
         self._debug = debug
         self._logger = get_oort_logger('uploader', debug=self._debug)
-        Timer(1, self._detect_watched_folders).start()
 
     @property
     def debug(self):
