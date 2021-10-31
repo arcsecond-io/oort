@@ -59,9 +59,9 @@ def main(ctx, version=False, **kwargs):
 
     If no "OBJECT" field can be found in the header, Oort will look at the
     folder path. If any of the word 'bias', 'dark', 'flat', 'calib' is present
-    somewhere in the path, it is not a Calibration.
+    somewhere in the path, it will be a Calibration.
 
-    Hence it will be an Observation, whose target name will be that of the
+    Otherwise, it will be an Observation, whose target name will be that of the
     folder. However, if the folder name is some date in ISO-like format, it
     will be still considered a Calibration, since no sensible Target name
     could be found.
