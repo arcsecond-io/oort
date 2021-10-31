@@ -32,4 +32,11 @@ if __name__ == "__main__":
 
     logger.info('Starting thread of PathObserverManager...')
     manager.start()
+
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        manager.stop_observers()
+
     manager.join()
