@@ -1,8 +1,9 @@
 import time
 from pathlib import Path
-from threading import Thread, Timer
+from threading import Thread
 from typing import List
 
+import peewee
 from watchdog.events import FileCreatedEvent
 from watchdog.observers import Observer
 
@@ -52,7 +53,14 @@ class PathObserver(Observer):
                 continue
 
             file_count += 1
-            if Upload.is_finished(str(path)):
+            is_finished = False
+            try:
+                is_finished = Upload.is_finished(str(path))
+            except peewee.OperationalError:
+                msg = f"{self.log_prefix} DB OperationalError on checking if upload of {str(path)} is finished."
+                self._logger.error(msg)
+
+            if is_finished:
                 ignore_count += 1
                 if ignore_count > 0 and ignore_count % 100 == 0:
                     msg = f'{self.log_prefix} Ignored {ignore_count} uploads already finished.'
