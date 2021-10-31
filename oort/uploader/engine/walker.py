@@ -33,6 +33,7 @@ def walk(folder_string: str, identity: Identity, force, debug: bool):
     logger.info(f"{log_prefix} Making a first pass to collect info on files...")
 
     index = 0
+    unfinished_paths = []
     for file_path in root_path.glob('**/*'):
         # Skipping both hidden files and hidden directories.
         if is_hidden(file_path) or not file_path.is_file():
@@ -42,19 +43,21 @@ def walk(folder_string: str, identity: Identity, force, debug: bool):
         click.echo(f"\n{log_prefix} File {index} / {total_file_count} ({index / total_file_count * 100:.2f}%)\n")
 
         pack = packer.UploadPack(str(root_path), str(file_path), identity, force=force)
-        pack.collect_file_info()
+        if not pack.is_already_finished or force:
+            pack.collect_file_info()
+            unfinished_paths.append(file_path)
 
     logger.info(f"\n{log_prefix} Finished collecting file info inside folder {folder_string}.\n")
 
     # --- second pass
     log_prefix = '[Walker - 2/2]'
-    logger.info(f"{log_prefix} Starting second pass to actually upload files...")
+    logger.info(f"{log_prefix} Starting second pass to upload files...")
 
     failed_uploads = []
     success_uploads = []
 
     index = 0
-    for file_path in root_path.glob('**/*'):
+    for file_path in unfinished_paths:
         # Skipping both hidden files and hidden directories.
         if is_hidden(file_path) or not file_path.is_file():
             continue
