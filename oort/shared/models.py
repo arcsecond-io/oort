@@ -13,20 +13,23 @@ from peewee import (
     Model,
     UUIDField
 )
-from playhouse.migrate import SqliteMigrator, migrate
+# from playhouse.migrate import SqliteMigrator, migrate
 from playhouse.sqliteq import SqliteQueueDatabase
 
 from oort.shared.config import get_oort_db_file_path
 from oort.shared.constants import ZIP_EXTENSIONS
-# Create global instance 'db'
 from oort.shared.utils import get_formatted_bytes_size
 
+# Create global instance 'db'
 db = SqliteQueueDatabase(str(get_oort_db_file_path()),
                          use_gevent=False,
                          autostart=True,
                          queue_max_size=64,
                          results_timeout=5.0,
-                         pragmas={'journal_mode': 'wal', 'cache_size': -1024 * 64, 'foreign_keys': 1})
+                         pragmas={'journal_mode': 'wal',
+                                  'cache_size': -1024 * 64,
+                                  'foreign_keys': 1,
+                                  'threadlocals': True})
 
 
 # Make sure write thread is stopped upon exit.
@@ -192,10 +195,10 @@ class Upload(BaseModel):
                           target_name='')
 
 
-db.connect(reuse_if_open=True)
+# db.connect(reuse_if_open=True)
 db.create_tables([Organisation, Telescope, Dataset, Upload])
 
-_migrator = SqliteMigrator(db)
-migrate(
-    _migrator.add_column(Upload._meta.table_name, 'target_name', CharField(default='')),
-)
+# _migrator = SqliteMigrator(db)
+# migrate(
+#     _migrator.add_column(Upload._meta.table_name, 'target_name', CharField(default='')),
+# )
