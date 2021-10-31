@@ -75,7 +75,7 @@ def main(ctx, version=False, **kwargs):
     returns.
 
     The batch mode (with the command `oort watch...`) watches folders you
-    indicates, and automatically upload all files contained in the folder
+    indicate, and automatically upload all files contained in the folder
     (and its subfolders). It keeps running in the background, and as soon a
     new file appears in the folder tree, Oort will upload it.
 
