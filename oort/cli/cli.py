@@ -39,56 +39,52 @@ def main(ctx, version=False, **kwargs):
     """
     Oort-Cloud ('oort' command) is a super-easy upload manager for arcsecond.io.
 
-    It watches folders you indicates, and automatically upload all files
-    contained in the folder (and its subfolders). As soon a new file appears
-    in the folder tree, Oort will upload it.
-
     Oort-Cloud is a pure push up tool, not a two-way syncing tool. A file that
     is deleted locally will remain in the cloud if already uploaded. Change
     of files in the cloud have no effect locally either.
 
-    *** Oort is using the folder structure to infer the type and organisation
-    of files. ***
+    Oort-Cloud uploads every non-hidden non-empty files. Make sure to not watch
+    your home folder, or a folder with secret information.
 
-    Structure is as follow: Night Logs contain multiple Observations and/or
-    Calibrations. And to each Observation and Calibration is attached a Dataset
-    containing the files.
+    Oort is using one simple rule to group files inside datasets.
+    ** One folder = One dataset. ** Of course, a sub(sub)folder is considered
+    as a new folder.
 
-    If a folder contains the word "Bias" or "Dark" or "Flat" or "Calib" (all
-    case-insensitive), the files inside it will be put inside a Calibration
-    object, associated with a Dataset whose name is that of the folder.
+    Hence, the cleaner the local folders structure, the cleaner it will appear
+    in arcsecond.io.
 
-    Folders not containing any of these keywords are considered as target names.
-    Their files will be put inside a Dataset of that name, inside an
-    Observation.
+    To each data file (FITS or XISF) will be associated an Observation or a
+    Calibration. If a "OBJECT" field is found in the FITS or XISF header, it
+    will be an Observation.
 
-    To form the Dataset and Observation / Calibration names, Oort uses
-    the complete subfolder path string, making the original filesystem structure
-    "visible" in the Arcsecond webpage.
+    If no "OBJECT" field can be found in the header, Oort will look at the
+    folder path. If any of the word 'bias', 'dark', 'flat', 'calib' is present
+    somewhere in the path, it is not a Calibration.
 
-    For instance, FITS or XISF files found in "<root>/NGC3603/mosaic/Halpha"
-    will be put in an Observation (not a Calibration, there is no special
-    keyword found), and its Dataset will be named identically
-    "NGC3603/mosaic/Halpha".
+    Hence it will be an Observation, whose target name will be that of the
+    folder. However, if the folder name is some date in ISO-like format, it
+    will be still considered a Calibration, since no sensible Target name
+    could be found.
 
-    All Calibrations and Observations are automatically associated with
-    Night Logs whose date is inferred from the observation date of the files.
-    Oort takes automatically care of the right "date" whether the file is taken
-    before or after noon on that local place. In other words, the "night"
-    boundaries are running from local noon to the next local noon.
+    Oort-Cloud has 2 modes: direct, and batch. As of now, the two modes are
+    exclusive (because of the access to the small local SQLite database). You
+    must **not** have oort batch mode running if you want to use the direct
+    mode.
 
-    Oort-Cloud works by managing 2 processes:\n
-    • An uploader, which takes care of creating/syncing the right Night Log,
-        Observation and Calibration objects, as well as Dataset and Datafile
-        objects in Arcsecond.io (either in your personal account, or your
-        Organisation). And then upload the real files.\n
+    The direct mode (command `oort upload ...`) uploads files immediately, and
+    returns.
+
+    The batch mode (with the command `oort watch...`) watches folders you
+    indicates, and automatically upload all files contained in the folder
+    (and its subfolders). It keeps running in the background, and as soon a
+    new file appears in the folder tree, Oort will upload it.
+
+    The batch mode works by managing 2 processes:\n
+    • An uploader, which takes care of creating/syncing the right Dataset and
+        Datafile objects in Arcsecond.io (either in your personal account, or
+        your Organisation). And then upload the real files.\n
     • A small web server, which allow you to monitor, control and setup what is
         happening in the uploader (and also see what happened before).
-
-    The `oort` command is dedicated to start, stop and get status
-    of these two processes. Once they are up and running, the only one thing
-    you have to do is to indicate which folders `oort` should watch
-    to find files to upload. Use `oort watch` for that.
     """
     if version:
         click.echo(__version__)

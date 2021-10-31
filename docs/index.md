@@ -85,6 +85,9 @@ Oort has two modes, which can be used simultaneously. Make sure to login first i
 oort login
 ```
 
+WARNING: As of now, the two modes are exclusive (because of the access to the small local SQLite database). You must
+**not** have oort batch mode running if you want to use the direct mode.
+
 ### Direct mode
 
 Oort can be used in a pure "upload this folder right now, please" manner, a.k.a the "direct" mode. It is suited for cases where a folder contains
