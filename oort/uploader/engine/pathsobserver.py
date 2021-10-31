@@ -112,10 +112,10 @@ class PathObserverManager(Thread):
     def observed_paths(self) -> List[str]:
         return list(self._mapping.keys())
 
-    def start(self) -> None:
-        # Every OORT_UPLOADER_FOLDER_DETECTION_TICK_SECONDS seconds, new folders are being checked.
-        Timer(OORT_UPLOADER_FOLDER_DETECTION_TICK_SECONDS, self._detect_watched_folders).start()
-        super().start()
+    def run(self):
+        while True:
+            self._detect_watched_folders()
+            time.sleep(OORT_UPLOADER_FOLDER_DETECTION_TICK_SECONDS)
 
     def _detect_watched_folders(self):
         self._logger.info(f'{self.log_prefix} Detecting watched folder paths...')
