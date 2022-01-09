@@ -1,3 +1,5 @@
+[![Upload Python Package to Pypi](https://github.com/arcsecond-io/oort/actions/workflows/pythonpublish.yml/badge.svg)](https://github.com/arcsecond-io/oort/actions/workflows/pythonpublish.yml) [![Run Tests and Linting](https://github.com/arcsecond-io/oort/actions/workflows/pythonpackage.yml/badge.svg)](https://github.com/arcsecond-io/oort/actions/workflows/pythonpackage.yml) [![Deploy Docs](https://github.com/arcsecond-io/oort/actions/workflows/docsdeploy.yml/badge.svg)](https://github.com/arcsecond-io/oort/actions/workflows/docsdeploy.yml) [![Downloads](http://pepy.tech/badge/oort-cloud)](http://pepy.tech/project/oort-cloud)
+
 # Oort-Cloud for Arcsecond
 
 Oort-Cloud is the open-source super-easy-to-use tool for automatically and
