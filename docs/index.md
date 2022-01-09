@@ -1,6 +1,6 @@
 ---
 home: true
-heroImage: img/logo-circle.png
+heroImage: https://statics.arcsecond.io/img/logo-circle.png
 heroAlt: Arcsecond Logo
 heroText: Arcsecond Oort Uploader
 tagline: The open-source easy-to-use tool for uploading data to Arcsecond.io.
@@ -37,8 +37,8 @@ for you to see and try to upload data.
 
 In batch mode, Oort comes with a small local web server to monitor the 
 uploader, and this is what it looks like when running:
-![https://arcsecond-io.github.io/oort/assets/oort-screenshot-uploading.png](./img/oort-screenshot-uploading.png)
-(<a href="https://arcsecond-io.github.io/oort/img/oort-screenshot-uploading.png">enlarge</a>)
+![](./img/oort-screenshot-uploading.png)
+(<a href="https://raw.githubusercontent.com/arcsecond-io/oort/master/docs/img/oort-screenshot-uploading.png">enlarge</a>)
 
 ## Installation & Update
 
