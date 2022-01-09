@@ -1,0 +1,28 @@
+{
+  "name": "arcsecond-oort",
+  "version": "1.0.0",
+  "description": "Oort-Cloud is the open-source super-easy-to-use tool for automatically and continuously uploading to [Arcsecond.io](https://www.arcsecond.io) files that are inside a folder.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:serve": "vitepress serve docs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/arcsecond-io/oort.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/arcsecond-io/oort/issues"
+  },
+  "homepage": "https://github.com/arcsecond-io/oort#readme",
+  "devDependencies": {
+    "vitepress": "^0.21.4"
+  }
+}
