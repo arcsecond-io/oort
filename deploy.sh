@@ -10,7 +10,8 @@ npm run docs:build
 cd docs/.vitepress/dist
 
 mkdir -p docs
-mv * docs/
+mv *.html docs/
+mv assets docs/
 
 git config --global user.email "team@arcsecond.io"
 git config --global user.name "gh actions bot"
