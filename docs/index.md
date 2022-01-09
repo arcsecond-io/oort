@@ -1,6 +1,6 @@
 ---
 home: true
-heroImage: ./img/logo-circle.png
+heroImage: img/logo-circle.png
 heroAlt: Arcsecond Logo
 heroText: Arcsecond Oort Uploader
 tagline: The open-source easy-to-use tool for uploading data to Arcsecond.io.
