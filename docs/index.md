@@ -11,29 +11,39 @@ footer: MIT Licensed | Copyright © 2018-present Arcsecond.io (F52 Tech).
 
 ## Introduction
 
-[Arcsecond.io](https://www.arcsecond.io) is a comprehensive cloud platform for astronomical observations, for individual astronomers, collaborations
-and observatories. Arcsecond's cloud storage backend is [Amazon's S3](https://aws.amazon.com/s3/), and Oort has been thoroughly tested on recent Linux
-and macOS operating systems (it may need some tweaks on Windows).
+[Arcsecond.io](https://www.arcsecond.io) is a comprehensive cloud platform 
+for astronomical observations, for individual astronomers, collaborations
+and observatories. Arcsecond's cloud storage backend is 
+[Amazon's S3](https://aws.amazon.com/s3/), and Oort has been thoroughly 
+tested on recent Linux and macOS operating systems (it may need some tweaks 
+on Windows).
 
-**Oort is a pure uploading tool, not a two-ways syncing tool.** A file that is deleted locally will remain in the cloud if already uploaded. Change of
+**Oort is a pure uploading tool, not a two-ways syncing tool.** A file that 
+is deleted locally will remain in the cloud if already uploaded. Change of
 files in the cloud have no effect locally either.
 
-Oort can be used by an observatory, when data is acquired during the night and are saved on disk. Upon save, files will be immediately sent to the
-cloud in an orderly manner, organised inside datasets, in the background. Or it can be used by individual astronomers or science groups who want to
+Oort can be used by an observatory, when data is acquired during the night 
+and are saved on disk. Upon save, files will be immediately sent to the 
+cloud in an orderly manner, organised inside datasets, in the background. Or 
+it can be used by individual astronomers or science groups who want to 
 easily upload their data archive.
 
 ::: tip
-If you are an observatory, or an astronomical consortium, or any institute interested in storing astronomical data in the
-cloud, [contact us](mailto:team@arcsecond.io). We would be happy to open a portal for you to see and try to upload data.
+If you are an observatory, or an astronomical consortium, or any institute 
+interested in storing astronomical data in the cloud, 
+[contact us](mailto:team@arcsecond.io). We would be happy to open a portal 
+for you to see and try to upload data.
 :::
 
-In batch mode, Oort comes with a small local web server to monitor the uploader, and this is what it looks like when running:
+In batch mode, Oort comes with a small local web server to monitor the 
+uploader, and this is what it looks like when running:
 ![https://arcsecond-io.github.io/oort/assets/oort-screenshot-uploading.png](./img/oort-screenshot-uploading.png)
 (<a href="https://arcsecond-io.github.io/oort/img/oort-screenshot-uploading.png">enlarge</a>)
 
 ## Installation & Update
 
-Use pip (see [this page](https://pip.pypa.io/en/stable/installing/) on how to install pip, if you haven't done so):
+Use pip (see [this page](https://pip.pypa.io/en/stable/installing/) on how 
+to install pip, if you haven't done so):
 
 ```bash
 $ pip install oort-cloud
@@ -119,8 +129,8 @@ Oort has two modes, which can be used simultaneously.
 ::: warning
 As of now, the two modes are mutually exclusive (because of the access to the 
 small local SQLite database). You must **not** have oort batch mode running 
-if you want to use the direct mode. If you need to use the direct mode, stop the 
-batch mode first.
+if you want to use the direct mode. If you need to use the direct mode, stop 
+the batch mode first.
 :::
 
 ### Direct mode
@@ -151,7 +161,8 @@ There are three `OPTIONS`:
   personal account.
 * `-f` (or `--force`) to force the re-upload of the folder's content. As 
   always, existing files in the cloud will never be modified or overwritten.
-  Simply, Oort will reset the local metadata it keeps for every upload, and start over.
+  Simply, Oort will reset the local metadata it keeps for every upload, and 
+  start over.
 
 The `upload` command will summarise its settings and ask for confirmation 
 before proceeding.
