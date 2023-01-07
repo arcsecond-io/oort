@@ -68,25 +68,27 @@ class UploadPreparator(object):
         if error is not None:
             raise errors.UploadPreparationError(str(error))
 
+        api_name = str(api).upper()
         # Dealing with paginated results
         if isinstance(response_list, dict) and 'results' in response_list.keys():
             response_list = response_list['results']
 
         if len(response_list) == 0:
-            self._logger.info(f'{self.log_prefix} No existing remote resource in {str(api).upper()}. Will create one.')
+            self._logger.info(f'{self.log_prefix} No existing remote resource in {api_name}. Will create one.')
             new_resource = None  # The resource doesn't exist.
         elif len(response_list) == 1:
-            self._logger.info(f'{self.log_prefix} One existing remote resource in {str(api).upper()}. Using it.')
+            self._logger.info(f'{self.log_prefix} One existing remote resource in {api_name}. Using it.')
             new_resource = response_list[0]  # The resource exists.
         else:  # Multiple resources found ??? Filter is not good, or something fishy is happening.
             print(f'\n\n{response_list}\n\n')
-            msg = f'Multiple resources found for API {str(api).upper()}? Choosing first.'
+            msg = f'Multiple resources found for API {api_name}? Choosing first.'
             raise errors.UploadPreparationError(msg)
 
         return new_resource
 
     def _create_remote_resource(self, api: ArcsecondAPI, **kwargs) -> Optional[dict]:
-        self._logger.info(f'{self.log_prefix} Creating remote resource...')
+        api_name = str(api).upper()
+        self._logger.info(f'{self.log_prefix} Creating remote resource in {api_name}...')
 
         try:
             remote_resource, error = api.create(kwargs)
@@ -95,14 +97,16 @@ class UploadPreparator(object):
             remote_resource, error = api.create(kwargs)
 
         if error is not None:
-            msg = f'Failed to create resource in {api} endpoint: {str(error)}'
+            msg = f'Failed to create resource in {api_name} endpoint: {str(error)}'
             raise errors.UploadPreparationError(msg)
         else:
-            self._logger.info(f'{self.log_prefix} Remote resource created.')
+            msg = f"{self.log_prefix} Remote resource {remote_resource['uuid']} in {api_name} created."
+            self._logger.info(msg)
             return remote_resource
 
     def _update_remote_resource(self, api: ArcsecondAPI, uuid, **kwargs) -> None:
-        self._logger.info(f'{self.log_prefix} Updating remote resource...')
+        api_name = str(api).upper()
+        self._logger.info(f'{self.log_prefix} Updating remote resource {uuid} in {api_name}...')
         try:
             _, error = api.update(uuid, kwargs)
         except ArcsecondRequestTimeoutError:
@@ -110,9 +114,11 @@ class UploadPreparator(object):
             _, error = api.create(kwargs)
 
         if error is not None:
-            self._logger.warn(f'{self.log_prefix} Failed to update remote resource. Ignoring, and moving on.')
+            msg = f'{self.log_prefix} Failed to update remote resource {uuid} in {api_name}. '
+            msg += 'Ignoring, and moving on.'
+            self._logger.warning(msg)
         else:
-            self._logger.info(f'{self.log_prefix} Remote resource updated.')
+            self._logger.info(f'{self.log_prefix} Remote resource {uuid} in {api_name} updated.')
 
     # ------ SYNC ------------------------------------------------------------------------------------------------------
 
