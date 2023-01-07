@@ -66,7 +66,7 @@ class UploadPack(object):
         self._raw_file_path = pathlib.Path(file_path)
         self._force = force
 
-        self._logger = get_oort_logger('uploader', debug=identity.debug)
+        self._logger = get_oort_logger('uploader', debug=identity.api == 'dev')
         self._parse_type_and_dataset_name()
 
         # Will work whatever the raw file path extension (zipped or not), and
@@ -111,7 +111,7 @@ class UploadPack(object):
                 self._logger.info(f'{self.log_prefix} Preparation already done for {item}.')
                 preparation_succeeded = True
             else:
-                upload_preparator = preparator.UploadPreparator(self, debug=self._identity.debug)
+                upload_preparator = preparator.UploadPreparator(self, debug=self._identity.api == 'dev')
                 preparation_succeeded = upload_preparator.prepare()
 
             if preparation_succeeded:

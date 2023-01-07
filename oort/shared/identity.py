@@ -14,23 +14,23 @@ class Identity(object):
                    folder_section.get('role', ''),
                    folder_section.get('telescope', ''),
                    folder_section.get('zip', 'False').lower() == 'true',
-                   folder_section.get('debug', 'False').lower() == 'true')
+                   folder_section.get('api', ''))
 
     def __init__(self,
                  username: str,
                  upload_key: str,
-                 subdomain: Optional[str] = None,
-                 role: Optional[str] = None,
-                 telescope: Optional[str] = None,
+                 subdomain: Optional[str] = '',
+                 role: Optional[str] = '',
+                 telescope: Optional[str] = '',
                  zip: bool = False,
-                 debug: bool = False):
+                 api: Optional[str] = ''):
         self._username = username
         self._upload_key = upload_key
         self._subdomain = subdomain
         self._role = role
         self._telescope = telescope
         self._zip = zip
-        self._debug = debug
+        self._api = api
 
     # In python3, this will do the __ne__ by inverting the value
     def __eq__(self, other: object) -> bool:
@@ -38,7 +38,7 @@ class Identity(object):
             return NotImplemented
         return self.username == other.username and self.upload_key == other.upload_key and \
             self.subdomain == other.subdomain and self.role == other.role and \
-            self.telescope == other.telescope and self.zip == other.zip and self.debug == other.debug
+            self.telescope == other.telescope and self.zip == other.zip and self.api == other.api
 
     @property
     def username(self) -> str:
@@ -65,12 +65,12 @@ class Identity(object):
         return self._zip
 
     @property
-    def debug(self) -> bool:
-        return self._debug
+    def api(self) -> Optional[str]:
+        return self._api
 
     def get_args_string(self):
         s = f"{self.username},{self.upload_key},{self.subdomain},{self.role},{self.telescope},"
-        s += f"{str(self.zip)},{str(self.debug)}"
+        s += f"{str(self.zip)},{str(self.api)}"
         return s
 
     def save_with_folder(self, upload_folder_path: str):
@@ -86,4 +86,4 @@ class Identity(object):
                                          path=upload_folder_path,
                                          telescope=self.telescope or '',
                                          zip=str(self.zip),
-                                         debug=str(self.debug))
+                                         api=self.api)

@@ -1,10 +1,11 @@
 import click
+from arcsecond import config
 
 
 class State(object):
-    def __init__(self, verbose=0, debug=False):
-        self.verbose = verbose
-        self.debug = debug
+    def __init__(self, api_name='main', api_server=''):
+        self.api_name = api_name
+        self.api_server = api_server or config.config_file_read_api_server(self.api_name)
 
 
 def verbose_option_constructor(f):
@@ -21,23 +22,22 @@ def verbose_option_constructor(f):
                         callback=callback)(f)
 
 
-def debug_option_constructor(f):
+def api_option_constructor(f):
     def callback(ctx, param, value):
         state = ctx.ensure_object(State)
-        state.debug = value
+        state.api_name = value
+        state.api_server = config.config_file_read_api_server(value)
         return value
 
-    return click.option('-d',
-                        '--debug',
-                        is_flag=True,
+    return click.option('--api',
                         expose_value=False,
-                        help='Enables or disables debug mode (for Oort developers).',
+                        help='Choose API name (i.e. API server).',
                         callback=callback)(f)
 
 
 def basic_options(f):
     f = verbose_option_constructor(f)
-    f = debug_option_constructor(f)
+    f = api_option_constructor(f)
     return f
 
 

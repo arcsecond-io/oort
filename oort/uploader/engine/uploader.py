@@ -26,7 +26,7 @@ class FileUploader(object):
         self._api = ArcsecondAPI.datafiles(dataset=str(self._upload.dataset.uuid),  # will be used as request prefix
                                            upload_key=pack.identity.upload_key,
                                            organisation=pack.identity.subdomain,
-                                           debug=pack.identity.debug,
+                                           api=pack.identity.api,
                                            test=is_test_context)
 
     @property
@@ -151,7 +151,7 @@ class FileUploader(object):
         tag_folder = f'oort|folder|{self._pack.clean_folder_name}'
         tag_root = f'oort|root|{self._pack.root_folder_name}'
         tag_origin = f'oort|origin|{socket.gethostname()}|'
-        tag_uploader = f'oort|uploader|{ArcsecondAPI.username()}'
+        tag_uploader = f'oort|uploader|{ArcsecondAPI.username(api=self._pack.identity.api)}'
         tag_oort = f'oort|version|{__version__}'
 
         tags = [tag_filepath, tag_folder, tag_root, tag_origin, tag_uploader, tag_oort]

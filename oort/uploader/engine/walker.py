@@ -70,9 +70,9 @@ def walk_second_pass(root_path: Path, identity: Identity, unfinished_paths: list
     return success_uploads, failed_uploads
 
 
-def walk(folder_string: str, identity: Identity, force: bool, debug: bool):
+def walk(folder_string: str, identity: Identity, force: bool):
     if identity.subdomain:
-        check_remote_organisation(identity.subdomain, debug, verbose=False)
+        check_remote_organisation(identity.subdomain, identity.api)
 
     log_prefix = '[Walker]'
     root_path = Path(folder_string).resolve()

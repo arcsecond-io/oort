@@ -1,4 +1,5 @@
 import inspect
+import json
 import sys
 import uuid
 from configparser import ConfigParser
@@ -6,8 +7,9 @@ from functools import wraps
 
 import httpretty
 import peewee
-from arcsecond.api.constants import ARCSECOND_API_URL_DEV
+from arcsecond.api.constants import API_AUTH_PATH_LOGIN, ARCSECOND_API_URL_DEV
 from arcsecond.config import (config_file_clear_section,
+                              config_file_save_api_server,
                               config_file_save_organisation_membership,
                               config_file_save_upload_key)
 
@@ -34,6 +36,28 @@ ORG_MEMBERSHIPS = {TEST_LOGIN_ORG_SUBDOMAIN: TEST_LOGIN_ORG_ROLE}
 # CUSTOM_ASTRONOMER_DETAILS = {'username': CUSTOM_ASTRONOMER[0], 'key': CUSTOM_ASTRONOMER[1]}
 # UPLOAD_KEYS = [{'username': CUSTOM_ASTRONOMER[0], 'key': CUSTOM_ASTRONOMER[1]}]
 
+def make_profile(subdomain, role):
+    return {
+        "pk": 1,
+        "first_name": 'robot1',
+        "last_name": 'robot1',
+        "username": TEST_LOGIN_USERNAME,
+        "email": "robot1@arcsecond.io",
+        "membership_date": "2019-10-01T06:08:24.063186Z",
+        "memberships": [
+            {
+                "pk": 1,
+                "date_joined": "2019-10-02",
+                "role": role,
+                "organisation": {
+                    "pk": 1,
+                    "name": "Org Name",
+                    "subdomain": subdomain
+                }
+            }
+        ]
+    }
+
 
 def save_arcsecond_test_credentials(username=TEST_LOGIN_USERNAME, subdomain=TEST_LOGIN_ORG_SUBDOMAIN):
     clear_arcsecond_test_credentials()
@@ -44,6 +68,7 @@ def save_arcsecond_test_credentials(username=TEST_LOGIN_USERNAME, subdomain=TEST
 
 def clear_arcsecond_test_credentials():
     config_file_clear_section('test')
+    config_file_save_api_server(ARCSECOND_API_URL_DEV, 'test')
 
 
 def clear_oort_test_folders():
@@ -61,6 +86,32 @@ def clear_oort_test_folders():
 
     with conf_file_path.open('w') as f:
         config.write(f)
+
+
+def make_profile_json(subdomain, role):
+    return json.dumps(make_profile(subdomain, role))
+
+
+def prepare_successful_login(subdomain='robotland', role='member'):
+    config_file_save_api_server(ARCSECOND_API_URL_DEV, section='test')
+    httpretty.register_uri(
+        httpretty.POST,
+        ARCSECOND_API_URL_DEV + API_AUTH_PATH_LOGIN,
+        status=200,
+        body='{ "token": "935e2b9e24c44581b4ef5f4c8e53213e" }'
+    )
+    httpretty.register_uri(
+        httpretty.GET,
+        ARCSECOND_API_URL_DEV + '/profiles/' + TEST_LOGIN_USERNAME + '/',
+        status=200,
+        body=make_profile_json(subdomain, role)
+    )
+    httpretty.register_uri(
+        httpretty.GET,
+        ARCSECOND_API_URL_DEV + '/profiles/' + TEST_LOGIN_USERNAME + '/uploadkey/',
+        status=200,
+        body='{ "upload_key": "' + TEST_LOGIN_UPLOAD_KEY + '" }'
+    )
 
 
 def mock_url_path(method, path, body='', query='', status=200):

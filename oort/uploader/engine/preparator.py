@@ -42,7 +42,7 @@ class UploadPreparator(object):
     @property
     def _api_kwargs(self) -> dict:
         test = os.environ.get('OORT_TESTS') == '1'
-        kwargs = {'debug': self._identity.debug, 'test': test, 'upload_key': self._identity.upload_key}
+        kwargs = {'api': self._identity.api, 'upload_key': self._identity.upload_key, 'test': test}
         if self._identity.subdomain is not None and len(self._identity.subdomain) > 0:
             # We have an organisation subdomain.
             # We are uploading for an organisation, using ORGANISATION APIs,

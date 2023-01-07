@@ -16,34 +16,36 @@ from oort.shared.identity import Identity
 from oort.shared.models import Organisation
 
 
-def check_local_astronomer(debug: bool, verbose: bool):
+def check_local_astronomer(api: str):
     test = os.environ.get('OORT_TESTS') == '1'
 
-    username = ArcsecondAPI.username(debug=debug, test=test, verbose=verbose)
+    username = ArcsecondAPI.username(test=test, api=api)
     if username is None:
         raise InvalidAstronomerOortCloudError('')
 
-    upload_key = ArcsecondAPI.upload_key(debug=debug, test=test, verbose=verbose)
+    upload_key = ArcsecondAPI.upload_key(test=test, api=api)
     return username, upload_key
 
 
-def check_remote_organisation(org_subdomain: str, debug: bool, verbose: bool):
+def check_remote_organisation(org_subdomain: str, api: str = 'main'):
     try:
         return Organisation.get(subdomain=org_subdomain)
     except DoesNotExist:
         test = os.environ.get('OORT_TESTS') == '1'
-        org_resource, error = ArcsecondAPI.organisations(debug=debug, test=test, verbose=verbose).read(org_subdomain)
+        upload_key = ArcsecondAPI.upload_key(api=api)
+        org_resource, error = ArcsecondAPI.organisations(test=test, api=api, upload_key=upload_key).read(org_subdomain)
         if error is not None:
             raise UnknownOrganisationOortCloudError(org_subdomain, str(error))
         else:
             return Organisation.create(subdomain=org_subdomain)
 
 
-def check_local_astronomer_remote_organisation_membership(org_subdomain: str, debug: bool, verbose: bool) -> str:
+def check_local_astronomer_remote_organisation_membership(org_subdomain: str, api: str) -> str:
     test = os.environ.get('OORT_TESTS') == '1'
+    upload_key = ArcsecondAPI.upload_key(api=api)
 
-    # Reading local memberships if a org_subdomain is provided.
-    memberships = ArcsecondAPI.memberships(debug=debug, test=test, verbose=verbose) if org_subdomain else None
+    # Reading local memberships if an org_subdomain is provided.
+    memberships = ArcsecondAPI.memberships(test=test, api=api, upload_key=upload_key) if org_subdomain else None
 
     # An org_subdomain is provided, but memberships are empty.
     if org_subdomain and memberships in [None, {}]:
@@ -58,15 +60,16 @@ def check_local_astronomer_remote_organisation_membership(org_subdomain: str, de
     return role
 
 
-def list_organisation_telescopes(org_subdomain: str, debug: bool, verbose: bool):
+def list_organisation_telescopes(org_subdomain: str, api: str):
     click.echo("Error: if an organisation is provided, you must specify a telescope UUID.")
     click.echo(f"Here is a list of existing telescopes for organisation {org_subdomain}:")
 
     test = os.environ.get('OORT_TESTS') == '1'
+    upload_key = ArcsecondAPI.upload_key(api=api)
     telescope_list, error = ArcsecondAPI.telescopes(organisation=org_subdomain,
-                                                    debug=debug,
+                                                    api=api,
                                                     test=test,
-                                                    verbose=verbose).list()
+                                                    upload_key=upload_key).list()
     for telescope in telescope_list:
         click.echo(f" • {telescope['name']} ({telescope['uuid']})")
 
@@ -75,12 +78,14 @@ def list_organisation_telescopes(org_subdomain: str, debug: bool, verbose: bool)
 # also in the case of a custom astronomer.
 def check_telescope(telescope_uuid: Optional[Union[str, UUID]],
                     org_subdomain: Optional[str],
-                    debug: bool,
-                    verbose: bool) -> Optional[dict]:
+                    api: Optional[str]) -> \
+        Optional[dict]:
     click.echo(" • Fetching telescope details...")
 
     test = os.environ.get('OORT_TESTS') == '1'
-    kwargs = {'debug': debug, 'test': test, 'verbose': verbose}
+    upload_key = ArcsecondAPI.upload_key(api=api)
+
+    kwargs = {'test': test, 'api': api, 'upload_key': upload_key}
     if org_subdomain:
         kwargs.update(organisation=org_subdomain)
 
@@ -93,29 +98,32 @@ def check_telescope(telescope_uuid: Optional[Union[str, UUID]],
 
     if telescope_detail is not None and telescope_detail.get('coordinates', None) is None:
         site_uuid = telescope_detail.get('observing_site', None)
-        site_detail, error = ArcsecondAPI.observingsites(debug=debug).read(site_uuid)
+        site_detail, error = ArcsecondAPI.observingsites(api=api, upload_key=upload_key).read(site_uuid)
         if site_detail:
             telescope_detail['coordinates'] = site_detail.get('coordinates')
 
     return telescope_detail
 
 
-def check_remote_astronomer(username: str, upload_key: str, debug: bool, verbose: bool):
+def check_remote_astronomer(username: str, upload_key: str, api: str):
     click.echo("Checking astronomer credentials...")
 
     if username is None or upload_key is None:
         raise InvalidWatchOptionsOortCloudError()
 
     test = os.environ.get('OORT_TESTS') == '1'
-    result, error = ArcsecondAPI.me(debug=debug, test=test, verbose=verbose).read(username)
+    upload_key = ArcsecondAPI.upload_key(api=api)
+
+    result, error = ArcsecondAPI.me(test=test, api=api, upload_key=upload_key).read(username)
     if error is not None:
         raise InvalidAstronomerOortCloudError(username, upload_key, error_string=str(error))
 
 
-def check_organisation_shared_keys(org_subdomain: str, username: str, upload_key: str, debug: bool, verbose: bool):
+def check_organisation_shared_keys(org_subdomain: str, username: str, upload_key: str, api: str):
     test = os.environ.get('OORT_TESTS') == '1'
-    kwargs = {'debug': debug, 'test': test, 'verbose': verbose, 'organisation': org_subdomain}
+    upload_key = ArcsecondAPI.upload_key(api=api)
 
+    kwargs = {'api': api, 'test': test, 'organisation': org_subdomain, upload_key: upload_key}
     upload_keys_details, error = ArcsecondAPI.uploadkeys(**kwargs).list()
     if error is not None:
         InvalidWatchOptionsOortCloudError(str(error))
@@ -132,8 +140,7 @@ def check_organisation_shared_keys(org_subdomain: str, username: str, upload_key
 
 def parse_upload_watch_options(organisation: Optional[str] = None,
                                telescope: Optional[str] = None,
-                               debug: Optional[bool] = False,
-                               verbose: Optional[bool] = False):
+                               api: Optional[str] = None):
     telescope_uuid = telescope or ''
     org_subdomain = organisation or ''
 
@@ -143,16 +150,16 @@ def parse_upload_watch_options(organisation: Optional[str] = None,
     org_role = ''
     if org_subdomain:
         # Check that the provided subdomain corresponds to an existing remote organisation.
-        org = check_remote_organisation(org_subdomain, debug, verbose)
+        org = check_remote_organisation(org_subdomain, api)
         # Check that the provided subdomain is an organisation of which the current logged in astronomer is a member.
-        org_role = check_local_astronomer_remote_organisation_membership(org_subdomain, debug, verbose)
+        org_role = check_local_astronomer_remote_organisation_membership(org_subdomain, api)
 
     # Validation of the telescope #
 
     # In every case, check for telescope details if a UUID is provided.
     telescope_details = None
     if telescope_uuid:
-        telescope_details = check_telescope(telescope_uuid, org_subdomain, debug, verbose)
+        telescope_details = check_telescope(telescope_uuid, org_subdomain, api)
 
     # Validation of the uploader #
 
@@ -165,14 +172,14 @@ def parse_upload_watch_options(organisation: Optional[str] = None,
     # if astronomer == (None, None):
 
     # Fetch the username of the currently logged in astronomer.
-    username, upload_key = check_local_astronomer(debug, verbose)
+    username, upload_key = check_local_astronomer(api)
     if not username or not upload_key:
         raise InvalidWatchOptionsOortCloudError('Missing username or upload_key.')
 
     # If we have an organisation and no telescope UUID, we list the one available
     # and then raise an error
     if org is not None and telescope_details is None:
-        list_organisation_telescopes(org_subdomain, debug, verbose)
+        list_organisation_telescopes(org_subdomain, api)
         raise InvalidWatchOptionsOortCloudError('For an organisation, a telescope UUID must be provided.')
 
     # --- for when we will deal with custom astronomers
@@ -181,7 +188,7 @@ def parse_upload_watch_options(organisation: Optional[str] = None,
     #     custom_astronomer = True
     #     username, upload_key = astronomer
     #     # Make sure the remote astronomer actually exists.
-    #     check_remote_astronomer(username, upload_key, debug, verbose)
+    #     check_remote_astronomer(username, upload_key, api)
     #
     #     if org is None:
     #         raise InvalidWatchOptionsOortCloudError(
@@ -190,7 +197,7 @@ def parse_upload_watch_options(organisation: Optional[str] = None,
     #
     #     # Check that the custom astronomer has a valid upload_key for the given organisation.
     #     # This is where the knot is. This check can only be made by a member of the registered organisation.
-    #     check_organisation_shared_keys(org_subdomain, username, upload_key, debug, verbose)
+    #     check_organisation_shared_keys(org_subdomain, username, upload_key, api)
 
     return username, upload_key, org_subdomain, org_role, telescope_details
 
@@ -202,9 +209,8 @@ def save_upload_folders(folders: list,
                         org_role: Optional[str],
                         telescope_details: Optional[dict],
                         zip: bool,
-                        debug: bool,
-                        verbose: bool) -> list:
-    logger = get_oort_logger('cli', debug=debug)
+                        api: str) -> list:
+    logger = get_oort_logger('cli', debug=api == 'dev')
 
     prepared_folders = []
     for raw_folder in folders:
@@ -227,7 +233,7 @@ def save_upload_folders(folders: list,
                             role=org_role or '',
                             telescope=telescope_uuid,
                             zip=zip,
-                            debug=debug)
+                            api=api)
 
         identity.save_with_folder(upload_folder_path=str(upload_path))
         prepared_folders.append((str(upload_path), identity))
