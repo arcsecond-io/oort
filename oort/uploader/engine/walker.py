@@ -1,3 +1,4 @@
+import time
 from pathlib import Path
 
 import click
@@ -15,6 +16,8 @@ logger = get_oort_logger('walker')
 def walk_first_pass(root_path: Path, identity: Identity, force: bool):
     log_prefix = '[Walker - 1/2]'
     logger.info(f"{log_prefix} Making a first pass to collect info on files...")
+    if identity.api != 'dev':
+        time.sleep(3)
 
     total_file_count = sum(1 for f in root_path.glob('**/*') if f.is_file() and not is_hidden(f))
 
@@ -42,6 +45,8 @@ def walk_first_pass(root_path: Path, identity: Identity, force: bool):
 def walk_second_pass(root_path: Path, identity: Identity, unfinished_paths: list, force: bool):
     log_prefix = '[Walker - 2/2]'
     logger.info(f"{log_prefix} Starting second pass to upload files...")
+    if identity.api != 'dev':
+        time.sleep(3)
 
     failed_uploads = []
     success_uploads = []
