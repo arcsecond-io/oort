@@ -128,6 +128,7 @@ class UploadPreparator(object):
         tag_uploader = f'oort|uploader|{ArcsecondAPI.username(api=self._pack.identity.api)}'
         tag_oort = f'oort|version|{__version__}'
 
+        # Unique combination for a given organisation, it should returns one dataset...
         search_tags = [tag_folder, tag_root]
         create_tags = [tag_folder, tag_root, tag_origin, tag_uploader, tag_oort]
         if self._identity.telescope:
