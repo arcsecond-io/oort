@@ -110,18 +110,16 @@ def login(state, username, password):
     This Upload key is not your full API key. When logging in with oort, no fetch
     nor storage of the API key occur (only the Upload one).
     """
-    profile, error = ArcsecondAPI.login(username,
-                                        password,
-                                        None,
-                                        upload_key=True,
-                                        debug=state.debug,
-                                        verbose=state.verbose)
-    if error is not None:
+    profile, error = ArcsecondAPI.login(username, password, upload_key=True, api=state.api_name)
+    if error:
         click.echo(error)
     else:
-        click.echo(f' • Successfully logged in as @{ArcsecondAPI.username()}.')
+        username = ArcsecondAPI.username(api=state.api_name)
+        click.echo(f' • Successfully logged in as @{username} (API: {state.api_name}).')
         # Update all upload_key stored in the config for all watched folders.
-        update_oort_config_upload_folder_sections_key(ArcsecondAPI.upload_key())
+        update_oort_config_upload_folder_sections_key(ArcsecondAPI.upload_key(api=state.api_name))
+
+
 @main.command()
 @click.argument('name', required=False, nargs=1)
 @click.argument('address', required=False, nargs=1)
@@ -255,10 +253,10 @@ def telescopes(state, organisation=None):
 
     click.echo(f" • Found {len(telescope_list)} telescope{'s' if len(telescope_list) > 1 else ''}.")
     for telescope_dict in telescope_list:
-        s = f" >>> 🔭 \"{telescope_dict['name']}\" "
+        s = f" 🔭 \"{telescope_dict['name']}\" "
         if telescope_dict['alias']:
             s += f"alias \"{telescope_dict['alias']}\" "
-        s += f"({telescope_dict['uuid']}) "
+        s += f"(uuid: {telescope_dict['uuid']}) "
         # s += f"[ObservingSite UUID: {telescope_dict['observing_site']}]"
         click.echo(s)
 
