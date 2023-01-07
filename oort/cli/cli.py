@@ -147,36 +147,36 @@ def api(state, name=None, address=None):
 @basic_options
 @pass_state
 def status(state):
-    get_supervisor_processes_status(debug=state.debug)
+    get_supervisor_processes_status()
 
 
 @main.command(help='Start Oort processes.')
 @basic_options
 @pass_state
 def start(state):
-    start_supervisor_processes(debug=state.debug)
-    get_supervisor_processes_status(debug=state.debug)
+    start_supervisor_processes()
+    get_supervisor_processes_status()
 
 
 @main.command(help='Stop Oort processes.')
 @basic_options
 @pass_state
 def stop(state):
-    stop_supervisor_processes(debug=state.debug)
-    get_supervisor_processes_status(debug=state.debug)
+    stop_supervisor_processes()
+    get_supervisor_processes_status()
 
 
 @main.command(help='Stop Oort process and deamon, reconfigure, and restart everything.')
 @basic_options
 @pass_state
 def restart(state):
-    stop_supervisor_processes(debug=state.debug)
-    get_supervisor_processes_status(debug=state.debug)
-    stop_supervisor_daemon(debug=state.debug)
-    reconfigure_supervisor(debug=state.debug)
-    start_supervisor_daemon(debug=state.debug)
-    # start_supervisor_processes(debug=state.debug)
-    get_supervisor_processes_status(debug=state.debug)
+    stop_supervisor_processes()
+    get_supervisor_processes_status()
+    stop_supervisor_daemon()
+    reconfigure_supervisor()
+    start_supervisor_daemon()
+    # start_supervisor_processes()
+    get_supervisor_processes_status()
 
 
 @main.command(help='Open Oort web URL in default browser')
@@ -238,7 +238,7 @@ def folders(state):
 @pass_state
 def telescopes(state, organisation=None):
     test = os.environ.get('OORT_TESTS') == '1'
-    kwargs = {'debug': state.debug, 'test': test, 'verbose': state.verbose}
+    kwargs = {'api': state.api_name, 'test': test, 'upload_key': ArcsecondAPI.upload_key(api='dev')}
 
     org_subdomain = organisation or ''
     if org_subdomain:
@@ -297,11 +297,18 @@ def upload(state, folder, organisation=None, telescope=None, force=False, zip=Fa
 
     try:
         username, upload_key, org_subdomain, org_role, telescope_details = \
-            parse_upload_watch_options(organisation, telescope, state.debug, state.verbose)
+            parse_upload_watch_options(organisation, telescope, state.api_name)
     except InvalidWatchOptionsOortCloudError:
         return
 
-    display_command_summary([folder, ], username, upload_key, org_subdomain, org_role, telescope_details, zip)
+    display_command_summary([folder, ],
+                            username,
+                            upload_key,
+                            org_subdomain,
+                            org_role,
+                            telescope_details,
+                            zip,
+                            state.api_server)
 
     ok = input('\n   ----> OK? (Press Enter) ')
 
@@ -313,11 +320,11 @@ def upload(state, folder, organisation=None, telescope=None, force=False, zip=Fa
                             role=org_role or '',
                             telescope=telescope_uuid,
                             zip=zip,
-                            debug=state.debug)
+                            api=state.api_name)
 
         from oort.uploader.engine.walker import walk
 
-        walk(folder, identity, bool(force), debug=state.debug)
+        walk(folder, identity, bool(force))
 
 
 @main.command(help='Start watching a folder content for uploading files in batch/background mode.')
@@ -378,4 +385,4 @@ def watch(state, folders, organisation=None, telescope=None, zip=False):
         msg = f" • Oort will start watching within {OORT_UPLOADER_FOLDER_DETECTION_TICK_SECONDS} seconds "
         msg += "if the uploader process is running.\n • Getting the processes status for you right now:"
         click.echo(msg)
-        get_supervisor_processes_status(debug=state.debug)
+        get_supervisor_processes_status()
