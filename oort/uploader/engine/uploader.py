@@ -136,7 +136,7 @@ class FileUploader(object):
         self._upload.smart_update(status=Status.UPLOADING.value, substatus=Substatus.STARTING.value, error='')
 
         file_size = self._upload.get_formatted_size()
-        self._logger.info(f'{self.log_prefix} Starting upload ({file_size})')
+        self._logger.info(f'{self.log_prefix} Starting upload to Arcsecond ({file_size})')
 
         self._async_file_uploader.start()
         _, upload_error = self._async_file_uploader.finish()
