@@ -168,7 +168,7 @@ def stop(state):
     get_supervisor_processes_status()
 
 
-@main.command(help='Stop Oort process and deamon, reconfigure, and restart everything.')
+@main.command(help='Stop Oort process and daemon, reconfigure, and restart everything.')
 @basic_options
 @pass_state
 def restart(state):
