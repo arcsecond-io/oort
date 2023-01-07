@@ -120,6 +120,27 @@ def login(state, username, password):
         click.echo(f' • Successfully logged in as @{ArcsecondAPI.username()}.')
         # Update all upload_key stored in the config for all watched folders.
         update_oort_config_upload_folder_sections_key(ArcsecondAPI.upload_key())
+@main.command()
+@click.argument('name', required=False, nargs=1)
+@click.argument('address', required=False, nargs=1)
+@pass_state
+def api(state, name=None, address=None):
+    """
+    Configure the API server address.
+
+    For instance:
+
+    • "oort api main" to get the main API server address.\n
+    • "oort api dev http://localhost:8000" to configure a dev server.
+
+    Later, you can use --api <api name> in every command to choose which API
+    server you want to interact with. Hence, "--api dev" will choose the above
+    dev server.
+    """
+    if address is None:
+        print(ArcsecondAPI.get_api_name(api_name=name))
+    else:
+        ArcsecondAPI.set_api_name(address, api_name=name)
 
 
 @main.command(help='Display current Oort processes status.')
