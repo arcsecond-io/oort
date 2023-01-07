@@ -39,32 +39,30 @@ def main(ctx, version=False, **kwargs):
     """
     Oort-Cloud ('oort' command) is a super-easy upload manager for arcsecond.io.
 
-    Oort-Cloud is a pure push up tool, not a two-way syncing tool. A file that
+    Oort-Cloud is a pure "upward" tool, not a two-way syncing tool. A file that
     is deleted locally will remain in the cloud if already uploaded. Change
     of files in the cloud have no effect locally either.
 
     Oort-Cloud uploads every non-hidden non-empty files. Make sure to not watch
-    your home folder, or a folder with secret information.
+    nor upload your home folder, or a folder containing sensitive information.
 
-    Oort is using one simple rule to group files inside datasets.
-    ** One folder = One dataset. ** Of course, a sub(sub)folder is considered
-    as a new folder.
-
-    Hence, the cleaner the local folders structure, the cleaner it will appear
-    in arcsecond.io.
+    Oort will upload files with enough metadata for Arcsecond to reproduce the
+    local folder structure. Of course, the cleaner the local folders structure,
+    the cleaner it will appear in Arcsecond.io.
 
     To each data file (FITS or XISF) will be associated an Observation or a
-    Calibration. If a "OBJECT" field is found in the FITS or XISF header, it
-    will be an Observation.
+    Calibration. The rules to distinguish between the two are the following:
+
+    If a "OBJECT" field is found in the FITS or XISF header, it will be an
+    Observation.
 
     If no "OBJECT" field can be found in the header, Oort will look at the
     folder path. If any of the word 'bias', 'dark', 'flat', 'calib' is present
     somewhere in the path, it will be a Calibration.
 
     Otherwise, it will be an Observation, whose target name will be that of the
-    folder. However, if the folder name is some date in ISO-like format, it
-    will be still considered a Calibration, since no sensible Target name
-    could be found.
+    folder (except if the folder name is some date in ISO-like format, since no
+    sensible Target name could be inferred).
 
     Oort-Cloud has 2 modes: direct, and batch. As of now, the two modes are
     exclusive (because of the access to the small local SQLite database). You
@@ -102,11 +100,15 @@ def main(ctx, version=False, **kwargs):
 def login(state, username, password):
     """Login to your personal Arcsecond.io account.
 
-    It also fetch your personal Upload key. This Upload key is a secret token
-    which gives just enough permission to perform the creation of Night Logs
-    Observations, Calibrations, Datasets, Datafiles and perform the upload.
-    Beware that the key will be stored locally on a file:
-    ~/.arcsecond.ini
+    It also fetches your personal Upload key. This Upload key is a secret token
+    which gives just enough permission to perform the upload of files and the
+    minimum of metadata.
+
+    Beware that the Upload key will be stored locally on a file:
+    ~/.config/arcsecond/config.ini
+
+    This Upload key is not your full API key. When logging in with oort, no fetch
+    nor storage of the API key occur (only the Upload one).
     """
     profile, error = ArcsecondAPI.login(username,
                                         password,
