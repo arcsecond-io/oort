@@ -35,6 +35,7 @@ class FileUploader(object):
 
     def _prepare_file_uploader(self, remote_resource_exists):
         self.has_logged_final = False
+
         # Callback allowing for the server monitor to display the percentage of progress of the upload.
         def update_upload_progress(event, progress_percent):
             if progress_percent > self._upload.progress + 0.1 or 99 < progress_percent <= 100:
@@ -47,8 +48,8 @@ class FileUploader(object):
                     print(f"{progress_percent:.2f}% ({duration:.2f} sec)", end="\r")
 
             if progress_percent >= 100 and self._display_progress and not self.has_logged_final:
-                msg = f"{self.log_prefix} Upload to Arcsecond finished. Now transferring to final Cloud Storage."
-                self._logger.info(msg)
+                self._logger.info(f"{self.log_prefix} Upload to Arcsecond finished.")
+                self._logger.info(f"{self.log_prefix} Now parsing headers, then saving file in Storage.")
                 self.has_logged_final = True
 
         self._async_file_uploader: AsyncFileUploader
