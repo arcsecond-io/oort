@@ -125,7 +125,7 @@ class UploadPreparator(object):
         tag_folder = f'oort|folder|{self._pack.clean_folder_name}'
         tag_root = f'oort|root|{self._pack.root_folder_name}'
         tag_origin = f'oort|origin|{socket.gethostname()}'
-        tag_uploader = f'oort|uploader|{ArcsecondAPI.username()}'
+        tag_uploader = f'oort|uploader|{ArcsecondAPI.username(api=self._pack.identity.api)}'
         tag_oort = f'oort|version|{__version__}'
 
         search_tags = [tag_folder, tag_root]
