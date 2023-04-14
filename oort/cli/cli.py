@@ -106,7 +106,7 @@ def login(state, username, password):
 
 
 @main.command()
-@click.argument('name', required=False, nargs=1)
+@click.argument('name', required=True, nargs=1)
 @click.argument('address', required=False, nargs=1)
 @pass_state
 def api(state, name=None, address=None):
