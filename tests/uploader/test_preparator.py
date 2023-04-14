@@ -21,14 +21,6 @@ fits_file_name = 'very_simple.fits'
 folder_path = pathlib.Path(spec.origin).parent / 'tests' / 'fixtures'
 fits_file_path = folder_path / fits_file_name
 
-TAGS = [
-    'oort|folder|fixtures',
-    f'oort|root|{str(folder_path)}',
-    f'oort|origin|{socket.gethostname()}',
-    f'oort|uploader|{ArcsecondAPI.username(api="test")}',
-    f'oort|version|{__version__}'
-]
-
 db.connect(reuse_if_open=True)
 db.create_tables([Organisation, Telescope, Dataset, Upload])
 
@@ -78,6 +70,14 @@ def test_preparator_init_with_org():
 def test_preparator_prepare_no_org_no_telescope():
     save_arcsecond_test_credentials()
 
+    TAGS = [
+        'oort|folder|fixtures',
+        f'oort|root|{str(folder_path)}',
+        f'oort|origin|{socket.gethostname()}',
+        f'oort|uploader|{ArcsecondAPI.username(api="test")}',
+        f'oort|version|{__version__}'
+    ]
+
     identity = Identity(TEST_LOGIN_USERNAME, TEST_LOGIN_UPLOAD_KEY, api='test')
     pack = UploadPack(str(folder_path), str(fits_file_path), identity)
     pack.collect_file_info()
@@ -102,6 +102,14 @@ def test_preparator_prepare_no_org_no_telescope():
 @use_test_database
 def test_preparator_prepare_with_org_and_telescope():
     save_arcsecond_test_credentials()
+
+    TAGS = [
+        'oort|folder|fixtures',
+        f'oort|root|{str(folder_path)}',
+        f'oort|origin|{socket.gethostname()}',
+        f'oort|uploader|{ArcsecondAPI.username(api="test")}',
+        f'oort|version|{__version__}'
+    ]
 
     identity = Identity(TEST_LOGIN_USERNAME,
                         TEST_LOGIN_UPLOAD_KEY,
