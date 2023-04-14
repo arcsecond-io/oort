@@ -25,8 +25,8 @@ def verbose_option_constructor(f):
 def api_option_constructor(f):
     def callback(ctx, param, value):
         state = ctx.ensure_object(State)
-        state.api_name = value
-        state.api_server = config.config_file_read_api_server(value)
+        state.api_name = value or 'main'
+        state.api_server = config.config_file_read_api_server(state.api_name)
         return value
 
     return click.option('--api',
