@@ -1,5 +1,4 @@
 import pathlib
-from typing import Optional
 
 import click
 
@@ -8,7 +7,7 @@ from oort.shared.utils import get_formatted_bytes_size, get_formatted_size_times
 from oort.shared.identity import Identity
 
 
-def display_command_summary(folders: list, identity: Identity, telescope_details: Optional[dict]):
+def display_command_summary(folders: list, identity: Identity):
     click.echo(f"\n --- Folder{'s' if len(folders) > 1 else ''} summary --- ")
     click.echo(f" • Arcsecond username: @{identity.username} (Upload key: {identity.upload_key[:4]}••••)")
     if not identity.subdomain:
@@ -16,11 +15,11 @@ def display_command_summary(folders: list, identity: Identity, telescope_details
     else:
         click.echo(f" • Uploading to organisation account '{identity.subdomain}' (as {identity.role}).")
 
-    if telescope_details:
-        msg = f" • Datasets will be attached to telescope '{telescope_details.get('name')}' "
-        if telescope_details.get('alias', ''):
-            msg += f"alias \"{telescope_details.get('alias')}\" "
-        msg += f"({telescope_details.get('uuid')}))"
+    if identity.telescope_details:
+        msg = f" • Datasets will be attached to telescope '{identity.telescope_details.get('name')}' "
+        if identity.telescope_details.get('alias', ''):
+            msg += f"alias \"{identity.telescope_details.get('alias')}\" "
+        msg += f"({identity.telescope_details.get('uuid')}))"
         click.echo(msg)
     else:
         click.echo(" • No designated telescope.")

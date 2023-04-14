@@ -282,21 +282,11 @@ def upload(state, folder, organisation=None, telescope=None, force=False, zip=Fa
     click.echo(f"{80 * '*'}\n")
 
     try:
-        username, upload_key, org_subdomain, org_role, telescope_details = \
-            parse_upload_watch_options(organisation, telescope, state.api_name)
+        identity = parse_upload_watch_options(organisation, telescope, zip, state.api_name)
     except InvalidWatchOptionsOortCloudError:
         return
 
-    identity = Identity(username,
-                        upload_key,
-                        subdomain=org_subdomain or '',
-                        role=org_role or '',
-                        telescope=telescope or '',
-                        zip=zip,
-                        api=state.api_name)
-
-    display_command_summary([folder, ], identity, telescope_details)
-
+    display_command_summary([folder, ], identity)
     ok = input('\n   ----> OK? (Press Enter) ')
 
     if ok.strip() == '':
@@ -336,25 +326,15 @@ def watch(state, folders, organisation=None, telescope=None, zip=False):
     click.echo(f"{80 * '*'}\n")
 
     try:
-        username, upload_key, org_subdomain, org_role, telescope_details = \
-            parse_upload_watch_options(organisation, telescope, state.api_name)
+        identity = parse_upload_watch_options(organisation, telescope, zip, state.api_name)
     except InvalidWatchOptionsOortCloudError:
         return
 
-    identity = Identity(username,
-                        upload_key,
-                        subdomain=org_subdomain,
-                        role=org_role,
-                        telescope=telescope,
-                        zip=zip,
-                        api=state.api_name)
-
-    display_command_summary(folders, identity, telescope_details)
-
+    display_command_summary(folders, identity)
     ok = input('\n   ----> OK? (Press Enter) ')
 
     if ok.strip() == '':
-        save_upload_folders(folders, identity, telescope_details)
+        save_upload_folders(folders, identity)
         click.echo("\n • OK.")
         msg = f" • Oort will start watching within {OORT_UPLOADER_FOLDER_DETECTION_TICK_SECONDS} seconds "
         msg += "if the uploader process is running.\n • Getting the processes status for you right now:"

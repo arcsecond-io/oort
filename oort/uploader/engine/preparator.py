@@ -126,7 +126,7 @@ class UploadPreparator(object):
         self._pack.upload.smart_update(substatus=Substatus.SYNC_DATASET.value)
 
         # Definition of meaningful tags
-        tag_telescope = f'oort|telescope|{self._identity.telescope}'
+        tag_telescope = f'oort|telescope|{self._identity.telescope_uuid}'
         tag_folder = f'oort|folder|{self._pack.clean_folder_name}'
         tag_root = f'oort|root|{self._pack.root_folder_name}'
         tag_origin = f'oort|origin|{socket.gethostname()}'
@@ -136,7 +136,7 @@ class UploadPreparator(object):
         # Unique combination for a given organisation, it should returns one dataset...
         search_tags = [tag_folder, tag_root]
         create_tags = [tag_folder, tag_root, tag_origin, tag_uploader, tag_oort]
-        if self._identity.telescope:
+        if self._identity.telescope_uuid:
             search_tags.append(tag_telescope)
             create_tags.append(tag_telescope)
 
@@ -170,12 +170,12 @@ class UploadPreparator(object):
 
     def _sync_telescope(self):
         try:
-            self._telescope = Telescope.get(uuid=self._identity.telescope)
+            self._telescope = Telescope.get(uuid=self._identity.telescope_uuid)
         except DoesNotExist:
-            self._logger.info(f'{self.log_prefix} Reading telescope {self._identity.telescope}...')
+            self._logger.info(f'{self.log_prefix} Reading telescope {self._identity.telescope_uuid}...')
             self._pack.upload.smart_update(substatus=Substatus.SYNC_TELESCOPE.value)
             telescopes_api = ArcsecondAPI.telescopes(**self._api_kwargs)
-            telescope_dict, error = telescopes_api.read(self._identity.telescope)
+            telescope_dict, error = telescopes_api.read(self._identity.telescope_uuid)
             if error is not None:
                 raise errors.UploadPreparationAPIError(str(error))
             self._telescope = Telescope.create(**telescope_dict)
@@ -193,7 +193,7 @@ class UploadPreparator(object):
 
             # It has no impact on the upload to actually get the telescope details.
             # It is only used to display the telescope name in the web page.
-            if self._identity.telescope:
+            if self._identity.telescope_uuid:
                 self._sync_telescope()
 
         except (errors.UploadPreparationFatalError, errors.UploadPreparationError) as e:

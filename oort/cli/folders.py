@@ -138,7 +138,11 @@ def check_organisation_shared_keys(org_subdomain: str, username: str, upload_key
         raise InvalidOrganisationUploadKeyOortCloudError(org_subdomain, username, upload_key)
 
 
-def parse_upload_watch_options(organisation: str = '', telescope: str = '', api: str = ''):
+def parse_upload_watch_options(organisation: str = '',
+                               telescope: str = '',
+                               zip: bool = True,
+                               api: str = 'main') -> Identity:
+    assert api != ''
     telescope_uuid = telescope or ''
     org_subdomain = organisation or ''
 
@@ -172,10 +176,21 @@ def parse_upload_watch_options(organisation: str = '', telescope: str = '', api:
         list_organisation_telescopes(org_subdomain, api)
         raise InvalidWatchOptionsOortCloudError('For an organisation, a telescope UUID must be provided.')
 
-    return username, upload_key, org_subdomain, org_role, telescope_details
+    identity = Identity(username,
+                        upload_key,
+                        org_subdomain,
+                        org_role,
+                        telescope_uuid,
+                        zip,
+                        api)
+
+    if telescope_details is not None:
+        identity.attach_telescope_details(**telescope_details)
+
+    return identity
 
 
-def save_upload_folders(folders: list, identity: Identity, telescope_details: Optional[dict]) -> list:
+def save_upload_folders(folders: list, identity: Identity) -> list:
     logger = get_oort_logger('cli', debug=identity.api == 'dev')
 
     prepared_folders = []
@@ -188,18 +203,6 @@ def save_upload_folders(folders: list, identity: Identity, telescope_details: Op
 
         if upload_path.is_file():
             upload_path = upload_path.parent
-
-        telescope_uuid = ''
-        if telescope_details:
-            telescope_uuid = telescope_details.get('uuid') or ''
-
-        identity = Identity(username=username,
-                            upload_key=upload_key or '',
-                            subdomain=org_subdomain or '',
-                            role=org_role or '',
-                            telescope=telescope_uuid,
-                            zip=zip,
-                            api=api)
 
         identity.save_with_folder(upload_folder_path=str(upload_path))
         prepared_folders.append((str(upload_path), identity))
