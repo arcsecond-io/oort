@@ -161,14 +161,6 @@ def parse_upload_watch_options(organisation: str = '', telescope: str = '', api:
 
     # Validation of the uploader #
 
-    username = ''
-    upload_key = ''
-    # custom_astronomer = False
-
-    # --- for when we will deal with custom astronomers
-    # No custom astronomer for uploading. If no org, fine. If an org, one needs the telescope.
-    # if astronomer == (None, None):
-
     # Fetch the username of the currently logged in astronomer.
     username, upload_key = check_local_astronomer(api)
     if not username or not upload_key:
@@ -179,23 +171,6 @@ def parse_upload_watch_options(organisation: str = '', telescope: str = '', api:
     if org is not None and telescope_details is None:
         list_organisation_telescopes(org_subdomain, api)
         raise InvalidWatchOptionsOortCloudError('For an organisation, a telescope UUID must be provided.')
-
-    # --- for when we will deal with custom astronomers
-    # We have a custom astronomer. Check that the organisation is allowed to upload on behalf of it.
-    # else:
-    #     custom_astronomer = True
-    #     username, upload_key = astronomer
-    #     # Make sure the remote astronomer actually exists.
-    #     check_remote_astronomer(username, upload_key, api)
-    #
-    #     if org is None:
-    #         raise InvalidWatchOptionsOortCloudError(
-    #             'To check the custom astronomer, one needs the uploading organisation'
-    #         )
-    #
-    #     # Check that the custom astronomer has a valid upload_key for the given organisation.
-    #     # This is where the knot is. This check can only be made by a member of the registered organisation.
-    #     check_organisation_shared_keys(org_subdomain, username, upload_key, api)
 
     return username, upload_key, org_subdomain, org_role, telescope_details
 
