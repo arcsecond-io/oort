@@ -19,11 +19,11 @@ class Identity(object):
     def __init__(self,
                  username: str,
                  upload_key: str,
-                 subdomain: Optional[str] = '',
-                 role: Optional[str] = '',
-                 telescope: Optional[str] = '',
+                 subdomain: str = '',
+                 role: str = '',
+                 telescope: str = '',
                  zip: bool = False,
-                 api: Optional[str] = ''):
+                 api: str = ''):
         self._username = username
         self._upload_key = upload_key
         self._subdomain = subdomain
@@ -49,15 +49,15 @@ class Identity(object):
         return self._upload_key
 
     @property
-    def subdomain(self) -> Optional[str]:
+    def subdomain(self) -> str:
         return self._subdomain
 
     @property
-    def role(self) -> Optional[str]:
+    def role(self) -> str:
         return self._role
 
     @property
-    def telescope(self) -> Optional[str]:
+    def telescope(self) -> str:
         return self._telescope
 
     @property
@@ -65,7 +65,7 @@ class Identity(object):
         return self._zip
 
     @property
-    def api(self) -> Optional[str]:
+    def api(self) -> str:
         return self._api
 
     def get_args_string(self):

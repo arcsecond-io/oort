@@ -76,7 +76,7 @@ def list_organisation_telescopes(org_subdomain: str, api: str):
 
 # The organisation is actually optional. It allows to check for a telescope
 # also in the case of a custom astronomer.
-def check_telescope(telescope_uuid: Optional[Union[str, UUID]],
+def check_telescope(telescope_uuid: Union[str, UUID],
                     org_subdomain: Optional[str],
                     api: Optional[str]) -> \
         Optional[dict]:
@@ -138,9 +138,7 @@ def check_organisation_shared_keys(org_subdomain: str, username: str, upload_key
         raise InvalidOrganisationUploadKeyOortCloudError(org_subdomain, username, upload_key)
 
 
-def parse_upload_watch_options(organisation: Optional[str] = None,
-                               telescope: Optional[str] = None,
-                               api: Optional[str] = None):
+def parse_upload_watch_options(organisation: str = '', telescope: str = '', api: str = ''):
     telescope_uuid = telescope or ''
     org_subdomain = organisation or ''
 
