@@ -18,8 +18,7 @@ class UploadPreparator(object):
     def __init__(self, pack, debug=False):
         self._pack = pack
         self._identity = self._pack.identity
-        self._debug = debug
-        self._logger = get_oort_logger('uploader', debug=self._debug)
+        self._logger = get_oort_logger('uploader', debug=debug)
 
         self._organisation = None
         self._telescope = None
