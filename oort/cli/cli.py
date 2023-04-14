@@ -39,7 +39,7 @@ def main(ctx, version=False, **kwargs):
     """
     Oort-Cloud ('oort' command) is a super-easy upload manager for arcsecond.io.
 
-    Oort-Cloud is a pure "upward" tool, not a two-way syncing tool. A file that
+    Oort-Cloud is a pure "upward" tool, not a two-ways syncing tool. A file that
     is deleted locally will remain in the cloud if already uploaded. Change
     of files in the cloud have no effect locally either.
 
@@ -49,20 +49,6 @@ def main(ctx, version=False, **kwargs):
     Oort will upload files with enough metadata for Arcsecond to reproduce the
     local folder structure. Of course, the cleaner the local folders structure,
     the cleaner it will appear in Arcsecond.io.
-
-    To each data file (FITS or XISF) will be associated an Observation or a
-    Calibration. The rules to distinguish between the two are the following:
-
-    If a "OBJECT" field is found in the FITS or XISF header, it will be an
-    Observation.
-
-    If no "OBJECT" field can be found in the header, Oort will look at the
-    folder path. If any of the word 'bias', 'dark', 'flat', 'calib' is present
-    somewhere in the path, it will be a Calibration.
-
-    Otherwise, it will be an Observation, whose target name will be that of the
-    folder (except if the folder name is some date in ISO-like format, since no
-    sensible Target name could be inferred).
 
     Oort-Cloud has 2 modes: direct, and batch. As of now, the two modes are
     exclusive (because of the access to the small local SQLite database). You
