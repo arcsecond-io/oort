@@ -116,10 +116,10 @@ def api(state, name=None, address=None):
 
     For instance:
 
-    • "oort api main" to get the main API server address.\n
+    • "oort api main" to get the main API server address (default).\n
     • "oort api dev http://localhost:8000" to configure a dev server.
 
-    Later, you can use --api <api name> in every command to choose which API
+    You can then use --api <api name> in every command to choose which API
     server you want to interact with. Hence, "--api dev" will choose the above
     dev server.
     """
