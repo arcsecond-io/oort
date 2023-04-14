@@ -22,7 +22,6 @@ from oort.shared.config import (get_oort_config_upload_folder_sections,
                                 update_oort_config_upload_folder_sections_key)
 from oort.shared.constants import OORT_UPLOADER_FOLDER_DETECTION_TICK_SECONDS
 from oort.shared.errors import OortCloudError
-from oort.shared.identity import Identity
 from oort.shared.utils import tail
 
 pass_state = click.make_pass_decorator(State, ensure=True)

@@ -81,7 +81,7 @@ def test_preparator_prepare_no_org_no_telescope():
     identity = Identity(TEST_LOGIN_USERNAME, TEST_LOGIN_UPLOAD_KEY, api='test')
     pack = UploadPack(str(folder_path), str(fits_file_path), identity)
     pack.collect_file_info()
-    assert identity.telescope_uuid is ''
+    assert identity.telescope_uuid == ''
 
     ds = {'uuid': str(uuid.uuid4()), 'name': pack.dataset_name}
 
@@ -112,7 +112,7 @@ def test_preparator_prepare_with_org_and_telescope():
 
     pack = UploadPack(str(folder_path), str(fits_file_path), identity)
     pack.collect_file_info()
-    assert identity.telescope_uuid is not None and identity.telescope_uuid is not ''
+    assert identity.telescope_uuid is not None and identity.telescope_uuid != ''
 
     ds = {'uuid': str(uuid.uuid4()), 'name': pack.dataset_name}
 
