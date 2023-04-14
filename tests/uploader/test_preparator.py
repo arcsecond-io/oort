@@ -25,7 +25,7 @@ TAGS = [
     'oort|folder|fixtures',
     f'oort|root|{str(folder_path)}',
     f'oort|origin|{socket.gethostname()}',
-    f'oort|uploader|{ArcsecondAPI.username()}',
+    f'oort|uploader|{ArcsecondAPI.username(api="test")}',
     f'oort|version|{__version__}'
 ]
 
