@@ -238,7 +238,7 @@ def folders(state):
 @pass_state
 def telescopes(state, organisation=None):
     test = os.environ.get('OORT_TESTS') == '1'
-    kwargs = {'api': state.api_name, 'test': test, 'upload_key': ArcsecondAPI.upload_key(api='dev')}
+    kwargs = {'api': state.api_name, 'test': test, 'upload_key': ArcsecondAPI.upload_key(api=state.api_name)}
 
     org_subdomain = organisation or ''
     if org_subdomain:
