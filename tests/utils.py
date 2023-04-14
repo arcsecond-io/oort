@@ -78,7 +78,6 @@ def clear_oort_test_folders():
 
     print(get_oort_config_upload_folder_sections())
     sections = [s for s in get_oort_config_upload_folder_sections() if s.get('section').endswith('-tests')]
-    print(sections)
     for section in sections:
         if section.get('section') in config.sections():
             del config[section.get('section')]
