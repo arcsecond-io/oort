@@ -5,7 +5,7 @@ import click
 
 from oort.shared.config import (get_oort_config_upload_folder_sections)
 from oort.shared.utils import get_formatted_bytes_size, get_formatted_size_times, is_hidden
-from shared.identity import Identity
+from oort.shared.identity import Identity
 
 
 def display_command_summary(folders: list, identity: Identity, telescope_details: Optional[dict]):
