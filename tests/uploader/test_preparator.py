@@ -37,7 +37,7 @@ db.create_tables([Organisation, Telescope, Dataset, Upload])
 def test_preparator_init_no_org():
     clear_arcsecond_test_credentials()
 
-    identity = Identity(TEST_LOGIN_USERNAME, TEST_LOGIN_UPLOAD_KEY, debug=True)
+    identity = Identity(TEST_LOGIN_USERNAME, TEST_LOGIN_UPLOAD_KEY, api='test')
     pack = UploadPack(str(folder_path), str(fits_file_path), identity)
     pack.collect_file_info()
 
@@ -57,7 +57,7 @@ def test_preparator_init_with_org():
                         TEST_LOGIN_ORG_SUBDOMAIN,
                         TEST_LOGIN_ORG_ROLE,
                         TEL_UUID,
-                        debug=True)
+                        api='test')
 
     pack = UploadPack(str(folder_path), str(fits_file_path), identity)
     pack.collect_file_info()
@@ -78,10 +78,10 @@ def test_preparator_init_with_org():
 def test_preparator_prepare_no_org_no_telescope():
     save_arcsecond_test_credentials()
 
-    identity = Identity(TEST_LOGIN_USERNAME, TEST_LOGIN_UPLOAD_KEY, debug=True)
+    identity = Identity(TEST_LOGIN_USERNAME, TEST_LOGIN_UPLOAD_KEY, api='test')
     pack = UploadPack(str(folder_path), str(fits_file_path), identity)
     pack.collect_file_info()
-    assert identity.telescope is None
+    assert identity.telescope is ''
 
     ds = {'uuid': str(uuid.uuid4()), 'name': pack.dataset_name}
 
@@ -93,7 +93,7 @@ def test_preparator_prepare_no_org_no_telescope():
         result = up.prepare()
 
         assert result is True
-        mock_method_datasets.assert_called_with(test=True, debug=True, upload_key=TEST_LOGIN_UPLOAD_KEY)
+        mock_method_datasets.assert_called_with(test=True, upload_key=TEST_LOGIN_UPLOAD_KEY, api='test')
         # The pure comma-delimited string is KEY for not duplicating the datasets
         mock_method_list.assert_called_with(tags=f"oort|folder|fixtures,oort|root|{folder_path}")
         mock_method_create.assert_called_with({'name': 'fixtures', 'tags': TAGS})
@@ -108,11 +108,11 @@ def test_preparator_prepare_with_org_and_telescope():
                         TEST_LOGIN_ORG_SUBDOMAIN,
                         TEST_LOGIN_ORG_ROLE,
                         TEL_UUID,
-                        debug=True)
+                        api='test')
 
     pack = UploadPack(str(folder_path), str(fits_file_path), identity)
     pack.collect_file_info()
-    assert identity.telescope is not None
+    assert identity.telescope is not None and identity.telescope is not ''
 
     ds = {'uuid': str(uuid.uuid4()), 'name': pack.dataset_name}
 
@@ -129,7 +129,7 @@ def test_preparator_prepare_with_org_and_telescope():
         assert result is True
         mock_method_read.assert_called()
         mock_method_datasets.assert_called_with(test=True,
-                                                debug=True,
                                                 upload_key=TEST_LOGIN_UPLOAD_KEY,
-                                                organisation=TEST_LOGIN_ORG_SUBDOMAIN)
+                                                organisation=TEST_LOGIN_ORG_SUBDOMAIN,
+                                                api='test')
         mock_method_create.assert_called_with({'name': 'fixtures', 'tags': TAGS + [f'oort|telescope|{TEL_UUID}']})

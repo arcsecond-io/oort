@@ -25,7 +25,7 @@ def test_cli_watch_unknown_organisation():
     runner = CliRunner()
     error = {'detail': 'unknown organisation'}
     with patch.object(ArcsecondAPI, 'read', return_value=(None, error)) as mock_method_read:
-        result = runner.invoke(watch, ['.', '-o', 'dummy_org'])
+        result = runner.invoke(watch, ['.', '-o', 'dummy_org', '--api', 'test'])
         assert result.exit_code != 0
         assert isinstance(result.exception, UnknownOrganisationOortCloudError)
         mock_method_read.assert_called_once_with('dummy_org')
@@ -38,7 +38,7 @@ def test_cli_watch_unknown_membership():
     Organisation.create(subdomain=TEST_LOGIN_ORG_SUBDOMAIN)
     # Make the test
     runner = CliRunner()
-    result = runner.invoke(watch, ['.', '-o', TEST_LOGIN_ORG_SUBDOMAIN])
+    result = runner.invoke(watch, ['.', '-o', TEST_LOGIN_ORG_SUBDOMAIN, '--api', 'test'])
     assert result.exit_code != 0
     assert isinstance(result.exception, InvalidOrgMembershipOortCloudError)
 
@@ -51,7 +51,7 @@ def test_cli_watch_missing_org_telescope():
     # Make the test
     runner = CliRunner()
     with patch.object(ArcsecondAPI, 'list', return_value=([], None)) as mock_method_read:
-        result = runner.invoke(watch, ['.', '-o', TEST_LOGIN_ORG_SUBDOMAIN])
+        result = runner.invoke(watch, ['.', '-o', TEST_LOGIN_ORG_SUBDOMAIN, '--api', 'test'])
         assert result.exit_code == 0
         assert f"Here is a list of existing telescopes for organisation {TEST_LOGIN_ORG_SUBDOMAIN}:" in result.output
         mock_method_read.assert_called_once()
@@ -69,7 +69,7 @@ def test_cli_watch_with_org_telescope():
     # Run
     with patch.object(ArcsecondAPI, 'read', return_value=(telescope_details, None)) as mock_method_read, \
             patch('builtins.input', return_value='Nope'):
-        result = runner.invoke(watch, ['.', '-o', TEST_LOGIN_ORG_SUBDOMAIN, '-t', telescope_uuid])
+        result = runner.invoke(watch, ['.', '-o', TEST_LOGIN_ORG_SUBDOMAIN, '-t', telescope_uuid, '--api', 'test'])
 
         # Assert
         assert result.exit_code == 0

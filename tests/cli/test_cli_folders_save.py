@@ -21,8 +21,7 @@ def test_cli_folders_saving_and_prepare():
                                            TEST_LOGIN_ORG_ROLE,
                                            None,
                                            True,
-                                           True,
-                                           True)
+                                           'test')
 
     sections = get_oort_config_upload_folder_sections()
     assert len(sections) == 1
@@ -36,4 +35,4 @@ def test_cli_folders_saving_and_prepare():
     assert prepared_folder_identity.role == rebuilt_identity.role
     assert prepared_folder_identity.telescope == rebuilt_identity.telescope
     assert prepared_folder_identity.zip == rebuilt_identity.zip
-    assert prepared_folder_identity.debug == rebuilt_identity.debug
+    assert prepared_folder_identity.api == rebuilt_identity.api
