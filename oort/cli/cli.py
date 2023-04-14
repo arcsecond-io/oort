@@ -96,7 +96,7 @@ def login(state, username, password):
     This Upload key is not your full API key. When logging in with oort, no fetch
     nor storage of the API key occur (only the Upload one).
     """
-    profile, error = ArcsecondAPI.login(username, password, upload_key=True, api=state.api_name)
+    _, error = ArcsecondAPI.login(username, password, upload_key=True, api=state.api_name)
     if error:
         click.echo(error)
     else:
