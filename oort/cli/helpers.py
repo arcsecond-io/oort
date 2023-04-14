@@ -1,18 +1,20 @@
 import pathlib
+from typing import Optional
 
 import click
 
 from oort.shared.config import (get_oort_config_upload_folder_sections)
 from oort.shared.utils import get_formatted_bytes_size, get_formatted_size_times, is_hidden
+from shared.identity import Identity
 
 
-def display_command_summary(folders, username, upload_key, org_subdomain, org_role, telescope_details, zip, api_server):
+def display_command_summary(folders: list, identity: Identity, telescope_details: Optional[dict]):
     click.echo(f"\n --- Folder{'s' if len(folders) > 1 else ''} summary --- ")
-    click.echo(f" • Arcsecond username: @{username} (Upload key: {upload_key[:4]}••••)")
-    if not org_subdomain:
+    click.echo(f" • Arcsecond username: @{identity.username} (Upload key: {identity.upload_key[:4]}••••)")
+    if not identity.subdomain:
         click.echo(" • Uploading to your *personal* account.")
     else:
-        click.echo(f" • Uploading to organisation account '{org_subdomain}' (as {org_role}).")
+        click.echo(f" • Uploading to organisation account '{identity.subdomain}' (as {identity.role}).")
 
     if telescope_details:
         msg = f" • Datasets will be attached to telescope '{telescope_details.get('name')}' "
@@ -23,7 +25,7 @@ def display_command_summary(folders, username, upload_key, org_subdomain, org_ro
     else:
         click.echo(" • No designated telescope.")
 
-    click.echo(f" • Using API server: {api_server}")
+    click.echo(f" • Using API server: {identity.api}")
     click.echo(f" • Zip before upload: {'True' if zip else 'False'}")
 
     home_path = pathlib.Path.home()

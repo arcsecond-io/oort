@@ -200,15 +200,8 @@ def parse_upload_watch_options(organisation: str = '', telescope: str = '', api:
     return username, upload_key, org_subdomain, org_role, telescope_details
 
 
-def save_upload_folders(folders: list,
-                        username: str,
-                        upload_key: str,
-                        org_subdomain: Optional[str],
-                        org_role: Optional[str],
-                        telescope_details: Optional[dict],
-                        zip: bool,
-                        api: str) -> list:
-    logger = get_oort_logger('cli', debug=api == 'dev')
+def save_upload_folders(folders: list, identity: Identity, telescope_details: Optional[dict]) -> list:
+    logger = get_oort_logger('cli', debug=identity.api == 'dev')
 
     prepared_folders = []
     for raw_folder in folders:

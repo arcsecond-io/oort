@@ -301,27 +301,19 @@ def upload(state, folder, organisation=None, telescope=None, force=False, zip=Fa
     except InvalidWatchOptionsOortCloudError:
         return
 
-    display_command_summary([folder, ],
-                            username,
-                            upload_key,
-                            org_subdomain,
-                            org_role,
-                            telescope_details,
-                            zip,
-                            state.api_server)
+    identity = Identity(username,
+                        upload_key,
+                        subdomain=org_subdomain or '',
+                        role=org_role or '',
+                        telescope=telescope or '',
+                        zip=zip,
+                        api=state.api_name)
+
+    display_command_summary([folder, ], identity, telescope_details)
 
     ok = input('\n   ----> OK? (Press Enter) ')
 
     if ok.strip() == '':
-        telescope_uuid = telescope_details['uuid'] if telescope_details is not None else None
-        identity = Identity(username=username,
-                            upload_key=upload_key,
-                            subdomain=org_subdomain or '',
-                            role=org_role or '',
-                            telescope=telescope_uuid,
-                            zip=zip,
-                            api=state.api_name)
-
         from oort.uploader.engine.walker import walk
 
         walk(folder, identity, bool(force))
@@ -338,9 +330,6 @@ def upload(state, folder, organisation=None, telescope=None, force=False, zip=Fa
 @click.option('-z', '--zip', is_flag=True,
               required=False, nargs=1, type=click.BOOL,
               help="Zip the data files (FITS and XISF) before sending to the cloud. Default is False.")
-# @click.option('--astronomer',
-#               required=False, nargs=2, type=(str, str), default=[None, None],
-#               help="A astronomer on behalf of whom you upload. You MUST provide its username and upload key.")
 @basic_options
 @pass_state
 def watch(state, folders, organisation=None, telescope=None, zip=False):
@@ -362,25 +351,24 @@ def watch(state, folders, organisation=None, telescope=None, zip=False):
 
     try:
         username, upload_key, org_subdomain, org_role, telescope_details = \
-            parse_upload_watch_options(organisation, telescope, state.debug, state.verbose)
+            parse_upload_watch_options(organisation, telescope, state.api_name)
     except InvalidWatchOptionsOortCloudError:
         return
 
-    display_command_summary(folders, username, upload_key, org_subdomain, org_role, telescope_details, zip)
+    identity = Identity(username,
+                        upload_key,
+                        subdomain=org_subdomain,
+                        role=org_role,
+                        telescope=telescope,
+                        zip=zip,
+                        api=state.api_name)
+
+    display_command_summary(folders, identity, telescope_details)
 
     ok = input('\n   ----> OK? (Press Enter) ')
 
     if ok.strip() == '':
-        save_upload_folders(folders,
-                            username,
-                            upload_key,
-                            org_subdomain,
-                            org_role,
-                            telescope_details,
-                            zip,
-                            state.debug,
-                            state.verbose)
-
+        save_upload_folders(folders, identity, telescope_details)
         click.echo("\n • OK.")
         msg = f" • Oort will start watching within {OORT_UPLOADER_FOLDER_DETECTION_TICK_SECONDS} seconds "
         msg += "if the uploader process is running.\n • Getting the processes status for you right now:"
