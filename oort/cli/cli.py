@@ -1,5 +1,6 @@
+import importlib
 import os
-import webbrowser
+import subprocess
 
 import click
 from arcsecond import ArcsecondAPI
@@ -8,15 +9,9 @@ from oort import __version__
 from oort.cli.folders import (parse_upload_watch_options, save_upload_folders)
 from oort.cli.helpers import display_command_summary
 from oort.cli.options import State, basic_options
-from oort.cli.supervisor import (get_supervisor_processes_status,
-                                 reconfigure_supervisor,
-                                 start_supervisor_daemon,
-                                 start_supervisor_processes,
-                                 stop_supervisor_daemon,
-                                 stop_supervisor_processes)
-from oort.server.errors import InvalidWatchOptionsOortCloudError
+from oort.cli.supervisor import (get_supervisor_processes_status)
+from oort.monitor.errors import InvalidWatchOptionsOortCloudError
 from oort.shared.config import (get_oort_config_upload_folder_sections,
-                                get_oort_config_value,
                                 get_oort_log_file_path,
                                 get_oort_supervisor_conf_file_path,
                                 update_oort_config_upload_folder_sections_key)
@@ -128,49 +123,61 @@ def api(state, name=None, address=None):
         ArcsecondAPI.set_api_name(address, api_name=name)
 
 
-@main.command(help='Display current Oort processes status.')
+@main.command(help='Start one of the Oort service: uploader or monitor.')
+@click.argument('service', required=True, type=click.Choice(['uploader', 'monitor'], case_sensitive=False))
 @basic_options
 @pass_state
-def status(state):
-    get_supervisor_processes_status()
+def start(state, service):
+    spec = importlib.util.find_spec('oort')
+    command_path = os.path.join(os.path.dirname(spec.origin), service, 'main.py')
+    # Making sure they are executable
+    os.chmod(command_path, 0o744)
+    subprocess.run(command_path)
 
 
-@main.command(help='Start Oort processes.')
-@basic_options
-@pass_state
-def start(state):
-    start_supervisor_processes()
-    get_supervisor_processes_status()
+# @main.command(help='Display current Oort processes status.')
+# @basic_options
+# @pass_state
+# def status(state):
+#     get_supervisor_processes_status()
 
 
-@main.command(help='Stop Oort processes.')
-@basic_options
-@pass_state
-def stop(state):
-    stop_supervisor_processes()
-    get_supervisor_processes_status()
+# @main.command(help='Start Oort processes.')
+# @basic_options
+# @pass_state
+# def start(state):
+#     start_supervisor_processes()
+#     get_supervisor_processes_status()
 
 
-@main.command(help='Stop Oort process and daemon, reconfigure, and restart everything.')
-@basic_options
-@pass_state
-def restart(state):
-    stop_supervisor_processes()
-    get_supervisor_processes_status()
-    stop_supervisor_daemon()
-    reconfigure_supervisor()
-    start_supervisor_daemon()
-    # start_supervisor_processes()
-    get_supervisor_processes_status()
+# @main.command(help='Stop Oort processes.')
+# @basic_options
+# @pass_state
+# def stop(state):
+#     stop_supervisor_processes()
+#     get_supervisor_processes_status()
 
 
-@main.command(help='Open Oort web URL in default browser')
-@basic_options
-@pass_state
-def open(state):
-    host = get_oort_config_value('server', 'host')
-    port = get_oort_config_value('server', 'port')
-    webbrowser.open(f"http://{host}:{port}")
+# @main.command(help='Stop Oort process and daemon, reconfigure, and restart everything.')
+# @basic_options
+# @pass_state
+# def restart(state):
+#     stop_supervisor_processes()
+#     get_supervisor_processes_status()
+#     stop_supervisor_daemon()
+#     reconfigure_supervisor()
+#     start_supervisor_daemon()
+#     # start_supervisor_processes()
+#     get_supervisor_processes_status()
+
+
+# @main.command(help='Open Oort web URL in default browser')
+# @basic_options
+# @pass_state
+# def open(state):
+#     host = get_oort_config_value('server', 'host')
+#     port = get_oort_config_value('server', 'port')
+#     webbrowser.open(f"http://{host}:{port}")
 
 
 @main.command(help='Display the tail of the Oort logs.')
@@ -339,3 +346,18 @@ def watch(state, folders, organisation=None, telescope=None, zip=False):
         msg += "if the uploader process is running.\n • Getting the processes status for you right now:"
         click.echo(msg)
         get_supervisor_processes_status()
+
+
+@main.command(help="Remove a folder from the watched folder list.")
+@click.argument('index', required=True, type=int)
+@basic_options
+@pass_state
+def unwatch(state, index):
+    """Print INDEX.
+
+    INDEX is the folder index in the list. Use `oort folders` *every time* to list them all.
+    """
+    sections = get_oort_config_upload_folder_sections()
+    # Sections are one-indexed not zero-indexed.
+    if index > 0 and index <= len(sections):
+        print('okay!')
