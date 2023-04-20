@@ -5,8 +5,8 @@ import os
 import sys
 
 from oort.shared.config import get_oort_logger, write_oort_config_value
-from oort.server.app import app
-from oort.server.app.context import Context
+from oort.monitor.app import app
+from oort.monitor.app.context import Context
 
 
 def is_port_in_use(port):
