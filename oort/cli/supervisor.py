@@ -10,9 +10,9 @@ from oort.shared.config import (get_oort_config_file_path, get_oort_config_socke
 from oort.shared.constants import OORT_SUPERVISOR_SOCK_FILENAME
 from oort.shared.utils import get_username
 
-SERVER_PROCESS = 'oort-monitor-server'
+MONITOR_PROCESS = 'oort-monitor-monitor'
 UPLOADER_PROCESS = 'oort-batch-uploader'
-DEFAULT_PROCESSES = [SERVER_PROCESS, UPLOADER_PROCESS]
+DEFAULT_PROCESSES = [MONITOR_PROCESS, UPLOADER_PROCESS]
 
 
 # noinspection OsChmod
