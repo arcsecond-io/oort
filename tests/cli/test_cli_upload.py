@@ -4,7 +4,7 @@ from arcsecond import ArcsecondAPI
 from click.testing import CliRunner
 
 from oort.cli.cli import upload
-from oort.server.errors import InvalidOrgMembershipOortCloudError, UnknownOrganisationOortCloudError
+from oort.monitor.errors import InvalidOrgMembershipOortCloudError, UnknownOrganisationOortCloudError
 from oort.shared.models import Organisation
 from tests.utils import (
     TEL_DETAILS,

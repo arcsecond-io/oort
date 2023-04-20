@@ -4,7 +4,7 @@ import pytest
 from arcsecond import ArcsecondAPI, ArcsecondError
 
 from oort.cli.folders import parse_upload_watch_options
-from oort.server.errors import (
+from oort.monitor.errors import (
     InvalidOrgMembershipOortCloudError,
     InvalidOrganisationTelescopeOortCloudError,
     InvalidTelescopeOortCloudError,

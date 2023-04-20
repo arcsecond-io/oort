@@ -5,7 +5,7 @@ from arcsecond import ArcsecondAPI
 from click.testing import CliRunner
 
 from oort.cli.cli import watch
-from oort.server.errors import InvalidOrgMembershipOortCloudError, UnknownOrganisationOortCloudError
+from oort.monitor.errors import InvalidOrgMembershipOortCloudError, UnknownOrganisationOortCloudError
 from oort.shared.models import Organisation
 from tests.utils import TEST_LOGIN_ORG_SUBDOMAIN, TEST_LOGIN_USERNAME, save_arcsecond_test_credentials, use_test_database
 
