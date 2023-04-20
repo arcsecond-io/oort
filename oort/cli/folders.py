@@ -7,7 +7,7 @@ from arcsecond import ArcsecondAPI
 from click import UUID
 from peewee import DoesNotExist
 
-from oort.server.errors import (InvalidAstronomerOortCloudError, InvalidOrgMembershipOortCloudError,
+from oort.monitor.errors import (InvalidAstronomerOortCloudError, InvalidOrgMembershipOortCloudError,
                                 InvalidOrganisationTelescopeOortCloudError, InvalidOrganisationUploadKeyOortCloudError,
                                 InvalidTelescopeOortCloudError, InvalidWatchOptionsOortCloudError,
                                 UnknownOrganisationOortCloudError)
