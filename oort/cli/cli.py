@@ -273,7 +273,7 @@ def watch(state, folders, organisation=None, telescope=None, zip=False):
     """
     click.echo(f"\n{80 * '*'}")
     click.echo(" • BATCH MODE: command will give the prompt back, and uploads will occur in the background.")
-    click.echo(" • BATCH MODE: use the monitor server to follow the progress (type `oort open` to open it).")
+    click.echo(" • BATCH MODE: use the monitor to follow the progress (`oort start monitor`).")
     click.echo(f"{80 * '*'}\n")
 
     try:
