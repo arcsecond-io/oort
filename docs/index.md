@@ -9,6 +9,15 @@ footer: MIT Licensed | Copyright © 2018-present Arcsecond.io (F52 Tech).
 
 [[toc]]
 
+## Quick start for Observatory Portals
+
+```bash
+$ pip install oort-cloud (--upgrade) 
+$ oort login
+$ oort watch <folder>
+$ oort start uploader &
+```
+
 ## Introduction
 
 Oort is Arcsecond's uploader tool. [Arcsecond.io](https://www.arcsecond.io) is a
