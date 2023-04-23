@@ -148,8 +148,9 @@ def folders(state):
     if len(sections) == 0:
         click.echo(" • No folder watched. Use `oort watch` (or `oort watch --help` for more details).")
     else:
-        for index, section in enumerate(sections):
-            click.echo(f" • Folder #{index + 1}:")
+        for section in sections:
+            section_hash = section.get('section').replace('watch-folder-', '')
+            click.echo(f" • Folder ID \"{section_hash}\"")
             click.echo(f"   username     = @{section.get('username')}")
             click.echo(f"   upload_key   = {section.get('upload_key')[0:4]}••••")
             if section.get('subdomain'):
