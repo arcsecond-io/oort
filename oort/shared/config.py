@@ -153,3 +153,18 @@ def get_oort_config_folder_section(section_name) -> Optional[Dict]:
         return dict(config[section_name], **{'section': section_name})
 
     return None
+
+
+def remove_oort_config_folder_section(section) -> bool:
+    conf_file_path = get_oort_config_file_path()
+    if not conf_file_path.exists():
+        return False
+
+    config = ConfigParser()
+    config.read(str(conf_file_path))
+    result = config.remove_section(section)
+
+    with conf_file_path.open('w') as f:
+        config.write(f)
+
+    return result
