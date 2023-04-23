@@ -9,7 +9,7 @@ from oort import __version__
 from oort.cli.folders import (parse_upload_watch_options, save_upload_folders)
 from oort.cli.helpers import display_command_summary
 from oort.cli.options import State, basic_options
-from oort.cli.supervisor import (get_supervisor_processes_status)
+from oort.cli.supervisor import (get_supervisor_processes_status, get_supervisor_config)
 from oort.monitor.errors import InvalidWatchOptionsOortCloudError
 from oort.shared.config import (get_oort_config_upload_folder_sections,
                                 update_oort_config_upload_folder_sections_key)
@@ -136,8 +136,8 @@ def start(state, service):
 @basic_options
 @pass_state
 def config(state):
-    with get_oort_supervisor_conf_file_path().open('r') as f:
-        print(f.read())
+    print("\nBelow is the supervisord config you should use if you want supervisor to manage Oort processes:\n")
+    print(get_supervisor_config())
 
 
 @main.command(help="Display the list of all watched folders and their options.")
