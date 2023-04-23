@@ -12,6 +12,7 @@ from oort.cli.options import State, basic_options
 from oort.cli.supervisor import (get_supervisor_processes_status, get_supervisor_config)
 from oort.monitor.errors import InvalidWatchOptionsOortCloudError
 from oort.shared.config import (get_oort_config_upload_folder_sections,
+                                remove_oort_config_folder_section,
                                 update_oort_config_upload_folder_sections_key)
 from oort.shared.constants import OORT_UPLOADER_FOLDER_DETECTION_TICK_SECONDS
 from oort.shared.errors import OortCloudError
@@ -292,16 +293,21 @@ def watch(state, folders, organisation=None, telescope=None, zip=False):
         get_supervisor_processes_status()
 
 
-@main.command(help="Remove a folder from the watched folder list.")
-@click.argument('index', required=True, type=int)
+@main.command(help="Remove (a) folder(a) from the watched folder list.")
+@click.argument('folder_id', required=True, type=str, nargs=-1)
 @basic_options
 @pass_state
-def unwatch(state, index):
+def unwatch(state, folder_id):
     """Print INDEX.
 
     INDEX is the folder index in the list. Use `oort folders` *every time* to list them all.
     """
     sections = get_oort_config_upload_folder_sections()
-    # Sections are one-indexed not zero-indexed.
-    if index > 0 and index <= len(sections):
-        print('okay!')
+    sections_mapping = {section.get('section').replace('watch-folder-', ''): section for section in sections}
+    clean_folder_ids = set(folder_id)
+    for clean_id in clean_folder_ids:
+        if clean_id in sections_mapping.keys():
+            result = remove_oort_config_folder_section(sections_mapping[clean_id]['section'])
+            click.echo(f' • Folder ID {clean_id} removed with success: {result}.')
+        else:
+            click.echo(f' • Folder ID {clean_id} unknown/invalid. Skipped.')
