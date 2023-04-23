@@ -182,3 +182,20 @@ def get_supervisor_processes_status(*args, debug=True):
     logger.debug('Getting status of Oort processes...')
     subprocess.run(["supervisorctl", "-c", str(get_oort_supervisor_conf_file_path()), "status"] + list(args))
     logger.debug('Getting status done.')
+
+
+def get_supervisor_config():
+    config_str = ""
+    spec = importlib.util.find_spec('oort')
+
+    for command in DEFAULT_PROCESSES:
+        short_command = command.split('-')[-1]
+        command_path = os.path.join(os.path.dirname(spec.origin), short_command, 'main.py')
+
+        config_str += f'[program:{command}]\n'
+        config_str += f'command python3 {command_path}\n'
+        config_str += f'user <username>\n'
+        config_str += 'autostart true\n'
+        config_str += 'autorestart true\n\n'
+
+    return config_str
