@@ -194,7 +194,7 @@ def get_supervisor_config():
 
         config_str += f'[program:{command}]\n'
         config_str += f'command python3 {command_path}\n'
-        config_str += f'user <username>\n'
+        config_str += 'user <username>\n'
         config_str += 'autostart true\n'
         config_str += 'autorestart true\n\n'
 

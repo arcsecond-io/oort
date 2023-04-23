@@ -7,10 +7,15 @@ from arcsecond import ArcsecondAPI
 from click import UUID
 from peewee import DoesNotExist
 
-from oort.monitor.errors import (InvalidAstronomerOortCloudError, InvalidOrgMembershipOortCloudError,
-                                InvalidOrganisationTelescopeOortCloudError, InvalidOrganisationUploadKeyOortCloudError,
-                                InvalidTelescopeOortCloudError, InvalidWatchOptionsOortCloudError,
-                                UnknownOrganisationOortCloudError)
+from oort.monitor.errors import (
+    InvalidAstronomerOortCloudError,
+    InvalidOrgMembershipOortCloudError,
+    InvalidOrganisationTelescopeOortCloudError,
+    InvalidOrganisationUploadKeyOortCloudError,
+    InvalidTelescopeOortCloudError,
+    InvalidWatchOptionsOortCloudError,
+    UnknownOrganisationOortCloudError
+)
 from oort.shared.config import get_oort_logger
 from oort.shared.identity import Identity
 from oort.shared.models import Organisation
