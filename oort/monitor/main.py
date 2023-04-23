@@ -24,7 +24,7 @@ def start(debug=False):
     app.config['context'] = Context(app.config)
 
     host = '0.0.0.0'
-    port = 5000
+    port = 5001
     while is_port_in_use(port):
         port += 1
 
