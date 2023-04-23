@@ -12,12 +12,9 @@ from oort.cli.options import State, basic_options
 from oort.cli.supervisor import (get_supervisor_processes_status)
 from oort.monitor.errors import InvalidWatchOptionsOortCloudError
 from oort.shared.config import (get_oort_config_upload_folder_sections,
-                                get_oort_log_file_path,
-                                get_oort_supervisor_conf_file_path,
                                 update_oort_config_upload_folder_sections_key)
 from oort.shared.constants import OORT_UPLOADER_FOLDER_DETECTION_TICK_SECONDS
 from oort.shared.errors import OortCloudError
-from oort.shared.utils import tail
 
 pass_state = click.make_pass_decorator(State, ensure=True)
 
@@ -133,60 +130,6 @@ def start(state, service):
     # Making sure they are executable
     os.chmod(command_path, 0o744)
     subprocess.run(command_path)
-
-
-# @main.command(help='Display current Oort processes status.')
-# @basic_options
-# @pass_state
-# def status(state):
-#     get_supervisor_processes_status()
-
-
-# @main.command(help='Start Oort processes.')
-# @basic_options
-# @pass_state
-# def start(state):
-#     start_supervisor_processes()
-#     get_supervisor_processes_status()
-
-
-# @main.command(help='Stop Oort processes.')
-# @basic_options
-# @pass_state
-# def stop(state):
-#     stop_supervisor_processes()
-#     get_supervisor_processes_status()
-
-
-# @main.command(help='Stop Oort process and daemon, reconfigure, and restart everything.')
-# @basic_options
-# @pass_state
-# def restart(state):
-#     stop_supervisor_processes()
-#     get_supervisor_processes_status()
-#     stop_supervisor_daemon()
-#     reconfigure_supervisor()
-#     start_supervisor_daemon()
-#     # start_supervisor_processes()
-#     get_supervisor_processes_status()
-
-
-# @main.command(help='Open Oort web URL in default browser')
-# @basic_options
-# @pass_state
-# def open(state):
-#     host = get_oort_config_value('server', 'host')
-#     port = get_oort_config_value('server', 'port')
-#     webbrowser.open(f"http://{host}:{port}")
-
-
-@main.command(help='Display the tail of the Oort logs.')
-@click.option('-n', required=False, nargs=1, type=click.INT, help="The number of (last) lines to show (Default: 10).")
-@basic_options
-@pass_state
-def logs(state, n):
-    with get_oort_log_file_path().open('r') as f:
-        print(''.join(tail(f, n or 10)))
 
 
 @main.command(help='Display the supervisord config.')
