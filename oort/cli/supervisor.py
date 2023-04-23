@@ -10,8 +10,8 @@ from oort.shared.config import (get_oort_config_file_path, get_oort_config_socke
 from oort.shared.constants import OORT_SUPERVISOR_SOCK_FILENAME
 from oort.shared.utils import get_username
 
-MONITOR_PROCESS = 'oort-monitor-monitor'
-UPLOADER_PROCESS = 'oort-batch-uploader'
+MONITOR_PROCESS = 'oort-monitor'
+UPLOADER_PROCESS = 'oort-uploader'
 DEFAULT_PROCESSES = [MONITOR_PROCESS, UPLOADER_PROCESS]
 
 
