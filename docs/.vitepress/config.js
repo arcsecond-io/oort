@@ -5,6 +5,10 @@ module.exports = {
   themeConfig: {
     nav: [{ text: 'Arcsecond Docs', link: 'https://docs.arcsecond.io' }],
     outline: false,
+    footer: {
+      message: 'Released under the MIT License.',
+      copyright: 'Copyright © 2018-present Arcsecond.io (F52 Tech).'
+    }
   }
 }
 
