@@ -1,13 +1,12 @@
 ---
-home: true
-heroImage: https://statics.arcsecond.io/img/logo-circle.png
-heroAlt: Arcsecond Logo
-heroText: Arcsecond Oort Uploader
-tagline: The open-source easy-to-use tool for uploading data to Arcsecond.io.
-footer: MIT Licensed | Copyright © 2018-present Arcsecond.io (F52 Tech).
+layout: doc
 ---
 
-[[toc]]
+![img](https://statics.arcsecond.io/img/logo-circle-sm.png)
+
+# Arcsecond Oort Uploader
+
+The open-source easy-to-use tool for uploading data to Arcsecond.io.
 
 ## Quick start for Observatory Portals
 
