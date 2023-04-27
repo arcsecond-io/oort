@@ -11,10 +11,10 @@ The open-source easy-to-use tool for uploading data to Arcsecond.io.
 ## Quick start for Observatory Portals
 
 ```bash
-$ pip install oort-cloud (--upgrade) 
+$ pip install oort-cloud 
 $ oort login
 $ oort watch <folder>
-$ oort start uploader &
+$ oort start uploader >> stdout_and_stderr.log 2>&1
 ```
 
 ## Introduction
@@ -73,18 +73,19 @@ Then, make sure to login first with oort before uploading:
 $ oort login
 ```
 
-Logging in through oort will retrieve a upload key that will be placed
-inside `~/.oort/config.ini`. **Do not share this personal key.**
+Logging in through oort will retrieve your personal Upload Key that will be 
+placed inside `~/.oort/config.ini`. **Do not share this key.**
 
 ::: info
 This key is not your personal API Key. The Upload Key has just enough
-permission to upload data on your behalf. It can also be reset from your
-Arcsecond [account settings](https://www.arcsecond.io/profile#keys).
+permission to upload data on your behalf, and it cannot give access to your 
+account. It can also be reset from your Arcsecond
+[account settings](https://www.arcsecond.io/profile#keys).
 :::
 
 ## Usage
 
-Oort has two modes, which can't be used simultaneously.
+Oort has two modes: "direct" and "batch".
 
 ::: warning
 As of now, the two modes are mutually exclusive (because of the access to the
