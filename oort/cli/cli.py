@@ -216,7 +216,7 @@ def telescopes(state, organisation=None):
               help="Zip the data files (FITS and XISF) before sending to the cloud. Default is False.")
 @click.option('-d', '--dataset',
               required=False, nargs=1, type=click.STRING,
-              help="If provided, oort will use a single dataset with that name to contain all the data of the folder (and its subfolders).")
+              help="Put all data contained in the folder into a single dataset designated by its name or UUID.")
 @basic_options
 @pass_state
 def upload(state, folder, organisation=None, telescope=None, force=False, zip=False, dataset=None):
