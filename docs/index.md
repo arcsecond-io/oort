@@ -73,12 +73,12 @@ Then, make sure to login first with oort before uploading:
 $ oort login
 ```
 
-Logging in through oort will retrieve your personal Upload Key that will be 
+Logging in through oort will retrieve your personal Upload Key that will be
 placed inside `~/.oort/config.ini`. **Do not share this key.**
 
 ::: info
 This key is not your personal API Key. The Upload Key has just enough
-permission to upload data on your behalf, and it cannot give access to your 
+permission to upload data on your behalf, and it cannot give access to your
 account. It can also be reset from your Arcsecond
 [account settings](https://www.arcsecond.io/profile#keys).
 :::
@@ -113,7 +113,7 @@ Here are the command for basic direct upload:
 $ oort upload [OPTIONS] <folder>
 ```
 
-There are three `OPTIONS`:
+There are five `OPTIONS`:
 
 * `-o <subdomain>` (or `--organisation <subdomain>`) to tell Oort to send
   files to an organisation account.
@@ -124,6 +124,13 @@ There are three `OPTIONS`:
 * `-f` (or `--force`) to reset the local metadata and force the re-upload of
   the folder's content. As always, existing files in the cloud will never be  
   modified or overwritten.
+* `-z` (or `--zip`) to tell Oort to zip FITS and XISF files before uploading 
+  them. If they are already zipped, they won't be changed.
+* `-d <name or uuuid>` (or `--dataset <name or uuuid>`) to tell Oort to what
+  dataset all files of the folder (and its subfolders). must be put. The 
+  argument can either be a name or a UUID. If it is a name, Oort will try to 
+  find it. If none is found, Oort will create it. If it is a UUID, Oort will 
+  look for it. If none is found, Oort will raise an error.
 
 The `upload` command will summarise its settings and ask for confirmation
 before proceeding. It is a small step to ensure that no mistake have been
