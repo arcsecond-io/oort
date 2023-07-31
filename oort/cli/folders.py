@@ -146,6 +146,7 @@ def check_organisation_shared_keys(org_subdomain: str, username: str, upload_key
 def parse_upload_watch_options(organisation: str = '',
                                telescope: str = '',
                                zip: bool = True,
+                               dataset: str = '',
                                api: str = 'main') -> Identity:
     assert api != ''
     telescope_uuid = telescope or ''
@@ -187,6 +188,7 @@ def parse_upload_watch_options(organisation: str = '',
                         org_role,
                         telescope_uuid,
                         zip,
+                        dataset,
                         api)
 
     if telescope_details is not None:

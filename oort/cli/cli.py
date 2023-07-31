@@ -214,9 +214,12 @@ def telescopes(state, organisation=None):
 @click.option('-z', '--zip',
               required=False, nargs=1, type=click.BOOL, is_flag=True,
               help="Zip the data files (FITS and XISF) before sending to the cloud. Default is False.")
+@click.option('-d', '--dataset',
+              required=False, nargs=1, type=click.STRING,
+              help="If provided, oort will use a single dataset with that name to contain all the data of the folder (and its subfolders).")
 @basic_options
 @pass_state
-def upload(state, folder, organisation=None, telescope=None, force=False, zip=False):
+def upload(state, folder, organisation=None, telescope=None, force=False, zip=False, dataset=None):
     """
     Upload the content of a folder.
 
@@ -233,7 +236,7 @@ def upload(state, folder, organisation=None, telescope=None, force=False, zip=Fa
     click.echo(f"{80 * '*'}\n")
 
     try:
-        identity = parse_upload_watch_options(organisation, telescope, zip, state.api_name)
+        identity = parse_upload_watch_options(organisation, telescope, zip, dataset, state.api_name)
     except InvalidWatchOptionsOortCloudError:
         return
 
