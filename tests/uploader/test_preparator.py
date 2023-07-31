@@ -140,4 +140,55 @@ def test_preparator_prepare_with_org_and_telescope():
                                                 upload_key=TEST_LOGIN_UPLOAD_KEY,
                                                 organisation=TEST_LOGIN_ORG_SUBDOMAIN,
                                                 api='test')
-        mock_method_create.assert_called_with({'name': 'fixtures', 'tags': TAGS + [f'oort|telescope|{TEL_UUID}']})
+        mock_method_create.assert_called_with({
+            'name': 'fixtures',
+            'tags': TAGS + [f'oort|telescope|{TEL_UUID}']
+        })
+
+
+@use_test_database
+def test_preparator_prepare_with_org_telescope_and_new_dataset_name():
+    save_arcsecond_test_credentials()
+
+    TAGS = [
+        f'oort|root|{str(folder_path)}',
+        f'oort|origin|{socket.gethostname()}',
+        f'oort|uploader|{ArcsecondAPI.username(api="test")}',
+        f'oort|version|{__version__}'
+    ]
+
+    dataset_name = 'dummy dataset name'
+    identity = Identity(TEST_LOGIN_USERNAME,
+                        TEST_LOGIN_UPLOAD_KEY,
+                        TEST_LOGIN_ORG_SUBDOMAIN,
+                        TEST_LOGIN_ORG_ROLE,
+                        TEL_UUID,
+                        dataset=dataset_name,
+                        api='test')
+
+    pack = UploadPack(str(folder_path), str(fits_file_path), identity)
+    pack.collect_file_info()
+    assert identity.telescope_uuid is not None and identity.telescope_uuid != ''
+
+    ds = {'uuid': str(uuid.uuid4()), 'name': pack.clean_folder_name}
+
+    with patch.object(ArcsecondAPI, 'is_logged_in', return_value=True), \
+            patch.object(ArcsecondAPI, 'read') as mock_method_read, \
+            patch.object(ArcsecondAPI, 'list', return_value=([], None)), \
+            patch.object(ArcsecondAPI, 'datasets', return_value=ArcsecondAPI(test=True)) as mock_method_datasets, \
+            patch.object(ArcsecondAPI, 'create', return_value=(ds, None)) as mock_method_create:
+        mock_method_read.side_effect = [(TEL_DETAILS, None), (ORG_DETAILS, None)]
+
+        up = UploadPreparator(pack, identity)
+        result = up.prepare()
+
+        assert result is True
+        mock_method_read.assert_called()
+        mock_method_datasets.assert_called_with(test=True,
+                                                upload_key=TEST_LOGIN_UPLOAD_KEY,
+                                                organisation=TEST_LOGIN_ORG_SUBDOMAIN,
+                                                api='test')
+        mock_method_create.assert_called_with({
+            'name': 'dummy dataset name',
+            'tags': TAGS + [f'oort|telescope|{TEL_UUID}']
+        })

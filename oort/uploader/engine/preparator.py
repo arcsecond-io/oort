@@ -9,6 +9,7 @@ from peewee import DoesNotExist
 from oort import __version__
 from oort.shared.config import get_oort_logger
 from oort.shared.models import (Dataset, Organisation, Status, Substatus, Telescope)
+from oort.shared.identity import Identity
 from . import errors
 
 
@@ -17,7 +18,7 @@ class UploadPreparator(object):
 
     def __init__(self, pack, debug=False):
         self._pack = pack
-        self._identity = self._pack.identity
+        self._identity: Identity = self._pack.identity
         self._logger = get_oort_logger('uploader', debug=debug)
 
         self._organisation = None
@@ -126,23 +127,33 @@ class UploadPreparator(object):
         self._pack.upload.smart_update(substatus=Substatus.SYNC_DATASET.value)
 
         # Definition of meaningful tags
-        tag_telescope = f'oort|telescope|{self._identity.telescope_uuid}'
-        tag_folder = f'oort|folder|{self._pack.clean_folder_name}'
         tag_root = f'oort|root|{self._pack.root_folder_name}'
         tag_origin = f'oort|origin|{socket.gethostname()}'
         tag_uploader = f'oort|uploader|{ArcsecondAPI.username(api=self._pack.identity.api)}'
         tag_oort = f'oort|version|{__version__}'
 
         # Unique combination for a given organisation, it should returns one dataset...
-        search_tags = [tag_folder, tag_root]
-        create_tags = [tag_folder, tag_root, tag_origin, tag_uploader, tag_oort]
+        if self._identity.has_dataset and self._identity.is_dataset_uuid:
+            pass
+        elif self._identity.has_dataset and not self._identity.is_dataset_uuid:
+            search_tags = [tag_root]
+            create_tags = [tag_root, tag_origin, tag_uploader, tag_oort]
+        else:
+            tag_folder = f'oort|folder|{self._pack.clean_folder_name}'
+            search_tags = [tag_folder, tag_root]
+            create_tags = [tag_folder, tag_root, tag_origin, tag_uploader, tag_oort]
+
         if self._identity.telescope_uuid:
+            tag_telescope = f'oort|telescope|{self._identity.telescope_uuid}'
             search_tags.append(tag_telescope)
             create_tags.append(tag_telescope)
 
-        # Kwargs used only for search, then kwargs for create.
-        search_kwargs = {'tags': ','.join(search_tags)}
-        create_kwargs = {'name': self._pack.dataset_name, 'tags': create_tags}
+        if len(self._identity.dataset_name) > 0:
+            search_kwargs = {'name': self._identity.dataset_name, 'tags': ','.join(search_tags)}
+            create_kwargs = {'name': self._identity.dataset_name, 'tags': create_tags}
+        else:
+            search_kwargs = {'tags': ','.join(search_tags)}
+            create_kwargs = {'name': self._pack.dataset_name, 'tags': create_tags}
 
         # Search for remote resource. If none found, create one.
         datasets_api = ArcsecondAPI.datasets(**self._api_kwargs)

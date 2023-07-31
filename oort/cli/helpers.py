@@ -27,6 +27,11 @@ def display_command_summary(folders: list, identity: Identity):
     click.echo(f" • Using API server: {identity.api}")
     click.echo(f" • Zip before upload: {'True' if zip else 'False'}")
 
+    if identity.dataset:
+        click.echo(f" • Ignoring folder names. Using a single dataset with name|uuid {identity.dataset}.")
+    else:
+        click.echo(f" • Using folder names for dataset names (one folder = one dataset).")
+
     home_path = pathlib.Path.home()
     existing_folders = [section.get('path') for section in get_oort_config_upload_folder_sections()]
 
