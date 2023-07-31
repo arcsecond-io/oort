@@ -23,9 +23,9 @@
   },
   "homepage": "https://github.com/arcsecond-io/oort#readme",
   "devDependencies": {
-    "vitepress": "^1.0.0-alpha.73"
+    "vitepress": "^1.0.0-beta.5"
   },
   "engines": {
-    "node": "16.x"
+    "node": "18.x"
   }
 }
