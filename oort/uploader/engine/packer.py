@@ -67,7 +67,7 @@ class UploadPack(object):
         self._force = force
 
         self._logger = get_oort_logger('uploader', debug=identity.api == 'dev')
-        self._parse_type_and_dataset_name()
+        self._parse_type_and_folder_name()
 
         # Will work whatever the raw file path extension (zipped or not), and
         # whatever the current state of the two files (exists or not).
@@ -207,10 +207,6 @@ class UploadPack(object):
         return self._type.name.lower()
 
     @property
-    def dataset_name(self) -> str:
-        return self._dataset_name.strip()
-
-    @property
     def clean_folder_name(self) -> str:
         return self._clean_folder_name.strip()
 
@@ -230,10 +226,9 @@ class UploadPack(object):
     def is_already_finished(self) -> bool:
         return self._upload.status == Status.OK.value and self._upload.substatus in FINISHED_SUBSTATUSES
 
-    def _parse_type_and_dataset_name(self):
+    def _parse_type_and_folder_name(self):
         # No ending filename. Just the final folder, including the root one! --------vvvvvv
         self._clean_folder_name = str(self._raw_file_path.relative_to(self._root_path.parent).parent)
-        self._dataset_name = self._clean_folder_name
         _is_calib = any([c for c in CALIB_PREFIXES if c in self._clean_folder_name.lower()])
         self._type = ResourceType.CALIBRATION if _is_calib else ResourceType.OBSERVATION
 
