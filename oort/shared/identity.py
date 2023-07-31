@@ -1,5 +1,6 @@
 import hashlib
 import os
+import uuid
 from typing import Optional
 
 from oort.shared.config import write_oort_config_section_values
@@ -14,6 +15,7 @@ class Identity(object):
                    folder_section.get('role', ''),
                    folder_section.get('telescope', ''),
                    folder_section.get('zip', 'False').lower() == 'true',
+                   folder_section.get('dataset', ''),
                    folder_section.get('api', ''))
 
     def __init__(self,
@@ -23,6 +25,7 @@ class Identity(object):
                  role: str = '',
                  telescope_uuid: str = '',
                  zip: bool = False,
+                 dataset: str = '',
                  api: str = 'main'):
         assert username is not None
         assert upload_key is not None
@@ -30,6 +33,7 @@ class Identity(object):
         assert role is not None
         assert upload_key is not None
         assert telescope_uuid is not None
+        assert dataset is not None
         assert api is not None
         self._username = username
         self._upload_key = upload_key
@@ -38,6 +42,7 @@ class Identity(object):
         self._telescope_uuid = telescope_uuid or ''
         self._telescope_details = None
         self._zip = zip
+        self._dataset = dataset or ''
         self._api = api
 
     # In python3, this will do the __ne__ by inverting the value
@@ -46,7 +51,8 @@ class Identity(object):
             return NotImplemented
         return self.username == other.username and self.upload_key == other.upload_key and \
             self.subdomain == other.subdomain and self.role == other.role and \
-            self.telescope_uuid == other.telescope_uuid and self.zip == other.zip and self.api == other.api
+            self.telescope_uuid == other.telescope_uuid and self.zip == other.zip \
+            and self.dataset == other.dataset and self.api == other.api
 
     @property
     def username(self) -> str:
@@ -77,6 +83,24 @@ class Identity(object):
         return self._zip
 
     @property
+    def dataset(self) -> str:
+        return self._dataset
+
+    @property
+    def has_dataset(self) -> bool:
+        return len(self._dataset) > 0
+
+    @property
+    def is_dataset_uuid(self) -> bool:
+        if self.has_dataset:
+            try:
+                uuid.UUID(str(self._dataset))
+                return True
+            except ValueError:
+                return False
+        return False
+
+    @property
     def api(self) -> str:
         return self._api
 
@@ -90,7 +114,7 @@ class Identity(object):
 
     def get_args_string(self):
         s = f"{self.username},{self.upload_key},{self.subdomain},{self.role},{self.telescope_uuid},"
-        s += f"{str(self.zip)},{str(self.api)}"
+        s += f"{str(self.zip)},{self.dataset},{str(self.api)}"
         return s
 
     def save_with_folder(self, upload_folder_path: str):
@@ -106,4 +130,5 @@ class Identity(object):
                                          path=upload_folder_path,
                                          telescope=self.telescope_uuid,
                                          zip=str(self.zip),
+                                         dataset=self.dataset,
                                          api=self.api)
