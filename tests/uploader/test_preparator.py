@@ -163,7 +163,7 @@ def test_preparator_prepare_with_org_telescope_and_new_dataset_name():
                         TEST_LOGIN_ORG_SUBDOMAIN,
                         TEST_LOGIN_ORG_ROLE,
                         TEL_UUID,
-                        dataset=dataset_name,
+                        dataset_uuid=dataset_name,
                         api='test')
 
     pack = UploadPack(str(folder_path), str(fits_file_path), identity)

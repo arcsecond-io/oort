@@ -10,6 +10,10 @@ class InvalidWatchOptionsOortCloudError(OortCloudError):
     def __init__(self, msg=''):
         super().__init__(f'Invalid or incomplete Watch options: {msg}')
 
+class InvalidUploadOptionsOortCloudError(OortCloudError):
+    def __init__(self, msg=''):
+        super().__init__(f'Invalid or incomplete Upload options: {msg}')
+
 
 class UnknownOrganisationOortCloudError(OortCloudError):
     def __init__(self, subdomain, error_string=''):
@@ -64,6 +68,22 @@ class InvalidOrganisationTelescopeOortCloudError(OortCloudError):
 class InvalidOrganisationUploadKeyOortCloudError(OortCloudError):
     def __init__(self, subdomain, username, upload_key, error_string=''):
         msg = f'Invalid / unknown upload_key {upload_key} for @{username} and {subdomain} organisation.'
+        if error_string:
+            msg += f'\n{error_string}'
+        super().__init__(msg)
+
+
+class InvalidDatasetOortCloudError(OortCloudError):
+    def __init__(self, dataset_uuid, error_string=''):
+        msg = f'Invalid / unknown dataset with UUID {dataset_uuid}.'
+        if error_string:
+            msg += f'\n{error_string}'
+        super().__init__(msg)
+
+
+class InvalidOrganisationDatasetOortCloudError(OortCloudError):
+    def __init__(self, dataset_uuid, org_subdomain, error_string=''):
+        msg = f'Dataset with UUID {dataset_uuid} unknown within organisation {org_subdomain}.'
         if error_string:
             msg += f'\n{error_string}'
         super().__init__(msg)

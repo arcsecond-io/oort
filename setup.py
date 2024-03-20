@@ -35,10 +35,9 @@ setup(
     install_requires=[
         'arcsecond>=2.0.4',
         'astropy>=5',
-        'flask>=2.2',
+        'flask>=2.3',
         'peewee>=3',
         'watchdog>=2.2',
-        'supervisor>4.2.2',
         'dateparser',
         'python-dotenv'
     ],

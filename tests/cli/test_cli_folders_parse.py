@@ -44,7 +44,6 @@ def test_cli_folders_no_options():
     assert identity.upload_key == TEST_LOGIN_UPLOAD_KEY
     assert identity.subdomain == ''
     assert identity.role == ''
-    assert identity.telescope_details is None
 
 
 @use_test_database
@@ -61,7 +60,6 @@ def test_cli_folders_no_org_but_with_valid_telescope():
         assert identity.upload_key == TEST_LOGIN_UPLOAD_KEY
         assert identity.subdomain == ''
         assert identity.role == ''
-        assert identity.telescope_details == TEL_DETAILS
 
 
 @use_test_database

@@ -1,4 +1,3 @@
-import os
 import socket
 from typing import Optional
 
@@ -6,10 +5,11 @@ from arcsecond import ArcsecondAPI
 from arcsecond.api.error import ArcsecondRequestTimeoutError
 from peewee import DoesNotExist
 
+from cli.helpers import build_endpoint_kwargs
 from oort import __version__
 from oort.shared.config import get_oort_logger
-from oort.shared.models import (Dataset, Organisation, Status, Substatus, Telescope)
 from oort.shared.identity import Identity
+from oort.shared.models import (Dataset, Organisation, Status, Substatus, Telescope)
 from . import errors
 
 
@@ -41,15 +41,7 @@ class UploadPreparator(object):
 
     @property
     def _api_kwargs(self) -> dict:
-        test = os.environ.get('OORT_TESTS') == '1'
-        kwargs = {'api': self._identity.api, 'upload_key': self._identity.upload_key, 'test': test}
-        if self._identity.subdomain is not None and len(self._identity.subdomain) > 0:
-            # We have an organisation subdomain.
-            # We are uploading for an organisation, using ORGANISATION APIs,
-            # If no upload_key or api_key is provided, it will be using the current
-            # logged-in astronomer credentials.
-            kwargs.update(organisation=self._identity.subdomain)
-        return kwargs
+        return build_endpoint_kwargs(self._identity.api, self._identity.subdomain)
 
     @property
     def log_prefix(self) -> str:
@@ -164,7 +156,7 @@ class UploadPreparator(object):
             self._update_remote_resource(datasets_api, dataset_dict['uuid'], **create_kwargs)
 
         # Create local resource. But avoids pointing to (possibly) non-existing ForeignKeys for which
-        # we have only the uuid for now, not the local Database ID.
+        # we have only the uuid for now, and not the local Database ID.
         if 'observation' in dataset_dict.keys():
             dataset_dict.pop('observation')
         if 'calibration' in dataset_dict.keys():

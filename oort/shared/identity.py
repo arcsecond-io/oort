@@ -1,48 +1,30 @@
 import hashlib
 import os
-import uuid
 from typing import Optional
 
 from oort.shared.config import write_oort_config_section_values
 
 
 class Identity(object):
-    @classmethod
-    def from_folder_section(cls, folder_section):
-        return cls(folder_section.get('username'),
-                   folder_section.get('upload_key'),
-                   folder_section.get('subdomain', ''),
-                   folder_section.get('role', ''),
-                   folder_section.get('telescope', ''),
-                   folder_section.get('zip', 'False').lower() == 'true',
-                   folder_section.get('dataset', ''),
-                   folder_section.get('api', ''))
-
     def __init__(self,
                  username: str,
                  upload_key: str,
-                 subdomain: str = '',
-                 role: str = '',
-                 telescope_uuid: str = '',
+                 organisation: Optional[dict] = None,
+                 telescope: Optional[dict] = None,
+                 dataset: Optional[dict] = None,
                  zip: bool = False,
-                 dataset: str = '',
                  api: str = 'main'):
         assert username is not None
         assert upload_key is not None
-        assert subdomain is not None
-        assert role is not None
         assert upload_key is not None
-        assert telescope_uuid is not None
-        assert dataset is not None
         assert api is not None
         self._username = username
         self._upload_key = upload_key
-        self._subdomain = subdomain or ''
-        self._role = role or ''
-        self._telescope_uuid = telescope_uuid or ''
+        self._organisation = organisation or {}
+        self._telescope = telescope or {}
+        self._dataset = dataset or {}
         self._telescope_details = None
         self._zip = zip
-        self._dataset = dataset or ''
         self._api = api
 
     # In python3, this will do the __ne__ by inverting the value
@@ -52,7 +34,7 @@ class Identity(object):
         return self.username == other.username and self.upload_key == other.upload_key and \
             self.subdomain == other.subdomain and self.role == other.role and \
             self.telescope_uuid == other.telescope_uuid and self.zip == other.zip \
-            and self.dataset == other.dataset and self.api == other.api
+            and self.dataset_uuid == other.dataset_uuid and self.api == other.api
 
     @property
     def username(self) -> str:
@@ -64,58 +46,39 @@ class Identity(object):
 
     @property
     def subdomain(self) -> str:
-        return self._subdomain
+        return self._organisation.get('subdomain', '')
 
     @property
     def role(self) -> str:
-        return self._role
+        return self._organisation.get('role', '')
 
     @property
     def telescope_uuid(self) -> str:
-        return self._telescope_uuid
+        return self._telescope.get('uuid', '')
 
     @property
-    def telescope_details(self) -> Optional[dict]:
-        return self._telescope_details
+    def telescope_name(self) -> str:
+        return self._telescope.get('name', '')
+
+    @property
+    def telescope_alias(self) -> str:
+        return self._telescope.get('alias', '')
+
+    @property
+    def dataset_uuid(self) -> str:
+        return self._dataset.get('uuid', '')
+
+    @property
+    def dataset_name(self) -> str:
+        return self._dataset.get('name', '')
 
     @property
     def zip(self) -> bool:
         return self._zip
 
     @property
-    def dataset(self) -> str:
-        return self._dataset
-
-    @property
-    def has_dataset(self) -> bool:
-        return len(self._dataset) > 0
-
-    @property
-    def is_dataset_uuid(self) -> bool:
-        if self.has_dataset:
-            try:
-                uuid.UUID(str(self._dataset))
-                return True
-            except ValueError:
-                return False
-        return False
-
-    @property
     def api(self) -> str:
         return self._api
-
-    def attach_telescope_details(self, **details):
-        if 'uuid' not in details.keys() or \
-                (self._telescope_uuid != '' and details.get('uuid') != self._telescope_uuid):
-            raise ValueError('Wrong telescope UUID')
-        if self._telescope_uuid == '':
-            self._telescope_uuid = details.get('uuid')
-        self._telescope_details = details
-
-    def get_args_string(self):
-        s = f"{self.username},{self.upload_key},{self.subdomain},{self.role},{self.telescope_uuid},"
-        s += f"{str(self.zip)},{self.dataset},{str(self.api)}"
-        return s
 
     def save_with_folder(self, upload_folder_path: str):
         # If data are on disk that are attached, then detached and re-attached to a different volume
@@ -128,7 +91,30 @@ class Identity(object):
                                          subdomain=self.subdomain,
                                          role=self.role,
                                          path=upload_folder_path,
-                                         telescope=self.telescope_uuid,
+                                         telescope_uuid=self.telescope_uuid,
+                                         telescope_name=self.telescope_name,
+                                         telescope_alias=self.telescope_alias,
+                                         dataset_uuid=self.dataset_uuid,
+                                         dataset_name=self.dataset_name,
                                          zip=str(self.zip),
-                                         dataset=self.dataset,
                                          api=self.api)
+
+    @classmethod
+    def from_folder_section(cls, folder_section):
+        return cls(folder_section.get('username'),
+                   folder_section.get('upload_key'),
+                   {
+                       'subdomain': folder_section.get('subdomain', ''),
+                       'role': folder_section.get('role', '')
+                   },
+                   {
+                       'uuid': folder_section.get('telescope_uuid', ''),
+                       'name': folder_section.get('telescope_name', ''),
+                       'alias': folder_section.get('telescope_alias', '')
+                   },
+                   {
+                       'uuid': folder_section.get('dataset_uuid', ''),
+                       'name': folder_section.get('dataset_name', ''),
+                   },
+                   folder_section.get('zip', 'False').lower() == 'true',
+                   folder_section.get('api', ''))
