@@ -1,16 +1,14 @@
 import importlib
 import os
-import uuid
 from unittest.mock import patch
 
 from arcsecond.api.main import ArcsecondAPI
 
-from oort.shared.identity import Identity
-from oort.shared.models import Dataset, Organisation, Telescope, Upload, db
-from oort.uploader.engine.packer import UploadPack
-from oort.uploader.engine.uploader import FileUploader
+from oort.common.identity import Identity
+from oort.uploader.packer import UploadPack
+from oort.uploader.uploader import FileUploader
 from tests.utils import (TEST_CUSTOM_UPLOAD_KEY, TEST_CUSTOM_USERNAME, TEST_LOGIN_ORG_ROLE, TEST_LOGIN_ORG_SUBDOMAIN,
-                         TEST_LOGIN_UPLOAD_KEY, TEST_LOGIN_USERNAME, use_test_database)
+                         TEST_LOGIN_UPLOAD_KEY, TEST_LOGIN_USERNAME)
 
 spec = importlib.util.find_spec('oort')
 
@@ -20,18 +18,11 @@ fits_file_path = os.path.join(folder_path, fits_file_name)
 
 telescope_uuid = '44f5bee9-a557-4264-86d6-c877d5013788'
 
-db.connect(reuse_if_open=True)
-db.create_tables([Organisation, Telescope, Dataset, Upload])
 
-
-@use_test_database
 def test_uploader_init_no_org():
     identity = Identity(TEST_LOGIN_USERNAME, TEST_LOGIN_UPLOAD_KEY, api='test')
     pack = UploadPack(folder_path, fits_file_path, identity)
     pack.collect_file_info()
-
-    dataset = Dataset.create(uuid=str(uuid.uuid4()))
-    pack.upload.smart_update(dataset=dataset)
 
     with patch.object(ArcsecondAPI, 'datafiles') as mock_api:
         uploader = FileUploader(pack)
@@ -44,7 +35,6 @@ def test_uploader_init_no_org():
         assert uploader is not None
 
 
-@use_test_database
 def test_uploader_init_org():
     identity = Identity(TEST_LOGIN_USERNAME,
                         '',
@@ -56,7 +46,6 @@ def test_uploader_init_org():
     pack = UploadPack(folder_path, fits_file_path, identity)
     pack.collect_file_info()
 
-    dataset = Dataset.create(uuid=str(uuid.uuid4()))
     pack.upload.smart_update(dataset=dataset)
 
     with patch.object(ArcsecondAPI, 'datafiles') as mock_api:
@@ -70,7 +59,6 @@ def test_uploader_init_org():
         assert uploader is not None
 
 
-@use_test_database
 def test_uploader_init_org_custom_astronomer():
     identity = Identity(TEST_CUSTOM_USERNAME,
                         TEST_CUSTOM_UPLOAD_KEY,
@@ -82,7 +70,6 @@ def test_uploader_init_org_custom_astronomer():
     pack = UploadPack(folder_path, fits_file_path, identity)
     pack.collect_file_info()
 
-    dataset = Dataset.create(uuid=str(uuid.uuid4()))
     pack.upload.smart_update(dataset=dataset)
 
     with patch.object(ArcsecondAPI, 'datafiles') as mock_api:

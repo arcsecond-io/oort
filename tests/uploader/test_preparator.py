@@ -7,13 +7,12 @@ from unittest.mock import patch
 from arcsecond.api.main import ArcsecondAPI
 
 from oort import __version__
-from oort.shared.identity import Identity
-from oort.shared.models import Dataset, Organisation, Telescope, Upload, db
-from oort.uploader.engine.packer import UploadPack
-from oort.uploader.engine.preparator import UploadPreparator
+from oort.common.identity import Identity
+from oort.uploader.packer import UploadPack
+from oort.uploader.preparator import UploadPreparator
 from tests.utils import (ORG_DETAILS, TEL_DETAILS, TEL_UUID, TEST_LOGIN_ORG_ROLE, TEST_LOGIN_ORG_SUBDOMAIN,
                          TEST_LOGIN_UPLOAD_KEY, TEST_LOGIN_USERNAME, clear_arcsecond_test_credentials,
-                         save_arcsecond_test_credentials, use_test_database)
+                         save_arcsecond_test_credentials)
 
 spec = importlib.util.find_spec('oort')
 
@@ -21,11 +20,7 @@ fits_file_name = 'very_simple.fits'
 folder_path = pathlib.Path(spec.origin).parent / 'tests' / 'fixtures'
 fits_file_path = folder_path / fits_file_name
 
-db.connect(reuse_if_open=True)
-db.create_tables([Organisation, Telescope, Dataset, Upload])
 
-
-@use_test_database
 def test_preparator_init_no_org():
     clear_arcsecond_test_credentials()
 
@@ -37,7 +32,6 @@ def test_preparator_init_no_org():
         prep = UploadPreparator(pack, identity)
         assert prep is not None
         assert mock_method.not_called()
-        assert Organisation.select().count() == 0
 
 
 @use_test_database
@@ -57,13 +51,10 @@ def test_preparator_init_with_org():
     with patch.object(ArcsecondAPI, 'is_logged_in', return_value=True), \
             patch.object(UploadPreparator, 'prepare') as mock_method_prepare, \
             patch.object(ArcsecondAPI, 'read', return_value=(ORG_DETAILS, None)):
-        assert Organisation.select().count() == 0
         prep = UploadPreparator(pack, identity)
 
         assert prep is not None
         mock_method_prepare.assert_not_called()
-        org = Organisation.select(Organisation.subdomain == TEST_LOGIN_ORG_SUBDOMAIN).get()
-        assert org is not None
 
 
 @use_test_database

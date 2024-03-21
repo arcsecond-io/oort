@@ -7,9 +7,8 @@ import uuid
 from datetime import datetime
 from unittest.mock import patch
 
-from oort.identity import Identity
-from oort.packer import UploadPack
-from tests.utils import use_test_database
+from oort.common.identity import Identity
+from oort.uploader.packer import UploadPack
 
 
 def get_random_string(n):
@@ -22,10 +21,9 @@ root_path = pathlib.Path(spec.origin).parent.parent
 fixture_path = root_path / 'tests' / 'fixtures'
 
 telescope_uuid = '44f5bee9-a557-4264-86d6-c877d5013788'
-identity = Identity('cedric', str(uuid.uuid4()), 'saao', 'admin', telescope_uuid, zip=True)
+identity = Identity('cedric', str(uuid.uuid4()), 'saao', 'admin', telescope_uuid)
 
 
-@use_test_database
 def test_packer_calib_bias():
     path = str(root_path / f'Biases{get_random_string(5)}' / 'dummy_001.fits')
     with patch('pathlib.Path.stat') as stat, \
@@ -56,7 +54,6 @@ def test_packer_calib_bias():
         assert pack.dataset_name == '/'.join(path.split('/')[-3:-1])
 
 
-@use_test_database
 def test_packer_calib_dark():
     path = str(root_path / f'dArkss{get_random_string(5)}' / 'dummy_001.fits')
     with patch('pathlib.Path.stat') as stat, \
@@ -85,7 +82,6 @@ def test_packer_calib_dark():
         assert pack.dataset_name == '/'.join(path.split('/')[-3:-1])
 
 
-@use_test_database
 def test_packer_calibs_flat_no_filter():
     path = str(root_path / f'FLATS{get_random_string(5)}' / 'dummy_001.fits')
     with patch('pathlib.Path.stat') as stat, \
@@ -114,7 +110,6 @@ def test_packer_calibs_flat_no_filter():
         assert pack.dataset_name == '/'.join(path.split('/')[-3:-1])
 
 
-@use_test_database
 def test_packer_calibs_flat_with_filter():
     path = str(root_path / f'FLATS{get_random_string(5)}' / 'U' / 'dummy_001.fits')
     with patch('pathlib.Path.stat') as stat, \
@@ -143,7 +138,6 @@ def test_packer_calibs_flat_with_filter():
         assert pack.dataset_name == '/'.join(path.split('/')[-4:-1])
 
 
-@use_test_database
 def test_packer_observation_no_filter():
     path = str(root_path / 'HD5980' / 'dummy_010.fits')
     with patch('pathlib.Path.stat') as stat, \
@@ -172,7 +166,6 @@ def test_packer_observation_no_filter():
         assert pack.dataset_name == '/'.join(path.split('/')[-3:-1])
 
 
-@use_test_database
 def test_packer_observation_with_filter():
     path = str(root_path / 'HD5980' / 'Halpha' / 'dummy_010.fits')
     with patch('pathlib.Path.stat') as stat, \
@@ -201,7 +194,6 @@ def test_packer_observation_with_filter():
         assert pack.dataset_name == '/'.join(path.split('/')[-4:-1])
 
 
-@use_test_database
 def test_packer_observation_with_double_filter():
     path = str(root_path / 'Tests' / 'HD5980' / 'Halpha' / 'dummy_010.fits')
     with patch('pathlib.Path.stat') as stat, \
@@ -230,7 +222,6 @@ def test_packer_observation_with_double_filter():
         assert pack.dataset_name == '/'.join(path.split('/')[-5:-1])
 
 
-@use_test_database
 def test_packer_calibration_no_date_obs():
     path = str(root_path / 'Biases' / 'dummy_010.fits')
     with patch('pathlib.Path.stat') as stat, \
@@ -259,7 +250,6 @@ def test_packer_calibration_no_date_obs():
         assert pack.dataset_name == '/'.join(path.split('/')[-3:-1])
 
 
-@use_test_database
 def test_packer_calibration_no_fits_no_xisf():
     path = str(root_path / 'Biases' / 'dummy_010.csv')
     with patch('pathlib.Path.stat') as stat, \
@@ -288,7 +278,6 @@ def test_packer_calibration_no_fits_no_xisf():
         assert pack.dataset_name == '/'.join(path.split('/')[-3:-1])
 
 
-@use_test_database
 def test_packer_no_telescope_date_after_noon():
     path = str(root_path / 'Biases' / 'dummy_010.fits')
     obs_date = datetime(2020, 3, 21, hour=20, minute=56, second=35)
@@ -300,7 +289,6 @@ def test_packer_no_telescope_date_after_noon():
         assert pack.night_log_date_string == '2020-03-21'
 
 
-@use_test_database
 def test_packer_no_telescope_date_before_noon():
     path = str(root_path / 'Biases' / 'dummy_010.fits')
     obs_date = datetime(2020, 3, 21, hour=7, minute=56, second=35)
@@ -314,7 +302,7 @@ def test_packer_no_telescope_date_before_noon():
 
 # ############# REAL FIXTURE FILES ################################################################################### #
 
-@use_test_database
+
 def test_packer_non_data_non_zipped():
     path = str(fixture_path / 'non_data_non_zipped.txt')
     pack = UploadPack(str(root_path), path, identity)
@@ -326,7 +314,6 @@ def test_packer_non_data_non_zipped():
     assert pack.should_zip is False
 
 
-@use_test_database
 def test_packer_non_data_non_zipped_added_gz():
     path = str(fixture_path / 'non_data_non_zipped.txt.gz')
     pack = UploadPack(str(root_path), path, identity)
@@ -338,7 +325,6 @@ def test_packer_non_data_non_zipped_added_gz():
     assert pack.should_zip is False
 
 
-@use_test_database
 def test_packer_non_data_zipped():
     path = str(fixture_path / 'non_data_zipped.txt.gz')
     pack = UploadPack(str(root_path), path, identity)
@@ -350,7 +336,6 @@ def test_packer_non_data_zipped():
     assert pack.should_zip is False
 
 
-@use_test_database
 def test_packer_data_clear_with_zipped():
     path = str(fixture_path / 'data_zipped_with_clear.fits')
     pack = UploadPack(str(root_path), path, identity)
@@ -362,7 +347,6 @@ def test_packer_data_clear_with_zipped():
     assert pack.should_zip is True
 
 
-@use_test_database
 def test_packer_data_clear_with_zipped_added_gz():
     path = str(fixture_path / 'data_zipped_with_clear.fits.gz')
     pack = UploadPack(str(root_path), path, identity)
@@ -374,7 +358,6 @@ def test_packer_data_clear_with_zipped_added_gz():
     assert pack.should_zip is True
 
 
-@use_test_database
 def test_packer_data_zip_with_clear():
     path = str(fixture_path / 'data_zipped_with_clear.fits.zip')
     pack = UploadPack(str(root_path), path, identity)
@@ -386,7 +369,6 @@ def test_packer_data_zip_with_clear():
     assert pack.should_zip is True
 
 
-@use_test_database
 def test_packer_data_gzip_with_clear():
     path = str(fixture_path / 'data_zipped_with_clear.fits.gz')
     pack = UploadPack(str(root_path), path, identity)
@@ -398,7 +380,6 @@ def test_packer_data_gzip_with_clear():
     assert pack.should_zip is True
 
 
-@use_test_database
 def test_packer_data_bz2_with_clear():
     path = str(fixture_path / 'data_zipped_with_clear.fits.bz2')
     pack = UploadPack(str(root_path), path, identity)
@@ -410,7 +391,6 @@ def test_packer_data_bz2_with_clear():
     assert pack.should_zip is True
 
 
-@use_test_database
 def test_packer_data_clear_no_clear():
     path = str(fixture_path / 'data_zipped_no_clear.fits')
     pack = UploadPack(str(root_path), path, identity)
@@ -422,7 +402,6 @@ def test_packer_data_clear_no_clear():
     assert pack.should_zip is False
 
 
-@use_test_database
 def test_packer_data_zip_no_clear():
     path = str(fixture_path / 'data_zipped_no_clear.fits.zip')
     pack = UploadPack(str(root_path), path, identity)
@@ -434,7 +413,6 @@ def test_packer_data_zip_no_clear():
     assert pack.should_zip is False
 
 
-@use_test_database
 def test_packer_data_gzip_no_clear():
     path = str(fixture_path / 'data_zipped_no_clear.fits.gz')
     pack = UploadPack(str(root_path), path, identity)
@@ -446,7 +424,6 @@ def test_packer_data_gzip_no_clear():
     assert pack.should_zip is False
 
 
-@use_test_database
 def test_packer_data_bz2_no_clear():
     path = str(fixture_path / 'data_zipped_no_clear.fits.bz2')
     pack = UploadPack(str(root_path), path, identity)
@@ -458,7 +435,6 @@ def test_packer_data_bz2_no_clear():
     assert pack.should_zip is False
 
 
-@use_test_database
 def test_packer_data_pure_zip():
     path = str(fixture_path / 'dummy.zip')
     pack = UploadPack(str(root_path), path, identity)
@@ -466,7 +442,6 @@ def test_packer_data_pure_zip():
     assert pack.clear_file_path.endswith('dummy.zip')
 
 
-@use_test_database
 def test_packer_data_txt_zip():
     path = str(fixture_path / 'dummy.txt.zip')
     pack = UploadPack(str(root_path), path, identity)
