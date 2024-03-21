@@ -17,7 +17,7 @@ root_path = pathlib.Path(spec.origin).parent.parent
 fixture_path = root_path / 'tests' / 'fixtures'
 
 telescope_uuid = '44f5bee9-a557-4264-86d6-c877d5013788'
-identity = Identity('cedric', str(uuid.uuid4()), 'saao', 'admin', telescope_uuid, True)
+identity = Identity('cedric', str(uuid.uuid4()), 'saao', 'admin', telescope_uuid, zip=True)
 
 
 @use_test_database

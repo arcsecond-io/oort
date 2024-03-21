@@ -3,7 +3,6 @@ from pathlib import Path
 
 import click
 
-from oort.cli.folders import check_remote_organisation
 from oort.shared.config import get_oort_logger
 from oort.shared.identity import Identity
 from oort.shared.models import Status
@@ -71,9 +70,6 @@ def walk_second_pass(root_path: Path, identity: Identity, unfinished_paths: list
 
 
 def walk(folder_string: str, identity: Identity, force: bool):
-    if identity.subdomain:
-        check_remote_organisation(identity.subdomain, identity.api)
-
     log_prefix = '[Walker]'
     root_path = Path(folder_string).resolve()
     if root_path.is_file():  # Just in case we pass a file...

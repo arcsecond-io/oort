@@ -6,11 +6,11 @@ import click
 from arcsecond import ArcsecondAPI
 
 from oort import __version__
-from oort.cli.folders import (parse_upload_watch_options, save_upload_folders)
-from oort.cli.helpers import display_command_summary
+from oort.cli.helpers import display_command_summary, save_upload_folders, build_endpoint_kwargs
 from oort.cli.options import State, basic_options
 from oort.cli.supervisor import (get_supervisor_processes_status, get_supervisor_config)
-from oort.monitor.errors import InvalidWatchOptionsOortCloudError
+from oort.cli.validators import parse_upload_watch_options
+from oort.monitor.errors import InvalidWatchOptionsOortCloudError, InvalidUploadOptionsOortCloudError
 from oort.shared.config import (get_oort_config_upload_folder_sections,
                                 remove_oort_config_folder_section,
                                 update_oort_config_upload_folder_sections_key)
@@ -160,8 +160,12 @@ def folders(state):
                 click.echo("   organisation = (no organisation)")
             if section.get('telescope'):
                 click.echo(f"   telescope    = {section.get('telescope')}")
+            elif section.get('telescope_uuid'):
+                click.echo(f"   telescope    = {section.get('telescope_name')} ({section.get('telescope_uuid')})")
             else:
                 click.echo("   telescope    = (no telescope)")
+            if section.get('dataset_name'):
+                click.echo(f"   dataset     = {section.get('dataset_name')} ({section.get('dataset_uuid')})")
             click.echo(f"   path         = {section.get('path')}")
             click.echo(f"   zip          = {section.get('zip', 'False')}")
             click.echo()
@@ -170,23 +174,23 @@ def folders(state):
 @main.command(help="Display the list of (organisation) telescopes.")
 @click.option('-o', '--organisation',
               required=False, nargs=1,
-              help="The Organisation subdomain, if uploading to an organisation.")
+              help="The subdomain, if uploading to an organisation (Observatory Portal).")
 @basic_options
 @pass_state
 def telescopes(state, organisation=None):
-    test = os.environ.get('OORT_TESTS') == '1'
-    kwargs = {'api': state.api_name, 'test': test, 'upload_key': ArcsecondAPI.upload_key(api=state.api_name)}
-
     org_subdomain = organisation or ''
     if org_subdomain:
-        kwargs.update(organisation=org_subdomain)
         click.echo(f" • Fetching telescopes for organisation {org_subdomain}...")
     else:
         click.echo(" • Fetching telescopes...")
 
+    kwargs = build_endpoint_kwargs(state.api_name, subdomain=organisation)
     telescope_list, error = ArcsecondAPI.telescopes(**kwargs).list()
     if error is not None:
         raise OortCloudError(str(error))
+
+    if isinstance(telescope_list, dict) and 'results' in telescope_list.keys():
+        telescope_list = telescope_list['results']
 
     click.echo(f" • Found {len(telescope_list)} telescope{'s' if len(telescope_list) > 1 else ''}.")
     for telescope_dict in telescope_list:
@@ -198,28 +202,55 @@ def telescopes(state, organisation=None):
         click.echo(s)
 
 
+@main.command(help="Display the list of (organisation) datasets.")
+@click.option('-o', '--organisation',
+              required=False, nargs=1,
+              help="The subdomain, if uploading to an organisation (Observatory Portal).")
+@basic_options
+@pass_state
+def datasets(state, organisation=None):
+    org_subdomain = organisation or ''
+    if org_subdomain:
+        click.echo(f" • Fetching datasets for organisation '{org_subdomain}'...")
+    else:
+        click.echo(" • Fetching datasets...")
+
+    kwargs = build_endpoint_kwargs(state.api_name, subdomain=organisation)
+    dataset_list, error = ArcsecondAPI.datasets(**kwargs).list()
+    if error is not None:
+        raise OortCloudError(str(error))
+
+    if isinstance(dataset_list, dict) and 'results' in dataset_list.keys():
+        dataset_list = dataset_list['results']
+
+    click.echo(f" • Found {len(dataset_list)} dataset{'s' if len(dataset_list) > 1 else ''}.")
+    for dataset_dict in dataset_list:
+        s = f" 💾 \"{dataset_dict['name']}\" "
+        s += f"(uuid: {dataset_dict['uuid']}) "
+        # s += f"[ObservingSite UUID: {telescope_dict['observing_site']}]"
+        click.echo(s)
+
+
 @main.command(help='Directly upload a folder\'s content.')
 @click.argument('folder', required=True, nargs=1)
 @click.option('-o', '--organisation',
               required=False, nargs=1,
-              help="The Organisation subdomain, if uploading to an organisation.")
+              help="The subdomain, if uploading for an Observatory Portal.")
 @click.option('-t', '--telescope',
               required=False, nargs=1, type=click.STRING,
-              help="The UUID or the alias of the telescope acquiring the data (mandatory only for organisation "
-                   "uploads).")
+              help="The UUID or alias of the telescope acquiring the data (mandatory only for Portal uploads).")
+@click.option('-d', '--dataset',
+              required=False, nargs=1, type=click.STRING,
+              help="The UUID or name of the dataset to put data in.")
 @click.option('-f', '--force',
               required=False, nargs=1, type=click.BOOL, is_flag=True,
-              help="Force the re-uploading of folder's content, resetting the local Uploads information. Default is "
-                   "False.")
+              help="Force the re-uploading of folder's data, resetting the local Uploads information. Default is False.")
 @click.option('-z', '--zip',
               required=False, nargs=1, type=click.BOOL, is_flag=True,
               help="Zip the data files (FITS and XISF) before sending to the cloud. Default is False.")
-@click.option('-d', '--dataset',
-              required=False, nargs=1, type=click.STRING,
-              help="Put all data contained in the folder into a single dataset designated by its name or UUID.")
 @basic_options
 @pass_state
-def upload(state, folder, organisation=None, telescope=None, force=False, zip=False, dataset=None):
+def upload(state, folder, organisation=None, telescope=None, dataset=None, force=False, zip=False):
     """
     Upload the content of a folder.
 
@@ -236,8 +267,9 @@ def upload(state, folder, organisation=None, telescope=None, force=False, zip=Fa
     click.echo(f"{80 * '*'}\n")
 
     try:
-        identity = parse_upload_watch_options(organisation, telescope, zip, dataset, state.api_name)
-    except InvalidWatchOptionsOortCloudError:
+        identity = parse_upload_watch_options(organisation, telescope, dataset, zip, state.api_name)
+    except InvalidUploadOptionsOortCloudError as e:
+        click.echo(f"\n • ERROR {str(e)} \n")
         return
 
     display_command_summary([folder, ], identity)
@@ -280,7 +312,7 @@ def watch(state, folders, organisation=None, telescope=None, zip=False):
     click.echo(f"{80 * '*'}\n")
 
     try:
-        identity = parse_upload_watch_options(organisation, telescope, zip, state.api_name)
+        identity = parse_upload_watch_options(organisation, telescope, '', zip, state.api_name)
     except InvalidWatchOptionsOortCloudError:
         return
 
