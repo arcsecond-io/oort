@@ -2,7 +2,7 @@ import hashlib
 import os
 from typing import Optional
 
-from oort.shared.config import write_oort_config_section_values
+from .config import write_oort_config_section_values
 
 
 class Identity(object):

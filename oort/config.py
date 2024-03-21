@@ -1,11 +1,8 @@
 import os
-import tempfile
 from configparser import ConfigParser, NoOptionError
 from logging import DEBUG, FileHandler, Formatter, INFO, Logger, StreamHandler, getLogger
 from pathlib import Path
 from typing import Dict, List, Optional
-
-from oort.shared.constants import OORT_SUPERVISOR_SOCK_FILENAME
 
 
 def _get_directory_path() -> Path:
@@ -24,30 +21,8 @@ def get_oort_config_file_path() -> Path:
     return _get_directory_path() / 'config.ini'
 
 
-def get_oort_config_socket_file_path() -> Path:
-    return Path(tempfile.gettempdir()) / OORT_SUPERVISOR_SOCK_FILENAME
-
-
-def get_oort_supervisord_log_file_path() -> Path:
-    return _get_directory_path() / 'supervisord.log'
-
-
-def get_oort_supervisord_pid_file_path() -> Path:
-    return _get_directory_path() / 'supervisord.pid'
-
-
 def get_oort_log_file_path() -> Path:
     return _get_directory_path() / 'oort.log'
-
-
-def get_oort_db_file_path() -> Path:
-    suffix = '-tests' if os.environ.get('OORT_TESTS') == '1' else ''
-    return _get_directory_path() / f'uploads{suffix}.db'
-
-
-def get_oort_supervisor_conf_file_path() -> Path:
-    suffix = '-tests' if os.environ.get('OORT_TESTS') == '1' else ''
-    return _get_directory_path() / f'supervisord{suffix}.conf'
 
 
 def get_oort_logger(process_name, debug=False) -> Logger:

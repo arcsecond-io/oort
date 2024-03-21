@@ -5,13 +5,11 @@ from arcsecond import ArcsecondAPI
 from arcsecond.api.error import ArcsecondRequestTimeoutError
 from peewee import DoesNotExist
 
-from cli.helpers import build_endpoint_kwargs
 from oort import __version__
-from oort.shared.config import get_oort_logger
-from oort.shared.identity import Identity
-from oort.shared.models import (Dataset, Organisation, Status, Substatus, Telescope)
-from oort.shared.identity import Identity
-from . import errors
+from .config import get_oort_logger
+from .errors import *
+from .helpers import build_endpoint_kwargs
+from .identity import Identity
 
 
 class UploadPreparator(object):
@@ -29,14 +27,6 @@ class UploadPreparator(object):
         self._dataset = None
 
         # Do NOT mix debug and self._identity.debug
-
-        self._pack.upload.smart_update(astronomer=self._identity.username)
-        if self._identity.subdomain:
-            try:
-                self._organisation = Organisation.get(subdomain=self._identity.subdomain)
-            except DoesNotExist:
-                self._organisation = Organisation.create(subdomain=self._identity.subdomain)
-            self._pack.upload.smart_update(organisation=self._organisation)
 
     # ------ PROPERTIES ------------------------------------------------------------------------------------------------
 
@@ -59,7 +49,7 @@ class UploadPreparator(object):
 
         # An error occurred. Deal with it.
         if error is not None:
-            raise errors.UploadPreparationError(str(error))
+            raise UploadPreparationError(str(error))
 
         api_name = str(api).upper()
         # Dealing with paginated results
@@ -75,7 +65,7 @@ class UploadPreparator(object):
         else:  # Multiple resources found ??? Filter is not good, or something fishy is happening.
             print(f'\n\n{response_list}\n\n')
             msg = f'Multiple resources found for API {api_name}? Choosing first.'
-            raise errors.UploadPreparationError(msg)
+            raise UploadPreparationError(msg)
 
         return new_resource
 
@@ -91,7 +81,7 @@ class UploadPreparator(object):
 
         if error is not None:
             msg = f'Failed to create resource in {api_name} endpoint: {str(error)}'
-            raise errors.UploadPreparationError(msg)
+            raise UploadPreparationError(msg)
         else:
             msg = f"{self.log_prefix} Remote resource {remote_resource['uuid']} in {api_name} created."
             self._logger.info(msg)
@@ -117,7 +107,6 @@ class UploadPreparator(object):
 
     def _sync_dataset(self):
         self._logger.info(f'{self.log_prefix} Opening sync DATASET sequence...')
-        self._pack.upload.smart_update(substatus=Substatus.SYNC_DATASET.value)
 
         # Definition of meaningful tags
         tag_root = f'oort|root|{self._pack.root_folder_name}'
@@ -162,12 +151,7 @@ class UploadPreparator(object):
             dataset_dict.pop('observation')
         if 'calibration' in dataset_dict.keys():
             dataset_dict.pop('calibration')
-        try:
-            self._dataset = Dataset.get(uuid=dataset_dict['uuid'])
-        except DoesNotExist:
-            self._dataset = Dataset.create(**dataset_dict)
-        else:
-            self._dataset.smart_update(**dataset_dict)
+
         # Update Upload model data.
         self._pack.upload.smart_update(dataset=self._dataset)
         self._logger.info(f'{self.log_prefix} Closing sync DATASET sequence.')
@@ -177,12 +161,10 @@ class UploadPreparator(object):
             self._telescope = Telescope.get(uuid=self._identity.telescope_uuid)
         except DoesNotExist:
             self._logger.info(f'{self.log_prefix} Reading telescope {self._identity.telescope_uuid}...')
-            self._pack.upload.smart_update(substatus=Substatus.SYNC_TELESCOPE.value)
             telescopes_api = ArcsecondAPI.telescopes(**self._api_kwargs)
             telescope_dict, error = telescopes_api.read(self._identity.telescope_uuid)
             if error is not None:
-                raise errors.UploadPreparationAPIError(str(error))
-            self._telescope = Telescope.create(**telescope_dict)
+                raise UploadPreparationAPIError(str(error))
         else:
             self._pack.upload.smart_update(telescope=self._telescope)
 
@@ -200,14 +182,12 @@ class UploadPreparator(object):
             if self._identity.telescope_uuid:
                 self._sync_telescope()
 
-        except (errors.UploadPreparationFatalError, errors.UploadPreparationError) as e:
+        except (UploadPreparationFatalError, UploadPreparationError) as e:
             self._logger.error(f'{self.log_prefix} Preparation failed for {self._pack.final_file_name}: {str(e)}')
-            self._pack.upload.smart_update(status=Status.ERROR.value, substatus=Substatus.ERROR.value, error=str(e))
             preparation_succeeded = False
 
         else:
             self._logger.info(f'{self.log_prefix} Preparation succeeded for {self._pack.final_file_name}')
-            self._pack.upload.smart_update(status=Status.UPLOADING.value, substatus=Substatus.READY.value)
             preparation_succeeded = True
 
         return preparation_succeeded

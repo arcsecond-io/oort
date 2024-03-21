@@ -15,19 +15,12 @@ from astropy.io.fits.verify import VerifyWarning
 from astropy.io.votable.exceptions import VOTableSpecWarning
 from astropy.utils.exceptions import AstropyWarning
 
-from oort.shared.config import get_oort_logger
-from oort.shared.constants import ZIP_EXTENSIONS, get_all_fits_extensions, get_all_xisf_extensions
-from oort.shared.identity import Identity
-from oort.shared.models import (
-    FINISHED_SUBSTATUSES,
-    PREPARATION_DONE_SUBSTATUSES,
-    Status,
-    Substatus,
-    Upload
-)
-from . import preparator
-from . import uploader
-from . import zipper
+from .config import get_oort_logger
+from .constants import ZIP_EXTENSIONS, get_all_fits_extensions, get_all_xisf_extensions
+from .identity import Identity
+from .preparator import UploadPreparator
+from .uploader import FileUploader
+from .zipper import AsyncZipper
 
 warnings.simplefilter('ignore', category=AstropyWarning)
 warnings.simplefilter('ignore', category=VOTableSpecWarning)
@@ -65,32 +58,20 @@ class UploadPack(object):
         self._root_path = pathlib.Path(root_path)
         self._raw_file_path = pathlib.Path(file_path)
         self._force = force
-
         self._logger = get_oort_logger('uploader', debug=identity.api == 'dev')
         self._parse_type_and_folder_name()
 
-        # Will work whatever the raw file path extension (zipped or not), and
-        # whatever the current state of the two files (exists or not).
-        try:
-            self._upload = Upload.get(Upload.file_path == self.clear_file_path)
-        except Upload.DoesNotExist:
-            self._upload = Upload.create(file_path=self.clear_file_path)
-
     def collect_file_info(self):
         self._logger.info(f'{self.log_prefix} {self.final_file_name} Collecting info...')
-        if self._force:
-            self._upload.reset_for_restart()
         self.upload.smart_update(astronomer=self._identity.username, file_path_zipped=self.zipped_file_path)
         self._find_date_size_and_target_name()
 
     def prepare_and_upload_file(self, display_progress: bool = False):
         if self.is_hidden_file:
             self._logger.info(f'{self.log_prefix} {self.final_file_name} is an hidden file. Upload skipped.')
-            self._archive(Substatus.SKIPPED_HIDDEN_FILE.value)
 
         elif self.is_empty_file:
             self._logger.info(f'{self.log_prefix} {self.final_file_name} is an empty file. Upload skipped.')
-            self._archive(Substatus.SKIPPED_EMPTY_FILE.value)
 
         else:
             item = f"{self.final_file_name} ({self._upload.substatus})"
@@ -100,28 +81,26 @@ class UploadPack(object):
                     self._suppress_corrupted_zipped_file(self.zipped_file_path)
 
                 # Yes, using AsyncZipper in a non-asynchronous manner for now...
-                zip = zipper.AsyncZipper(self.clear_file_path)
+                zip = AsyncZipper(self.clear_file_path)
                 zip.start()
                 zip.join(300)
                 if zip.is_alive():
                     self._logger.info(f'{self.log_prefix} Zipped timeout for {item}.')
-                    return self._upload.status, self._upload.substatus, self._upload.error
 
             if self.is_already_prepared:
                 self._logger.info(f'{self.log_prefix} Preparation already done for {item}.')
                 preparation_succeeded = True
             else:
-                upload_preparator = preparator.UploadPreparator(self, debug=self._identity.api == 'dev')
+                upload_preparator = UploadPreparator(self, debug=self._identity.api == 'dev')
                 preparation_succeeded = upload_preparator.prepare()
 
             if preparation_succeeded:
                 if self.is_already_finished:
                     self._logger.info(f'{self.log_prefix} Upload already finished for {item}.')
                 else:
-                    file_uploader = uploader.FileUploader(self, display_progress)
+                    file_uploader = FileUploader(self, display_progress)
                     file_uploader.upload_file()
 
-        return self._upload.status, self._upload.substatus, self._upload.error
 
     @property
     def log_prefix(self) -> str:
@@ -138,9 +117,9 @@ class UploadPack(object):
     @property
     def should_zip(self) -> bool:
         return self.identity.zip and \
-               self.is_data_file and \
-               self.clear_file_exists and \
-               os.access(str(self._root_path), os.W_OK)  # checking the folder is writable
+            self.is_data_file and \
+            self.clear_file_exists and \
+            os.access(str(self._root_path), os.W_OK)  # checking the folder is writable
 
     @property
     def final_file_path(self):

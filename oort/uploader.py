@@ -8,9 +8,8 @@ from arcsecond import ArcsecondAPI
 from arcsecond.api.endpoints import AsyncFileUploader
 
 from oort import __version__
-from oort.shared.config import get_oort_logger
-from oort.shared.models import Status, Substatus
 from . import errors
+from .config import get_oort_logger
 
 
 class FileUploader(object):
@@ -40,10 +39,6 @@ class FileUploader(object):
         def update_upload_progress(event, progress_percent):
             if progress_percent > self._upload.progress + 0.1 or 99 < progress_percent <= 100:
                 duration = (datetime.now() - self._upload.started).total_seconds()
-                self._upload.smart_update(status=Status.UPLOADING.value,
-                                          substatus=Substatus.UPLOADING.value,
-                                          progress=progress_percent,
-                                          duration=duration)
                 if self._display_progress is True:
                     print(f"{progress_percent:.2f}% ({duration:.2f} sec)", end="\r")
 
@@ -96,29 +91,20 @@ class FileUploader(object):
         self._upload.smart_update(started=datetime.now())
 
         try:
-            self._upload.smart_update(status=Status.UPLOADING.value, substatus=Substatus.CHECKING.value)
             exists_remotely = self._check_remote_resource_and_file()
 
         except (errors.UploadRemoteFileCheckError, Exception) as error:
             self._logger.error(f'{self.log_prefix} {str(error)}')
-            self._upload.smart_update(status=Status.ERROR.value,
-                                      substatus=Substatus.ERROR.value,
-                                      error=str(error),
-                                      ended=datetime.now(),
-                                      progress=0,
-                                      duration=0)
 
         else:
             if exists_remotely:
                 self._logger.info(f'{self.log_prefix} Already synced.')
-                self._upload.smart_update(status=Status.OK.value, substatus=Substatus.ALREADY_SYNCED.value)
             else:
                 _should_perform = True
 
         return _should_perform
 
     def _process_upload_error(self, error):
-        status, substatus, error = Status.ERROR.value, Substatus.ERROR.value, str(error)
 
         try:
             error_body = json.loads(error)
@@ -128,13 +114,8 @@ class FileUploader(object):
             if 'detail' in error_body.keys():
                 detail = error_body['detail']
                 error_content = detail[0] if isinstance(detail, list) and len(detail) > 0 else detail
-                if 'already exists in dataset' in error_content:
-                    status, substatus, error = Status.OK.value, Substatus.ALREADY_SYNCED.value, ''
-
-        self._upload.smart_update(status=status, substatus=substatus, error=error)
 
     def _perform_upload(self):
-        self._upload.smart_update(status=Status.UPLOADING.value, substatus=Substatus.STARTING.value, error='')
 
         file_size = self._upload.get_formatted_size()
         self._logger.info(f'{self.log_prefix} Starting upload to Arcsecond ({file_size})')
@@ -151,7 +132,6 @@ class FileUploader(object):
             self._process_upload_error(upload_error)
         else:
             self._logger.info(f'{self.log_prefix} Successfully uploaded {file_size} in {duration} seconds.')
-            self._upload.smart_update(status=Status.OK.value, substatus=Substatus.DONE.value, error='')
 
     def _update_file_tags(self):
         tag_filepath = f'oort|filepath|{str(self._final_file_path)}'

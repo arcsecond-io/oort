@@ -8,7 +8,6 @@ from stat import S_IREAD, S_IRGRP, S_IROTH, S_IWUSR
 from threading import Event, Thread
 
 from oort.shared.config import get_oort_logger
-from oort.shared.models import Substatus, Upload
 
 zipper_stop_event = Event()
 

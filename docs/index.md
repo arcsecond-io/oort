@@ -13,8 +13,7 @@ The open-source easy-to-use tool for uploading data to Arcsecond.io.
 ```bash
 $ pip install oort-cloud 
 $ oort login
-$ oort watch <folder>
-$ oort start uploader >> stdout_and_stderr.log 2>&1
+$ oort upload <path to a folder>
 ```
 
 ## Introduction
@@ -85,23 +84,6 @@ account. It can also be reset from your Arcsecond
 
 ## Usage
 
-Oort has two modes: "direct" and "batch".
-
-::: warning
-As of now, the two modes are mutually exclusive (because of the access to the
-small local SQLite database). You must **not** have oort batch mode running
-if you want to use the direct mode. If you need to use the direct mode, stop
-the batch mode first.
-:::
-
-### Direct mode
-
-Oort can be used in a pure "upload this folder right now, please" manner,
-also called the "direct" mode. It is suited for cases where a folder contains
-existing files of data, and the content of the folder won't change over time.
-Note that if it does, the command can be safely re-run, and oort will upload
-new files.
-
 **All non-hidden files will be uploaded.** Be careful to choose folders that
 contain only data you want to send to the cloud. Of course, in case of a
 mistake, the data can later on be deleted from the various Data pages
@@ -135,109 +117,6 @@ There are five `OPTIONS`:
 The `upload` command will summarise its settings and ask for confirmation
 before proceeding. It is a small step to ensure that no mistake have been
 made before starting upload.
-
-### Batch / background mode
-
-In batch mode, Oort comes with a small local web server to monitor the
-uploader, and this is what it looks like when running:
-![](./img/oort-screenshot-uploading.png)
-(<a href="https://raw.githubusercontent.com/arcsecond-io/oort/master/docs/img/oort-screenshot-uploading.png">
-enlarge</a>)
-
-Oort batch mode works by watching for files in a folder, and automatically
-upload them to the cloud in the background. This mode is designed for "live
-mode" where data files are being sent to a folder, during the night. Hence
-the content of the folder changes over time.
-
-**All non-hidden files will be uploaded.** Be careful to choose folders that
-contain only data you want to send to the cloud. Of course, in case of a
-mistake, the data can later on be deleted from the various Data pages
-available on the web.
-
-To start the uploader:
-
-```bash
-oort start uploader
-```
-
-To start the monitor (optional):
-
-```bash
-oort start monitor
-```
-
-Then, to tell Oort which folder(s) to watch for existing and future files,
-the command is:
-
-```bash
-oort watch [OPTIONS] <folder1> <folder2> ...
-```
-
-The `OPTIONS` part of `oort watch` is important. There are three options:
-
-* `-o <subdomain>` (or `--organisation <subdomain>`) to tell Oort to send
-  files to an organisation account.
-* `-t <telescope uuid>` (or `--telescope <telescope uuid>`) to specify the
-  telescope with which that data must be associated. This option is mandatory
-  for uploads to an organisation account, and optional for uploads to a
-  personal account.
-* `-z` (or `--zip`) to automatically gzip data files (FITS and XISF, other
-  diles aren't touched) before upload. Default is False. Note that switching
-  zip on will modify the content of the folder (replacing files with zipped
-  ooes), hence impacting a possible backup system. Moreover, zipping will
-  require some CPU resource. On the other hand, it will reduce the bandwidth
-  usage and storage footprint.
-
-The `watch` command will summarise its settings and ask for
-confirmation before proceeding.
-
-### How does the batch mode work?
-
-Oort provides two different processes:
-
-• An **uploader**, which takes care of creating/syncing the Datasets
-and Datafiles objects in Arcsecond.io (either in your personal account, or
-your Observatory Portal). And then upload the files.
-
-• A **monitor** (small local web server), which allow you to observe,
-control and setup what is happening in the uploader (and find what
-happened before too).
-
-To avoid conflicting with a possible existing `supervisord` configuration,
-we chose to not manage the two processes ourselves. If you want to use
-the handy [supervisor](http://supervisord.org) tool to manage process, you
-can use the command `oort config` to get the configuration sections you should
-use for oort processes.
-
-### Why 0.0.0.0:5001 ?
-
-The little web server that Oort starts locally has the address
-<code>http://0.0.0.0:5001 </code>. With such IP address, the oort processes
-can run in the PC where data is sent to, and still being monitored from a
-remote PC without login.
-
-It is particularly useful for observatories managing various PCs with
-different roles.
-
-Say for instance the PC that receives all the data is PC42 and you work on
-PC17. Oort watch command has been issued on PC42. From PC17 you can monitor
-what happens on PC42 by simply visiting <code>http://&lt;ip address of
-pc42&gt;:5001 </code>.
-
-::: info
-If port `5001` is already used when the monitor starts, Oort will increment it
-by one until it finds an available port.
-:::
-
-## All batch mode commands
-
-Use:
-
-* `oort start <uploader|monitor>`, to start the uploader or the monitor.
-* `oort watch <folder1>...` to start watching the content of folder(s).
-* `oort folders` to display a list of the folders watched abd their settings.
-* `oort unwatch <folder_id>...` to remove a folder from being watch. Use `oort folders` to get folder IDs.
-* `oort config` to display the two small `supervisor` config sections you can use.
 
 ## Other Oort commands
 
@@ -350,7 +229,7 @@ Of course, if the folder is read-only for its user, no zipping will be made.
   mechanism.
 * The only auxiliary data that is collected and attached as tag of the files
   and datasets is the machine hostname (the output of the `uname -n`
-  command). See inside `oort/uploader/engine/preparator.py` and `uploader.
-  py` for the line `socket.gethostname()`.
+  command). See inside `oort/preparator.py` and `uploader.py` for the 
+  line `socket.gethostname()`.
 * Oort keeps all its metadata inside a hidden folder in `~/.oort/`. Be
   careful not modifying the content of it without knowing what you do.

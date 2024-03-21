@@ -3,11 +3,10 @@ from pathlib import Path
 
 import click
 
-from oort.shared.config import get_oort_logger
-from oort.shared.identity import Identity
-from oort.shared.models import Status
-from oort.shared.utils import is_hidden
-from oort.uploader.engine import packer
+from .config import get_oort_logger
+from .identity import Identity
+from .utils import is_hidden
+from .packer import UploadPack
 
 logger = get_oort_logger('walker')
 
@@ -30,7 +29,7 @@ def walk_first_pass(root_path: Path, identity: Identity, force: bool):
         index += 1
         click.echo(f"\n{log_prefix} File {index} / {total_file_count} ({index / total_file_count * 100:.2f}%)\n")
 
-        pack = packer.UploadPack(str(root_path), str(file_path), identity, force=force)
+        pack = UploadPack(str(root_path), str(file_path), identity, force=force)
         if not pack.is_already_finished or force:
             pack.collect_file_info()
             unfinished_paths.append(file_path)
@@ -56,7 +55,7 @@ def walk_second_pass(root_path: Path, identity: Identity, unfinished_paths: list
         index += 1
         click.echo(f"\n{log_prefix} File {index} / {total_file_count} ({index / total_file_count * 100:.2f}%)\n")
 
-        pack = packer.UploadPack(str(root_path), str(file_path), identity, force=force)
+        pack = UploadPack(str(root_path), str(file_path), identity, force=force)
         status, substatus, error = pack.prepare_and_upload_file(display_progress=True)
         if status == Status.OK.value:
             success_uploads.append(str(file_path))

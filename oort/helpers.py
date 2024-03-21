@@ -5,9 +5,9 @@ from typing import Optional
 import click
 from arcsecond import ArcsecondAPI
 
-from oort.shared.config import (get_oort_config_upload_folder_sections, get_oort_logger)
-from oort.shared.identity import Identity
-from oort.shared.utils import get_formatted_bytes_size, get_formatted_size_times, is_hidden
+from .config import (get_oort_config_upload_folder_sections, get_oort_logger)
+from .identity import Identity
+from .utils import get_formatted_bytes_size, get_formatted_size_times, is_hidden
 
 
 def display_command_summary(folders: list, identity: Identity):

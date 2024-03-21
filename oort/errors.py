@@ -1,4 +1,9 @@
-from oort.shared.errors import OortCloudError
+class OortCloudError(Exception):
+    def __init__(self, message):
+        self.message = message
+
+    def __str__(self):
+        return self.message
 
 
 class NotLoggedInOortCloudError(OortCloudError):
@@ -9,6 +14,7 @@ class NotLoggedInOortCloudError(OortCloudError):
 class InvalidWatchOptionsOortCloudError(OortCloudError):
     def __init__(self, msg=''):
         super().__init__(f'Invalid or incomplete Watch options: {msg}')
+
 
 class InvalidUploadOptionsOortCloudError(OortCloudError):
     def __init__(self, msg=''):
@@ -87,3 +93,23 @@ class InvalidOrganisationDatasetOortCloudError(OortCloudError):
         if error_string:
             msg += f'\n{error_string}'
         super().__init__(msg)
+
+
+class UploadPreparationError(OortCloudError):
+    pass
+
+
+class UploadPreparationAPIError(OortCloudError):
+    pass
+
+
+class UploadPreparationFatalError(OortCloudError):
+    pass
+
+
+class UploadRemoteFileCheckError(OortCloudError):
+    pass
+
+
+class UploadPackingError(OortCloudError):
+    pass
