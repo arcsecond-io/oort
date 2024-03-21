@@ -2,14 +2,19 @@ import importlib
 import pathlib
 import random
 import re
+import string
 import uuid
 from datetime import datetime
 from unittest.mock import patch
 
-from oort.shared.identity import Identity
-from oort.shared.utils import get_random_string
-from oort.uploader.engine.packer import UploadPack
+from oort.identity import Identity
+from oort.packer import UploadPack
 from tests.utils import use_test_database
+
+
+def get_random_string(n):
+    return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(n))
+
 
 spec = importlib.util.find_spec('oort')
 

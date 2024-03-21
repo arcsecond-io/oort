@@ -8,8 +8,8 @@ from arcsecond import ArcsecondAPI
 from arcsecond.api.endpoints import AsyncFileUploader
 
 from oort import __version__
-from . import errors
-from .config import get_oort_logger
+from .errors import *
+from oort.common.config import get_oort_logger
 
 
 class FileUploader(object):
@@ -76,7 +76,7 @@ class FileUploader(object):
             else:
                 # If for some reason the resource is duplicated, we end up here.
                 self._logger.error(f'{self.log_prefix} Check remote file failed with error: {str(error)}')
-                raise errors.UploadRemoteFileCheckError(str(error))
+                raise UploadRemoteFileCheckError(str(error))
         else:
             _remote_resource_exists = True
             _remote_resource_has_file = 's3.amazonaws.com' in response.get('file', '')
@@ -93,7 +93,7 @@ class FileUploader(object):
         try:
             exists_remotely = self._check_remote_resource_and_file()
 
-        except (errors.UploadRemoteFileCheckError, Exception) as error:
+        except (UploadRemoteFileCheckError, Exception) as error:
             self._logger.error(f'{self.log_prefix} {str(error)}')
 
         else:

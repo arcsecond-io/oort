@@ -3,12 +3,11 @@ from unittest.mock import patch
 
 from arcsecond import ArcsecondAPI
 from click.testing import CliRunner
-
-from oort.cli.cli import watch, folders
-from oort.cli.folders import save_upload_folders
 from oort.shared.config import get_oort_config_upload_folder_sections
 from oort.shared.identity import Identity
 from oort.shared.models import Organisation
+
+from oort.cli.cli import watch, folders
 from tests.utils import (TEST_LOGIN_ORG_ROLE,
                          TEST_LOGIN_ORG_SUBDOMAIN,
                          TEST_LOGIN_UPLOAD_KEY,
@@ -30,12 +29,10 @@ def test_cli_folders_saving_and_prepare():
                         TEST_LOGIN_ORG_ROLE,
                         zip=True,
                         api='test')
-    prepared_folders = save_upload_folders(['.', ], identity)
-
     sections = get_oort_config_upload_folder_sections()
     assert len(sections) == 1
 
-    prepared_folder_path, prepared_folder_identity = prepared_folders[0]
+    prepared_folder_path, prepared_folder_identity = ['.', ], identity
     rebuilt_identity = Identity.from_folder_section(sections[0])
 
     assert prepared_folder_identity.username == rebuilt_identity.username

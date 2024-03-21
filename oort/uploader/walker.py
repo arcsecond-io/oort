@@ -3,9 +3,10 @@ from pathlib import Path
 
 import click
 
-from .config import get_oort_logger
-from .identity import Identity
-from .utils import is_hidden
+from oort.common.config import get_oort_logger
+from oort.common.identity import Identity
+from oort.common.utils import is_hidden
+from oort.common.constants import Status
 from .packer import UploadPack
 
 logger = get_oort_logger('walker')

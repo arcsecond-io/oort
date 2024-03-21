@@ -139,7 +139,6 @@ def ___read_local_astronomer_credentials(api: str):
 def parse_upload_watch_options(subdomain: str = '',
                                telescope_uuid_or_name: str = '',
                                dataset_uuid_or_name: str = '',
-                               zip: bool = True,
                                api: str = 'main') -> Identity:
     assert api != '' and api is not None
 
@@ -165,6 +164,6 @@ def parse_upload_watch_options(subdomain: str = '',
     if dataset_uuid_or_name:
         dataset = __validate_dataset_uuid(dataset_uuid_or_name, subdomain, api)
 
-    identity = Identity(username, upload_key, organisation, telescope, dataset, zip, api)
+    identity = Identity(username, upload_key, organisation, telescope, dataset, api)
 
     return identity

@@ -2,9 +2,8 @@ import click
 from arcsecond import ArcsecondAPI
 
 from oort import __version__
-from .config import (update_oort_config_upload_folder_sections_key)
-from .errors import InvalidUploadOptionsOortCloudError
-from .errors import OortCloudError
+from oort.common.config import (update_oort_config_upload_folder_sections_key)
+from .errors import OortCloudError, InvalidUploadOptionsOortCloudError
 from .helpers import display_command_summary, build_endpoint_kwargs
 from .options import State, basic_options
 from .validators import parse_upload_watch_options
@@ -171,12 +170,9 @@ def datasets(state, organisation=None):
 @click.option('-f', '--force',
               required=False, nargs=1, type=click.BOOL, is_flag=True,
               help="Force the re-uploading of folder's data, resetting the local Uploads information. Default is False.")
-@click.option('-z', '--zip',
-              required=False, nargs=1, type=click.BOOL, is_flag=True,
-              help="Zip the data files (FITS and XISF) before sending to the cloud. Default is False.")
 @basic_options
 @pass_state
-def upload(state, folder, organisation=None, telescope=None, dataset=None, force=False, zip=False):
+def upload(state, folder, organisation=None, telescope=None, dataset=None, force=False):
     """
     Upload the content of a folder.
 
@@ -188,7 +184,7 @@ def upload(state, folder, organisation=None, telescope=None, dataset=None, force
     process.
     """
     try:
-        identity = parse_upload_watch_options(organisation, telescope, dataset, zip, state.api_name)
+        identity = parse_upload_watch_options(organisation, telescope, dataset, state.api_name)
     except InvalidUploadOptionsOortCloudError as e:
         click.echo(f"\n • ERROR {str(e)} \n")
         return
@@ -197,6 +193,6 @@ def upload(state, folder, organisation=None, telescope=None, dataset=None, force
     ok = input('\n   ----> OK? (Press Enter) ')
 
     if ok.strip() == '':
-        from .walker import walk
+        from oort.uploader.walker import walk
 
         walk(folder, identity, bool(force))
