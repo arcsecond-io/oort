@@ -70,7 +70,7 @@ class Substatus(Enum):
     ERROR = 'error'
     ALREADY_SYNCED = 'already synced'
     IGNORED = 'ignored'
-    # --- SKIPPED: MUST STARTED WITH THE SAME 'skipped' LOWERCASE WORD. See Context.py ---
+    # --- SKIPPED: MUST BE STARTED WITH THE SAME 'skipped' LOWERCASE WORD. See Context.py ---
     SKIPPED_NO_DATE_OBS = 'skipped (no date obs found)'
     SKIPPED_HIDDEN_FILE = 'skipped (hidden file)'
     SKIPPED_EMPTY_FILE = 'skipped (empty file)'
@@ -86,3 +86,15 @@ PREPARATION_DONE_SUBSTATUSES = [Substatus.CHECKING.value,
                                 Substatus.READY.value,
                                 Substatus.STARTING.value,
                                 Substatus.UPLOADING.value] + FINISHED_SUBSTATUSES
+
+ARCSECOND_API_URL_DEV = 'http://localhost:8000'
+ARCSECOND_API_URL_PROD = 'https://api.arcsecond.io'
+
+ARCSECOND_WWW_URL_DEV = 'http://localhost:8080'
+ARCSECOND_WWW_URL_PROD = 'https://www.arcsecond.io'
+
+API_AUTH_PATH_LOGIN = '/auth/token/'
+API_AUTH_PATH_REGISTER = '/auth/registration/'
+
+ECHO_PREFIX = u' • '
+ECHO_ERROR_PREFIX = u' • [error] '

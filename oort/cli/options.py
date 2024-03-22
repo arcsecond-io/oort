@@ -1,11 +1,7 @@
 import click
 from arcsecond import config
 
-
-class State(object):
-    def __init__(self, api_name='main', api_server=''):
-        self.api_name = api_name
-        self.api_server = api_server or config.config_file_read_api_server(self.api_name)
+from common.config import State
 
 
 def verbose_option_constructor(f):

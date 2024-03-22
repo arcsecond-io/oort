@@ -1,8 +1,4 @@
-import hashlib
-import os
 from typing import Optional
-
-from .config import write_oort_config_section_values
 
 
 class Identity(object):
@@ -12,7 +8,6 @@ class Identity(object):
                  organisation: Optional[dict] = None,
                  telescope: Optional[dict] = None,
                  dataset: Optional[dict] = None,
-                 zip: bool = False,
                  api: str = 'main'):
         assert username is not None
         assert upload_key is not None
@@ -24,7 +19,6 @@ class Identity(object):
         self._telescope = telescope or {}
         self._dataset = dataset or {}
         self._telescope_details = None
-        self._zip = zip
         self._api = api
 
     # In python3, this will do the __ne__ by inverting the value
@@ -73,31 +67,8 @@ class Identity(object):
         return self._dataset.get('name', '')
 
     @property
-    def zip(self) -> bool:
-        return self._zip
-
-    @property
     def api(self) -> str:
         return self._api
-
-    def save_with_folder(self, upload_folder_path: str):
-        # If data are on disk that are attached, then detached and re-attached to a different volume
-        # the full upload_folder_path will change, thus the folder_hash, and a new folder will be watched...
-        folder_hash = hashlib.shake_128(upload_folder_path.encode('utf8')).hexdigest(3)
-        suffix = '-tests' if os.environ.get('OORT_TESTS') == '1' else ''
-        write_oort_config_section_values(f'watch-folder-{folder_hash}{suffix}',
-                                         username=self.username,
-                                         upload_key=self.upload_key,
-                                         subdomain=self.subdomain,
-                                         role=self.role,
-                                         path=upload_folder_path,
-                                         telescope_uuid=self.telescope_uuid,
-                                         telescope_name=self.telescope_name,
-                                         telescope_alias=self.telescope_alias,
-                                         dataset_uuid=self.dataset_uuid,
-                                         dataset_name=self.dataset_name,
-                                         zip=str(self.zip),
-                                         api=self.api)
 
     @classmethod
     def from_folder_section(cls, folder_section):
@@ -116,5 +87,4 @@ class Identity(object):
                        'uuid': folder_section.get('dataset_uuid', ''),
                        'name': folder_section.get('dataset_name', ''),
                    },
-                   folder_section.get('zip', 'False').lower() == 'true',
                    folder_section.get('api', ''))

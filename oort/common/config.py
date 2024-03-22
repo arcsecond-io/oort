@@ -1,145 +1,145 @@
 import os
-from configparser import ConfigParser, NoOptionError
-from logging import DEBUG, FileHandler, Formatter, INFO, Logger, StreamHandler, getLogger
+import shutil
+from configparser import ConfigParser
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Optional
+
+from .constants import ARCSECOND_API_URL_PROD
 
 
-def _get_directory_path() -> Path:
-    path = Path('~/.oort').expanduser().resolve()
-    if os.path.exists(str(path)) is False:
-        os.mkdir(str(path))
-    # path.mkdir(mode=0o755, exist_ok=True)
-    return path
+class State(object):
+    def __init__(self, api_name='main', api_server=ARCSECOND_API_URL_PROD):
+        self.api_name = api_name
+        self.api_server = api_server
 
 
-def get_oort_directory_path() -> Path:
-    return _get_directory_path()
+class Config(object):
+    def __init__(self, state: State):
+        self.__state = state
+        self.__config = ConfigParser()
+        self.__config.read(str(Config.__config_file_path()))
+        self.__section = self.__config[self.__state.api_name] \
+            if self.__state.api_name in self.__config.sections() \
+            else None
 
+    @classmethod
+    def __old_config_file_path(cls):
+        return (Path.home() / '.arcsecond.ini').expanduser()
 
-def get_oort_config_file_path() -> Path:
-    return _get_directory_path() / 'config.ini'
+    @classmethod
+    def __config_dir_path(cls):
+        _config_root_path = Path.home() / '.config'
+        if 'XDG_CONFIG_HOME' in os.environ.keys():
+            _config_root_path = Path(os.environ['XDG_CONFIG_HOME'])
+        return _config_root_path / 'arcsecond'
 
+    @classmethod
+    def __config_file_path(cls) -> Path:
+        _config_root_path = Path.home() / '.config'
+        if 'XDG_CONFIG_HOME' in os.environ.keys():
+            _config_root_path = Path(os.environ['XDG_CONFIG_HOME'])
+        _config_dir_path = Config.__config_dir_path()
+        _config_file_path = _config_dir_path / 'config.ini'
+        if Config.__old_config_file_path().exists() and not _config_file_path.exists():
+            _config_dir_path.mkdir(parents=True, exist_ok=True)
+            shutil.move(str(Config.__old_config_file_path()), str(_config_file_path))
+        return _config_file_path
 
-def get_oort_log_file_path() -> Path:
-    return _get_directory_path() / 'oort.log'
+    @classmethod
+    def __config_file_exists(cls) -> bool:
+        path = Config.__config_file_path()
+        return path.exists() and path.is_file()
 
+    @property
+    def file_path(self) -> str:
+        return str(Config.__config_file_path())
 
-def get_oort_logger(process_name, debug=False) -> Logger:
-    suffix = '-tests' if os.environ.get('OORT_TESTS') == '1' else ''
-    logger = getLogger('oort-cloud' + suffix)
-    logger.setLevel(DEBUG if debug else INFO)
+    @property
+    def is_logged_in(self) -> bool:
+        if self.__section is None:
+            return False
+        return self.__section.get('access_key') is not None or \
+            self.__section.get('upload_key') is not None
 
-    if len(logger.handlers) == 0:
-        formatter = Formatter('%(asctime)s - %(name)s[' + process_name + '] - %(levelname)s - %(message)s')
+    def __save(self) -> None:
+        with open(Config.__config_file_path(), 'w') as f:
+            self.__config.write(f)
 
-        if os.environ.get('OORT_TESTS') != '1':
-            file_handler = FileHandler(str(get_oort_log_file_path()))
-            file_handler.setLevel(DEBUG if debug else INFO)
-            file_handler.setFormatter(formatter)
-            logger.addHandler(file_handler)
+    def clear(self) -> None:
+        if self.__section is not None:
+            del self.__config[self.api_name]
+            self.__section = None
+        self.__save()
 
-        console_handler = StreamHandler()
-        console_handler.setLevel(DEBUG if debug else INFO)
-        console_handler.setFormatter(formatter)
-        logger.addHandler(console_handler)
+    def __read_key(self, key: str) -> Optional[str]:
+        return self.__section.get(key, None) if self.__section else None
 
-    return logger
+    @property
+    def api_name(self) -> Optional[str]:
+        return self.__state.api_name
 
+    @property
+    def subdomain(self) -> Optional[str]:
+        return self.__state.subdomain
 
-def write_oort_config_value(section: str, key: str, value) -> None:
-    conf_file_path = get_oort_config_file_path()
-    config = ConfigParser()
-    if conf_file_path.exists():
-        config.read(str(conf_file_path))
-    if section not in config.sections():
-        config.add_section(section)
-    config.set(section, key, value)
-    with conf_file_path.open('w') as f:
-        config.write(f)
+    @property
+    def verbose(self) -> Optional[str]:
+        return self.__state.verbose
 
+    @property
+    def api_server(self) -> Optional[str]:
+        result = self.__read_key('api_server')
+        if self.api_name == 'main' and (result is None or result == ''):
+            result = ARCSECOND_API_URL_PROD
+        return result
 
-def write_oort_config_section_values(section: str, **kwargs):
-    for k, v in kwargs.items():
-        write_oort_config_value(section, k, v)
+    @property
+    def username(self) -> Optional[str]:
+        return self.__read_key('username')
 
+    @property
+    def access_key(self) -> Optional[str]:
+        return self.__read_key('access_key') or self.__read_key('api_key')
 
-def get_oort_config_value(section: str, key: str) -> Optional[str]:
-    conf_file_path = get_oort_config_file_path()
-    config = ConfigParser()
-    if conf_file_path.exists():
-        config.read(str(conf_file_path))
-    else:
-        return None
-    if section not in config.sections():
-        return None
-    try:
-        return config.get(section, key)
-    except NoOptionError:
-        return None
+    @property
+    def upload_key(self) -> Optional[str]:
+        return self.__read_key('upload_key')
 
+    def read_key(self, key_name: str, section_name: str = '') -> Optional[str]:
+        try:
+            section = self.__config[section_name] if section_name else self.__section
+        except KeyError:
+            return None
+        else:
+            return section[key_name] if key_name in section else None
 
-def get_oort_config_upload_folder_sections() -> List[Dict]:
-    conf_file_path = get_oort_config_file_path()
-    if not conf_file_path.exists():
-        return []
+    def clear_access_key(self) -> None:
+        return self.__clear_key('access_key')
 
-    config = ConfigParser()
-    config.read(str(conf_file_path))
+    def clear_upload_key(self, ) -> None:
+        return self.__clear_key('upload_key')
 
-    use_tests = bool(os.environ.get('OORT_TESTS') == '1')
-    sections = [
-        section for section in config.sections() if
-        section.startswith('watch-folder-') and section.endswith('-tests') == use_tests
-    ]
+    def __clear_key(self, key_name: str) -> None:
+        if key_name in self.__section.keys():
+            del self.__section[key_name]
+            self.__save()
 
-    return [dict(config[section], **{'section': section}) for section in sections]
+    def save(self, **kwargs) -> None:
+        section_name = kwargs.pop('section')
+        try:
+            section = self.__config[section_name] if section_name else self.__section
+        except KeyError:
+            self.__config[section_name] = {}
+            section = self.__config[section_name]
+        for k, v in kwargs.items():
+            section[k] = v
+        self.__save()
 
+    def save_access_key(self, access_key: str) -> None:
+        self.save(access_key=access_key)
 
-def update_oort_config_upload_folder_sections_key(upload_key) -> None:
-    conf_file_path = get_oort_config_file_path()
-    if not conf_file_path.exists():
-        return None
+    def save_upload_key(self, upload_key: str) -> None:
+        self.save(upload_key=upload_key)
 
-    config = ConfigParser()
-    config.read(str(conf_file_path))
-
-    use_tests = os.environ.get('OORT_TESTS') == '1'
-    for section in config.sections():
-        if not section.startswith('watch-folder-'):
-            continue
-        if section.endswith('-tests') != use_tests:
-            continue
-        config.remove_option(section, 'upload_key')
-        config.set(section, 'upload_key', upload_key)
-
-    with conf_file_path.open('w') as f:
-        config.write(f)
-
-
-def get_oort_config_folder_section(section_name) -> Optional[Dict]:
-    conf_file_path = get_oort_config_file_path()
-    if not conf_file_path.exists():
-        return None
-
-    config = ConfigParser()
-    config.read(str(conf_file_path))
-    if config.has_section(section_name):
-        return dict(config[section_name], **{'section': section_name})
-
-    return None
-
-
-def remove_oort_config_folder_section(section) -> bool:
-    conf_file_path = get_oort_config_file_path()
-    if not conf_file_path.exists():
-        return False
-
-    config = ConfigParser()
-    config.read(str(conf_file_path))
-    result = config.remove_section(section)
-
-    with conf_file_path.open('w') as f:
-        config.write(f)
-
-    return result
+    def save_shared_key(self, shared_key: str, subdomain: str) -> None:
+        self.save(**{'shared:' + subdomain: shared_key})

@@ -2,7 +2,6 @@ import click
 from arcsecond import ArcsecondAPI
 
 from oort import __version__
-from oort.common.config import (update_oort_config_upload_folder_sections_key)
 from .errors import OortCloudError, InvalidUploadOptionsOortCloudError
 from .helpers import display_command_summary, build_endpoint_kwargs
 from .options import State, basic_options
@@ -69,8 +68,6 @@ def login(state, username, password):
     else:
         username = ArcsecondAPI.username(api=state.api_name)
         click.echo(f' • Successfully logged in as @{username} (API: {state.api_name}).')
-        # Update all upload_key stored in the config for all watched folders.
-        update_oort_config_upload_folder_sections_key(ArcsecondAPI.upload_key(api=state.api_name))
 
 
 @main.command()
@@ -169,7 +166,7 @@ def datasets(state, organisation=None):
               help="The UUID or alias of the telescope acquiring the data (mandatory only for Portal uploads).")
 @basic_options
 @pass_state
-def upload(state, folder, organisation=None, telescope=None, dataset=None, force=False):
+def upload(state, folder, organisation=None, dataset=None, telescope=None):
     """
     Upload the content of a folder.
 
