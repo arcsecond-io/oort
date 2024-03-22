@@ -84,11 +84,3 @@ def display_command_summary(folders: list, identity: Identity):
         click.echo(f"   > Volume: {__get_formatted_bytes_size(size)} in total in this folder.")
         click.echo(f"   > Estimated upload time: {__get_formatted_size_times(size)}")
 
-
-def build_endpoint_kwargs(api: str = 'main', subdomain: Optional[str] = None):
-    test = os.environ.get('OORT_TESTS') == '1'
-    upload_key = ArcsecondAPI.upload_key(api=api)
-    kwargs = {'test': test, 'api': api, 'upload_key': upload_key}
-    if subdomain is not None:
-        kwargs.update(organisation=subdomain)
-    return kwargs

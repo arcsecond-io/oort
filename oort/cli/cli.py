@@ -2,8 +2,8 @@ import click
 from arcsecond import ArcsecondAPI
 
 from oort import __version__
+from oort.common.utils import build_endpoint_kwargs
 from .errors import OortCloudError, InvalidUploadOptionsOortCloudError
-from .helpers import display_command_summary, build_endpoint_kwargs
 from .options import State, basic_options
 from .validators import parse_upload_watch_options
 
@@ -189,4 +189,4 @@ def upload(state, folder, organisation=None, dataset=None, telescope=None):
     if ok.strip() == '':
         from oort.uploader.walker import walk
 
-        walk(folder, identity, bool(force))
+        walk(folder, identity)

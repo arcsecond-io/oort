@@ -1,13 +1,22 @@
 import bz2
 import gzip
+import pathlib
+import warnings
 import xml.etree.ElementTree as ET
 from datetime import datetime
 from typing import Optional, Tuple
 
 import dateparser
 from astropy.io import fits as pyfits
+from astropy.io.fits.verify import VerifyWarning
+from astropy.io.votable.exceptions import VOTableSpecWarning
+from astropy.utils.exceptions import AstropyWarning
 
 from oort.common.constants import get_all_xisf_extensions, get_all_fits_extensions
+
+warnings.simplefilter('ignore', category=AstropyWarning)
+warnings.simplefilter('ignore', category=VOTableSpecWarning)
+warnings.simplefilter('ignore', category=VerifyWarning)
 
 
 def _find_date_and_target_name(self) -> Tuple[Optional[datetime], str]:
@@ -116,3 +125,10 @@ def _get_xisf_target_name(self, header: bytes) -> str:
     except Exception as error:
         self._logger.debug(f'{self.log_prefix} {str(error)}')
     return target_name
+
+
+def _get_file_size(self) -> float:
+    _file_size = 0
+    if self.clear_file_exists:
+        _file_size = pathlib.Path(self.clear_file_path).stat().st_size
+    return _file_size
