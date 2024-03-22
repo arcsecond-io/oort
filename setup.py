@@ -34,11 +34,6 @@ setup(
     platforms='any',
     install_requires=[
         'arcsecond>=2.0.4',
-        'astropy>=5',
-        'flask>=2.3',
-        'peewee>=3',
-        'watchdog>=2.2',
-        'dateparser',
         'python-dotenv'
     ],
     entry_points={
