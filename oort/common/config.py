@@ -8,9 +8,10 @@ from .constants import ARCSECOND_API_URL_PROD
 
 
 class State(object):
-    def __init__(self, api_name='main', api_server=ARCSECOND_API_URL_PROD):
+    def __init__(self, api_name='main', api_server=ARCSECOND_API_URL_PROD, verbose=False):
         self.api_name = api_name
         self.api_server = api_server
+        self.verbose = verbose
 
 
 class Config(object):
@@ -50,9 +51,9 @@ class Config(object):
         path = Config.__config_file_path()
         return path.exists() and path.is_file()
 
-    @property
-    def file_path(self) -> str:
-        return str(Config.__config_file_path())
+    @classmethod
+    def log_file_path(self) -> str:
+        return str(Config.__config_dir_path() / 'upload.log')
 
     @property
     def is_logged_in(self) -> bool:
@@ -77,10 +78,6 @@ class Config(object):
     @property
     def api_name(self) -> Optional[str]:
         return self.__state.api_name
-
-    @property
-    def subdomain(self) -> Optional[str]:
-        return self.__state.subdomain
 
     @property
     def verbose(self) -> Optional[str]:

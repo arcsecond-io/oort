@@ -1,25 +1,48 @@
 import json
 import os
-import pathlib
 import socket
 from datetime import datetime
+from pathlib import Path
+from typing import List
 
 from arcsecond import ArcsecondAPI
 from arcsecond.api.endpoints import AsyncFileUploader
 
 from oort import __version__
+from oort.common.identity import Identity
+from oort.common.logger import get_oort_logger
 from .errors import *
-from oort.common.config import get_oort_logger
 
 
 class FileUploader(object):
-    def __init__(self, pack, display_progress: bool = False):
-        self._logger = get_oort_logger('uploader', debug=True)
-
-        self._pack = pack
-        self._upload = self._pack.upload
-        self._final_file_path = pathlib.Path(self._pack.final_file_path)
+    def __init__(self, identity: Identity, root_path: Path, file_paths: List[Path], display_progress: bool = False):
+        self._identity = identity
+        self._root_path = root_path
+        self._file_paths = file_paths
         self._display_progress = display_progress
+        self._logger = get_oort_logger(debug=True)
+
+        # Definition of meaningful tags
+        tag_root = f'oort|root|{str(self._root_path)}'
+        tag_origin = f'oort|origin|{socket.gethostname()}'
+        tag_uploader = f'oort|uploader|{ArcsecondAPI.username(api=self._identity.api)}'
+        tag_oort = f'oort|version|{__version__}'
+
+        # Unique combination for a given organisation, it should returns one dataset...
+        if self._identity.has_dataset and self._identity.is_dataset_uuid:
+            pass
+        elif self._identity.has_dataset and not self._identity.is_dataset_uuid:
+            search_tags = [tag_root]
+            create_tags = [tag_root, tag_origin, tag_uploader, tag_oort]
+        else:
+            tag_folder = f'oort|folder|{self._pack.clean_folder_name}'
+            search_tags = [tag_folder, tag_root]
+            create_tags = [tag_folder, tag_root, tag_origin, tag_uploader, tag_oort]
+
+        if self._identity.telescope_uuid:
+            tag_telescope = f'oort|telescope|{self._identity.telescope_uuid}'
+            search_tags.append(tag_telescope)
+            create_tags.append(tag_telescope)
 
         is_test_context = bool(os.environ.get('OORT_TESTS') == '1')
         self._api = ArcsecondAPI.datafiles(dataset=str(self._upload.dataset.uuid),  # will be used as request prefix

@@ -5,7 +5,6 @@ from unittest.mock import patch
 from arcsecond.api.main import ArcsecondAPI
 
 from oort.common.identity import Identity
-from oort.uploader.packer import UploadPack
 from oort.uploader.uploader import FileUploader
 from tests.utils import (TEST_CUSTOM_UPLOAD_KEY, TEST_CUSTOM_USERNAME, TEST_LOGIN_ORG_ROLE, TEST_LOGIN_ORG_SUBDOMAIN,
                          TEST_LOGIN_UPLOAD_KEY, TEST_LOGIN_USERNAME)
