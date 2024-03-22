@@ -6,6 +6,7 @@ import click
 from arcsecond import ArcsecondAPI
 from click import UUID
 
+from oort.common.identity import Identity
 from .errors import (
     InvalidAstronomerOortCloudError,
     InvalidOrgMembershipOortCloudError,
@@ -18,7 +19,6 @@ from .errors import (
     InvalidUploadOptionsOortCloudError
 )
 from .helpers import build_endpoint_kwargs
-from .identity import Identity
 
 
 def __validate_remote_organisation(org_subdomain: str, api: str = 'main') -> dict:
