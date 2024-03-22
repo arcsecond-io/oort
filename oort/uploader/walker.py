@@ -3,25 +3,25 @@ from pathlib import Path
 
 import click
 
-from oort.common.config import get_oort_logger
-from oort.common.identity import Identity
-from oort.common.utils import is_file_hidden
 from oort.common.constants import Status
-from .packer import UploadPack
+from oort.common.identity import Identity
+from oort.common.logger import get_oort_logger
+from oort.common.utils import is_file_hidden
 
 logger = get_oort_logger('walker')
 
 
-def walk_first_pass(root_path: Path, identity: Identity, force: bool):
+def __walk_first_pass(identity: Identity, root_path: Path):
     log_prefix = '[Walker - 1/2]'
     logger.info(f"{log_prefix} Making a first pass to collect info on files...")
     if identity.api != 'dev':
+        # For user experience, and let him/her read the above message.
         time.sleep(3)
 
     total_file_count = sum(1 for f in root_path.glob('**/*') if f.is_file() and not is_file_hidden(f))
 
     index = 0
-    unfinished_paths = []
+    file_paths = []
     for file_path in root_path.glob('**/*'):
         # Skipping both hidden files and hidden directories.
         if is_file_hidden(file_path) or not file_path.is_file():
@@ -29,19 +29,13 @@ def walk_first_pass(root_path: Path, identity: Identity, force: bool):
 
         index += 1
         click.echo(f"\n{log_prefix} File {index} / {total_file_count} ({index / total_file_count * 100:.2f}%)\n")
-
-        pack = UploadPack(str(root_path), str(file_path), identity, force=force)
-        if not pack.is_already_finished or force:
-            pack.collect_file_info()
-            unfinished_paths.append(file_path)
-        else:
-            logger.info(f"{log_prefix} Upload of file {str(file_path)} already marked as finished.")
+        file_paths.append(file_path)
 
     logger.info(f"\n{log_prefix} Finished collecting file info inside folder {str(root_path)}.\n")
-    return unfinished_paths
+    return file_paths
 
 
-def walk_second_pass(root_path: Path, identity: Identity, unfinished_paths: list, force: bool):
+def __walk_second_pass(identity: Identity, root_path: Path, file_paths: list):
     log_prefix = '[Walker - 2/2]'
     logger.info(f"{log_prefix} Starting second pass to upload files...")
     if identity.api != 'dev':
@@ -49,14 +43,13 @@ def walk_second_pass(root_path: Path, identity: Identity, unfinished_paths: list
 
     failed_uploads = []
     success_uploads = []
-    total_file_count = len(unfinished_paths)
+    total_file_count = len(file_paths)
 
     index = 0
-    for file_path in unfinished_paths:
+    for file_path in file_paths:
         index += 1
         click.echo(f"\n{log_prefix} File {index} / {total_file_count} ({index / total_file_count * 100:.2f}%)\n")
 
-        pack = UploadPack(str(root_path), str(file_path), identity, force=force)
         status, substatus, error = pack.prepare_and_upload_file(display_progress=True)
         if status == Status.OK.value:
             success_uploads.append(str(file_path))
@@ -69,19 +62,17 @@ def walk_second_pass(root_path: Path, identity: Identity, unfinished_paths: list
     return success_uploads, failed_uploads
 
 
-def walk(folder_string: str, identity: Identity, force: bool):
+def walk(folder_string: str, identity: Identity):
     log_prefix = '[Walker]'
     root_path = Path(folder_string).resolve()
     if root_path.is_file():  # Just in case we pass a file...
         root_path = root_path.parent
 
     logger.info(f"{log_prefix} Starting upload walk through {root_path} and its subfolders...")
-    if force:
-        logger.warn(f"{log_prefix} Force flag is {'True' if force else 'False'}")
 
-    unfinished_paths = walk_first_pass(root_path, identity, force)
-    if len(unfinished_paths) > 0:
-        success_uploads, failed_uploads = walk_second_pass(root_path, identity, unfinished_paths, force)
+    file_paths = __walk_first_pass(identity, root_path)
+    if len(file_paths) > 0:
+        success_uploads, failed_uploads = __walk_second_pass(identity, root_path, file_paths)
         msg = f"{log_prefix} {len(success_uploads)} successful uploads and {len(failed_uploads)} failed.\n\n"
         logger.info(msg)
 
