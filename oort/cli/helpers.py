@@ -1,3 +1,4 @@
+import math
 import os
 import pathlib
 from typing import Optional
@@ -5,12 +6,40 @@ from typing import Optional
 import click
 from arcsecond import ArcsecondAPI
 
-from .identity import Identity
-from .utils import get_formatted_bytes_size, get_formatted_size_times, is_hidden
+from oort.common.identity import Identity
+from oort.common.utils import is_hidden
+
+
+def __get_formatted_time(seconds):
+    if seconds > 86400:
+        return f"{seconds / 86400:.1f}d"
+    elif seconds > 3600:
+        return f"{seconds / 3600:.1f}h"
+    elif seconds > 60:
+        return f"{seconds / 60:.1f}m"
+    else:
+        return f"{seconds:.1f}s"
+
+
+def __get_formatted_size_times(size):
+    total = f"{__get_formatted_time(size / pow(10, 4))} on 10 kB/s, "
+    total += f"{__get_formatted_time(size / pow(10, 5))} on 100 kB/s, "
+    total += f"{__get_formatted_time(size / pow(10, 6))} on 1 MB/s, "
+    total += f"{__get_formatted_time(size / pow(10, 7))} on 10 MB/s"
+    return total
+
+
+def __get_formatted_bytes_size(size):
+    if size == 0:
+        return '0 Bytes'
+    k = 1024
+    units = ['Bytes', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
+    i = math.floor(math.log10(1.0 * size) / math.log10(k))
+    return f"{(size / math.pow(k, i)):.2f} {units[i]}"
 
 
 def display_command_summary(folders: list, identity: Identity):
-    click.echo(f"\n --- Upload/watch summary --- ")
+    click.echo(f"\n --- Upload summary --- ")
     click.echo(f" • Arcsecond username: @{identity.username} (Upload key: {identity.upload_key[:4]}••••)")
     if identity.subdomain:
         msg = f" • Uploading to Observatory Portal '{identity.subdomain}' (as {identity.role})."
@@ -38,22 +67,22 @@ def display_command_summary(folders: list, identity: Identity):
     click.echo(f" • Using API server: {identity.api}")
     click.echo(f" • Zip before upload: {'True' if zip else 'False'}")
 
-    if identity.dataset:
-        click.echo(f" • Ignoring folder names. Using a single dataset with name|uuid {identity.dataset}.")
+    if identity.dataset_uuid:
+        click.echo(f" • Ignoring folder names. Using a single dataset with name|uuid {identity.dataset_uuid}.")
     else:
         click.echo(" • Using folder names for dataset names (one folder = one dataset).")
-
-    home_path = pathlib.Path.home()
 
     click.echo(f" • Folder{'s' if len(folders) > 1 else ''}:")
     for folder in folders:
         folder_path = pathlib.Path(folder).expanduser().resolve()
         click.echo(f"   > Path: {str(folder_path.parent if folder_path.is_file() else folder_path)}")
-        if folder_path == home_path:
+
+        if folder_path == pathlib.Path.home():
             click.echo("   >>> Warning: This folder is your HOME folder. <<<")
+
         size = sum(f.stat().st_size for f in folder_path.glob('**/*') if f.is_file() and not is_hidden(f))
-        click.echo(f"   > Volume: {get_formatted_bytes_size(size)} in total in this folder.")
-        click.echo(f"   > Estimated upload time: {get_formatted_size_times(size)}")
+        click.echo(f"   > Volume: {__get_formatted_bytes_size(size)} in total in this folder.")
+        click.echo(f"   > Estimated upload time: {__get_formatted_size_times(size)}")
 
 
 def build_endpoint_kwargs(api: str = 'main', subdomain: Optional[str] = None):
