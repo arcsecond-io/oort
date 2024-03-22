@@ -25,14 +25,6 @@ class UnknownOrganisationOortCloudError(OortCloudError):
         super().__init__(msg)
 
 
-class UnknownTelescopeOortCloudError(OortCloudError):
-    def __init__(self, telescope_uuid, error_string=''):
-        msg = f'Invalid / unknown telescope with UUID {telescope_uuid}'
-        if error_string:
-            msg += f'\n{error_string}'
-        super().__init__(msg)
-
-
 class InvalidAstronomerOortCloudError(OortCloudError):
     def __init__(self, username, upload_key=None, error_string=''):
         msg = f'Invalid / unknown astronomer with username "{username}"'
@@ -46,22 +38,6 @@ class InvalidAstronomerOortCloudError(OortCloudError):
 class InvalidOrgMembershipOortCloudError(OortCloudError):
     def __init__(self, subdomain, error_string=''):
         msg = f'Invalid / unknown membership for {subdomain}.'
-        if error_string:
-            msg += f'\n{error_string}'
-        super().__init__(msg)
-
-
-class InvalidTelescopeOortCloudError(OortCloudError):
-    def __init__(self, telescope_uuid, error_string=''):
-        msg = f'Invalid / unknown telescope with UUID {telescope_uuid}.'
-        if error_string:
-            msg += f'\n{error_string}'
-        super().__init__(msg)
-
-
-class InvalidOrganisationTelescopeOortCloudError(OortCloudError):
-    def __init__(self, telescope_uuid, org_subdomain, error_string=''):
-        msg = f'Telescope with UUID {telescope_uuid} unknown within organisation {org_subdomain}.'
         if error_string:
             msg += f'\n{error_string}'
         super().__init__(msg)

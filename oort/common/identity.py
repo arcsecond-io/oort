@@ -6,7 +6,6 @@ class Identity(object):
                  username: str,
                  upload_key: str,
                  organisation: Optional[dict] = None,
-                 telescope: Optional[dict] = None,
                  dataset: Optional[dict] = None,
                  api: str = 'main'):
         assert username is not None
@@ -16,9 +15,7 @@ class Identity(object):
         self._username = username
         self._upload_key = upload_key
         self._organisation = organisation or {}
-        self._telescope = telescope or {}
         self._dataset = dataset or {}
-        self._telescope_details = None
         self._api = api
 
     # In python3, this will do the __ne__ by inverting the value
@@ -27,8 +24,7 @@ class Identity(object):
             return NotImplemented
         return self.username == other.username and self.upload_key == other.upload_key and \
             self.subdomain == other.subdomain and self.role == other.role and \
-            self.telescope_uuid == other.telescope_uuid and self.zip == other.zip \
-            and self.dataset_uuid == other.dataset_uuid and self.api == other.api
+            self.dataset_uuid == other.dataset_uuid and self.api == other.api
 
     @property
     def username(self) -> str:
@@ -45,18 +41,6 @@ class Identity(object):
     @property
     def role(self) -> str:
         return self._organisation.get('role', '')
-
-    @property
-    def telescope_uuid(self) -> str:
-        return self._telescope.get('uuid', '')
-
-    @property
-    def telescope_name(self) -> str:
-        return self._telescope.get('name', '')
-
-    @property
-    def telescope_alias(self) -> str:
-        return self._telescope.get('alias', '')
 
     @property
     def dataset_uuid(self) -> str:
@@ -77,11 +61,6 @@ class Identity(object):
                    {
                        'subdomain': folder_section.get('subdomain', ''),
                        'role': folder_section.get('role', '')
-                   },
-                   {
-                       'uuid': folder_section.get('telescope_uuid', ''),
-                       'name': folder_section.get('telescope_name', ''),
-                       'alias': folder_section.get('telescope_alias', '')
                    },
                    {
                        'uuid': folder_section.get('dataset_uuid', ''),

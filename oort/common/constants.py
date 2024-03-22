@@ -60,10 +60,6 @@ class Substatus(Enum):
     RESTART = 'restart'
 
     STARTING = 'starting...'
-    SYNC_TELESCOPE = 'syncing telescope...'
-    SYNC_NIGHTLOG = 'syncing night log...'
-    SYNC_OBS_OR_CALIB = 'syncing obs or calib...'
-    SYNC_DATASET = 'syncing dataset...'
     UPLOADING = 'uploading...'
 
     DONE = 'done'

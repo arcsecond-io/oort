@@ -4,6 +4,7 @@ from arcsecond import ArcsecondAPI
 from oort import __version__
 from oort.common.utils import build_endpoint_kwargs
 from .errors import OortCloudError, InvalidUploadOptionsOortCloudError
+from .helpers import display_command_summary
 from .options import State, basic_options
 from .validators import parse_upload_watch_options
 
@@ -93,37 +94,6 @@ def api(state, name=None, address=None):
         ArcsecondAPI.set_api_name(address, api_name=name)
 
 
-@main.command(help="Display the list of (organisation) telescopes.")
-@click.option('-o', '--organisation',
-              required=False, nargs=1,
-              help="The subdomain, if uploading to an organisation (Observatory Portal).")
-@basic_options
-@pass_state
-def telescopes(state, organisation=None):
-    org_subdomain = organisation or ''
-    if org_subdomain:
-        click.echo(f" • Fetching telescopes for organisation {org_subdomain}...")
-    else:
-        click.echo(" • Fetching telescopes...")
-
-    kwargs = build_endpoint_kwargs(state.api_name, subdomain=organisation)
-    telescope_list, error = ArcsecondAPI.telescopes(**kwargs).list()
-    if error is not None:
-        raise OortCloudError(str(error))
-
-    if isinstance(telescope_list, dict) and 'results' in telescope_list.keys():
-        telescope_list = telescope_list['results']
-
-    click.echo(f" • Found {len(telescope_list)} telescope{'s' if len(telescope_list) > 1 else ''}.")
-    for telescope_dict in telescope_list:
-        s = f" 🔭 \"{telescope_dict['name']}\" "
-        if telescope_dict['alias']:
-            s += f"alias \"{telescope_dict['alias']}\" "
-        s += f"(uuid: {telescope_dict['uuid']}) "
-        # s += f"[ObservingSite UUID: {telescope_dict['observing_site']}]"
-        click.echo(s)
-
-
 @main.command(help="Display the list of (organisation) datasets.")
 @click.option('-o', '--organisation',
               required=False, nargs=1,
@@ -155,30 +125,34 @@ def datasets(state, organisation=None):
 
 @main.command(help='Directly upload a folder\'s content.')
 @click.argument('folder', required=True, nargs=1)
+@click.option('-d', '--dataset',
+              required=True, nargs=1, type=click.STRING,
+              help="The UUID or name of the dataset to put data in.")
 @click.option('-o', '--organisation',
               required=False, nargs=1,
               help="The subdomain, if uploading for an Observatory Portal.")
-@click.option('-d', '--dataset',
-              required=False, nargs=1, type=click.STRING,
-              help="The UUID or name of the dataset to put data in.")
-@click.option('-t', '--telescope',
-              required=False, nargs=1, type=click.STRING,
-              help="The UUID or alias of the telescope acquiring the data (mandatory only for Portal uploads).")
 @basic_options
 @pass_state
-def upload(state, folder, organisation=None, dataset=None, telescope=None):
+def upload(state, folder, organisation=None, dataset=None):
     """
     Upload the content of a folder.
 
-    If an organisation is provided, a telescope UUID must also be provided.
+    You will be prompted for confirmation before the whole walking process actually
+    start.
 
-    Oort will start by walking through the folder tree and uploads files
-    according to the name of the subfolders (see main help). Once done,
-    every new file created in the folder tree will trigger a sync + upload
-    process.
+    Every DataFile must belong to a Dataset. If you provide a Dataset UUID, Oort will
+    append files to the dataset. If you provide a Dataset *name*, Oort will try to find
+    an existing Dataset with that name. If none could be found, Oort will create one,
+    and put files in it.
+
+    You can use `oort datasets [OPTIONS]` to get a list of your existing datasets
+    (with their UUID).
+
+    Oort will then start walking through the folder tree and uploads regular files
+    (hidden and empty files will be skipped).
     """
     try:
-        identity = parse_upload_watch_options(organisation, telescope, dataset, state.api_name)
+        identity = parse_upload_watch_options(organisation, dataset, state.api_name)
     except InvalidUploadOptionsOortCloudError as e:
         click.echo(f"\n • ERROR {str(e)} \n")
         return

@@ -3,7 +3,6 @@ import os
 import socket
 from datetime import datetime
 from pathlib import Path
-from typing import List
 
 from arcsecond import ArcsecondAPI
 from arcsecond.api.endpoints import AsyncFileUploader
@@ -15,74 +14,85 @@ from .errors import *
 
 
 class FileUploader(object):
-    def __init__(self, identity: Identity, root_path: Path, file_paths: List[Path], display_progress: bool = False):
+    def __init__(self, identity: Identity, root_path: Path, file_path: Path, display_progress: bool = False):
         self._identity = identity
         self._root_path = root_path
-        self._file_paths = file_paths
+        self._file_path = file_path
         self._display_progress = display_progress
+
         self._logger = get_oort_logger(debug=True)
+        self._started = None
+        self._progress = 0
+        self._is_test_context = bool(os.environ.get('OORT_TESTS') == '1')
 
-        # Definition of meaningful tags
-        tag_root = f'oort|root|{str(self._root_path)}'
-        tag_origin = f'oort|origin|{socket.gethostname()}'
-        tag_uploader = f'oort|uploader|{ArcsecondAPI.username(api=self._identity.api)}'
-        tag_oort = f'oort|version|{__version__}'
-
-        # Unique combination for a given organisation, it should returns one dataset...
-        if self._identity.has_dataset and self._identity.is_dataset_uuid:
-            pass
-        elif self._identity.has_dataset and not self._identity.is_dataset_uuid:
-            search_tags = [tag_root]
-            create_tags = [tag_root, tag_origin, tag_uploader, tag_oort]
-        else:
-            tag_folder = f'oort|folder|{self._pack.clean_folder_name}'
-            search_tags = [tag_folder, tag_root]
-            create_tags = [tag_folder, tag_root, tag_origin, tag_uploader, tag_oort]
-
-        if self._identity.telescope_uuid:
-            tag_telescope = f'oort|telescope|{self._identity.telescope_uuid}'
-            search_tags.append(tag_telescope)
-            create_tags.append(tag_telescope)
-
-        is_test_context = bool(os.environ.get('OORT_TESTS') == '1')
-        self._api = ArcsecondAPI.datafiles(dataset=str(self._upload.dataset.uuid),  # will be used as request prefix
-                                           upload_key=pack.identity.upload_key,
-                                           organisation=pack.identity.subdomain,
-                                           api=pack.identity.api,
-                                           test=is_test_context)
+        self._dataset = None
+        self._api = None
 
     @property
     def log_prefix(self) -> str:
-        return f'[FileUploader: {str(self._final_file_path)}]'
+        return f'[FileUploader: {str(self._file_path)}]'
+
+    def _prepare_dataset(self):
+        _api = ArcsecondAPI.datasets(upload_key=self._identity.upload_key,
+                                     organisation=self._identity.subdomain,
+                                     api=self._identity.api,
+                                     test=self._is_test_context)
+
+        if self._identity.dataset_uuid:
+            response, error = _api.read(self._identity.dataset_uuid)
+            if error:
+                raise UploadRemoteDatasetCheckError(str(error))
+            self._dataset = response
+
+        elif self._identity.dataset_name:
+            # Dataset UUID is empty, and CLI validators have already checked this dataset doesn't exist.
+            # Simply create dataset.
+            response, error = _api.create(**{'name': self._identity.dataset_name})
+            if error:
+                raise UploadRemoteDatasetCheckError(str(error))
+            self._dataset = response
+
+        else:
+            raise UploadRemoteDatasetCheckError('No dataset specified.')
+
+        self._api = ArcsecondAPI.datafiles(dataset=str(self._dataset.get('uuid')),  # will be used as request prefix
+                                           upload_key=self._identity.upload_key,
+                                           organisation=self._identity.subdomain,
+                                           api=self._identity.api,
+                                           test=self._is_test_context)
 
     def _prepare_file_uploader(self, remote_resource_exists):
-        self.has_logged_final = False
+        self._has_logged_final = False
+        self._started = datetime.now()
 
         # Callback allowing for the server monitor to display the percentage of progress of the upload.
         def update_upload_progress(event, progress_percent):
-            if progress_percent > self._upload.progress + 0.1 or 99 < progress_percent <= 100:
-                duration = (datetime.now() - self._upload.started).total_seconds()
+            if progress_percent > self._progress + 0.1 or 99 < progress_percent <= 100:
+                duration = (datetime.now() - self._started).total_seconds()
                 if self._display_progress is True:
                     print(f"{progress_percent:.2f}% ({duration:.2f} sec)", end="\r")
 
-            if progress_percent >= 100 and self._display_progress and not self.has_logged_final:
+            self._progress = progress_percent
+
+            if progress_percent >= 100 and self._display_progress and not self._has_logged_final:
                 self._logger.info(f"{self.log_prefix} Upload to Arcsecond finished.")
-                self._logger.info(f"{self.log_prefix} Now parsing headers, then saving file in Storage.")
-                self.has_logged_final = True
+                self._logger.info(f"{self.log_prefix} Now parsing headers & saving file in Storage.")
+                self._logger.info(f"{self.log_prefix} It may takes a few seconds.")
+                self._has_logged_final = True
 
         self._async_file_uploader: AsyncFileUploader
         if remote_resource_exists:
             self._logger.info(f"{self.log_prefix} Remote resource exists. Preparing 'Update' APIs.")
-            self._async_file_uploader, error = self._api.update(self._final_file_path.name,
-                                                                {'file': str(self._final_file_path)},
+            self._async_file_uploader, error = self._api.update(self._file_path.name,
+                                                                {'file': str(self._file_path)},
                                                                 callback=update_upload_progress)
         else:
             self._logger.info(f"{self.log_prefix} Remote resource does not exist. Preparing 'Create' APIs.")
-            self._async_file_uploader, error = self._api.create({'file': str(self._final_file_path)},
+            self._async_file_uploader, error = self._api.create({'file': str(self._file_path)},
                                                                 callback=update_upload_progress)
 
         if error is not None:
-            msg = f'{self.log_prefix} API preparation error for {str(self._final_file_path)}: {str(error)}'
+            msg = f'{self.log_prefix} API preparation error for {str(self._file_path)}: {str(error)}'
             self._logger.error(msg)
 
     def _check_remote_resource_and_file(self):
@@ -90,11 +100,11 @@ class FileUploader(object):
         _remote_resource_has_file = False
 
         # self._api contains a reference to the dataset.
-        response, error = self._api.read(self._final_file_path.name)
+        response, error = self._api.read(self._file_path.name)
 
         if error is not None:
             if 'not found' in error.lower():
-                # Remote file resource doesn't exists remotely. self._api.create method is fine.
+                # Remote file resource doesn't exist remotely. self._api.create method is fine.
                 _remote_resource_exists = False
             else:
                 # If for some reason the resource is duplicated, we end up here.
@@ -111,7 +121,6 @@ class FileUploader(object):
 
     def _should_perform_upload(self):
         _should_perform = False
-        self._upload.smart_update(started=datetime.now())
 
         try:
             exists_remotely = self._check_remote_resource_and_file()
@@ -121,14 +130,13 @@ class FileUploader(object):
 
         else:
             if exists_remotely:
-                self._logger.info(f'{self.log_prefix} Already synced.')
+                self._logger.info(f'{self.log_prefix} File already uploaded.')
             else:
                 _should_perform = True
 
         return _should_perform
 
     def _process_upload_error(self, error):
-
         try:
             error_body = json.loads(error)
         except Exception as err:
@@ -139,16 +147,14 @@ class FileUploader(object):
                 error_content = detail[0] if isinstance(detail, list) and len(detail) > 0 else detail
 
     def _perform_upload(self):
-
-        file_size = self._upload.get_formatted_size()
+        file_size = self._file_path.stat().st_size
         self._logger.info(f'{self.log_prefix} Starting upload to Arcsecond ({file_size})')
 
         self._async_file_uploader.start()
         _, upload_error = self._async_file_uploader.finish()
 
         ended = datetime.now()
-        duration = (ended - self._upload.started).total_seconds()
-        self._upload.smart_update(ended=ended, progress=0, duration=duration)
+        duration = (ended - self._started).total_seconds()
 
         if upload_error:
             self._logger.info(f'{self.log_prefix} {str(upload_error)}')
@@ -157,20 +163,22 @@ class FileUploader(object):
             self._logger.info(f'{self.log_prefix} Successfully uploaded {file_size} in {duration} seconds.')
 
     def _update_file_tags(self):
-        tag_filepath = f'oort|filepath|{str(self._final_file_path)}'
-        tag_folder = f'oort|folder|{self._pack.clean_folder_name}'
-        tag_root = f'oort|root|{self._pack.root_folder_name}'
-        tag_origin = f'oort|origin|{socket.gethostname()}|'
-        tag_uploader = f'oort|uploader|{ArcsecondAPI.username(api=self._pack.identity.api)}'
+        # Definition of meaningful tags
+        tag_root = f'oort|root|{str(self._root_path)}'
+        tag_origin = f'oort|origin|{socket.gethostname()}'
+        tag_uploader = f'oort|uploader|{ArcsecondAPI.username(api=self._identity.api)}'
         tag_oort = f'oort|version|{__version__}'
 
-        tags = [tag_filepath, tag_folder, tag_root, tag_origin, tag_uploader, tag_oort]
-        _, error = self._api.update(self._final_file_path.name, {'tags': tags})
+        tags = [tag_root, tag_origin, tag_uploader, tag_oort]
+        _, error = self._api.update(self._file_path.name, {'tags': tags})
 
         if error is not None:
             self._logger.error(f'{self.log_prefix} {str(error)}')
 
     def upload_file(self):
+        self._logger.info(f'{self.log_prefix} Preparing Dataset...')
+        self._prepare_dataset()
+
         self._logger.info(f'{self.log_prefix} Opening upload sequence.')
         if self._should_perform_upload():
             self._perform_upload()
@@ -178,23 +186,6 @@ class FileUploader(object):
 
         self._logger.info(f'{self.log_prefix} Updating file tags.')
         self._update_file_tags()
-
-    @property
-    def is_started(self):
-        return self._upload.started is not None and self._upload.ended is None
-
-    @property
-    def is_finished(self):
-        return self._upload.started is not None and self._upload.ended is not None
-
-    @property
-    def state(self):
-        if not self.is_started() and not self.is_finished():
-            return 'pending'
-        elif self.is_started() and not self.is_finished():
-            return 'current'
-        elif self.is_finished():
-            return 'finished'
 
 # def test_upload():
 #     root = '/Users/onekiloparsec/code/onekiloparsec/arcsecond-oort/data/test_folder/'

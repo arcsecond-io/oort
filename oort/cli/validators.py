@@ -11,13 +11,10 @@ from oort.common.utils import build_endpoint_kwargs
 from .errors import (
     InvalidAstronomerOortCloudError,
     InvalidOrgMembershipOortCloudError,
-    InvalidOrganisationTelescopeOortCloudError,
-    InvalidTelescopeOortCloudError,
     InvalidWatchOptionsOortCloudError,
     UnknownOrganisationOortCloudError,
     InvalidOrganisationDatasetOortCloudError,
-    InvalidDatasetOortCloudError,
-    InvalidUploadOptionsOortCloudError
+    InvalidDatasetOortCloudError
 )
 
 
@@ -69,28 +66,6 @@ def __print_organisation_telescopes(org_subdomain: str, api: str = 'main') -> No
         click.echo(s)
 
 
-# The organisation is actually optional. It allows to check for a telescope
-# also in the case of an individual astronomer.
-def __validate_telescope_uuid(telescope_uuid_or_alias: Union[str, UUID],
-                              org_subdomain: Optional[str],
-                              api: str = 'main') -> Optional[dict]:
-    click.echo(f" • Fetching details of telescope {telescope_uuid_or_alias}...")
-
-    # To the contrary of datasets, telescope models have a field 'alias', and it also works for
-    # reading telescope details in /telescopes/<uuid_or_alias>/, even for organisations.
-    # Hence, a single "read" is enough to find out if the telescope exists.
-    kwargs = build_endpoint_kwargs(api, org_subdomain)
-    telescope_detail, error = ArcsecondAPI.telescopes(**kwargs).read(str(telescope_uuid_or_alias))
-    if error is not None:
-        if org_subdomain:
-            raise InvalidOrganisationTelescopeOortCloudError(str(telescope_uuid_or_alias), org_subdomain, str(error))
-        else:
-            raise InvalidTelescopeOortCloudError(str(telescope_uuid_or_alias), str(error))
-
-    # Will contain UUID, name and alias.
-    return telescope_detail
-
-
 # The organisation is actually optional. It allows to check for a dataset
 # also in the case of an individual astronomer.
 def __validate_dataset_uuid(dataset_uuid_or_name: Union[str, UUID],
@@ -137,7 +112,6 @@ def ___read_local_astronomer_credentials(api: str):
 
 
 def parse_upload_watch_options(subdomain: str = '',
-                               telescope_uuid_or_name: str = '',
                                dataset_uuid_or_name: str = '',
                                api: str = 'main') -> Identity:
     assert api != '' and api is not None
@@ -152,18 +126,8 @@ def parse_upload_watch_options(subdomain: str = '',
         role = __validate_astronomer_role_in_remote_organisation(subdomain, api)
         organisation = {'subdomain': subdomain, 'role': role}
 
-    telescope = None
-    if telescope_uuid_or_name:
-        telescope = __validate_telescope_uuid(telescope_uuid_or_name, subdomain, api)
+    dataset = __validate_dataset_uuid(dataset_uuid_or_name, subdomain, api)
 
-    if subdomain and not telescope_uuid_or_name:
-        __print_organisation_telescopes(subdomain, api)
-        raise InvalidUploadOptionsOortCloudError('For an organisation, a telescope UUID (or alias) must be provided.')
-
-    dataset = None
-    if dataset_uuid_or_name:
-        dataset = __validate_dataset_uuid(dataset_uuid_or_name, subdomain, api)
-
-    identity = Identity(username, upload_key, organisation, telescope, dataset, api)
+    identity = Identity(username, upload_key, organisation, dataset, api)
 
     return identity
