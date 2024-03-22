@@ -4,19 +4,16 @@ from arcsecond import ArcsecondAPI
 from click.testing import CliRunner
 
 from oort.cli.cli import upload
-from oort.monitor.errors import InvalidOrgMembershipOortCloudError, UnknownOrganisationOortCloudError
-from oort.shared.models import Organisation
+from oort.cli.errors import InvalidOrgMembershipOortCloudError, UnknownOrganisationOortCloudError
 from tests.utils import (
     TEL_DETAILS,
     TEL_UUID,
     TEST_LOGIN_ORG_SUBDOMAIN,
     TEST_LOGIN_USERNAME,
     save_arcsecond_test_credentials,
-    use_test_database
 )
 
 
-@use_test_database
 def test_cli_upload_missing_folders():
     save_arcsecond_test_credentials()
     runner = CliRunner()
@@ -25,7 +22,6 @@ def test_cli_upload_missing_folders():
     assert 'Missing argument \'FOLDER\'.' in result.output
 
 
-@use_test_database
 def test_cli_upload_unknown_organisation():
     save_arcsecond_test_credentials()
     runner = CliRunner()
@@ -37,11 +33,8 @@ def test_cli_upload_unknown_organisation():
         mock_method_read.assert_called_once_with('dummy_org')
 
 
-@use_test_database
 def test_cli_upload_unknown_membership():
     save_arcsecond_test_credentials(subdomain='saao')
-    Organisation.create(subdomain='saao')
-    Organisation.create(subdomain=TEST_LOGIN_ORG_SUBDOMAIN)
     # Make the test
     runner = CliRunner()
     result = runner.invoke(upload, ['.', '-o', TEST_LOGIN_ORG_SUBDOMAIN, '--api', 'test'])
@@ -49,11 +42,9 @@ def test_cli_upload_unknown_membership():
     assert isinstance(result.exception, InvalidOrgMembershipOortCloudError)
 
 
-@use_test_database
 def test_cli_upload_missing_org_telescope():
     save_arcsecond_test_credentials()
     # Create the watch command org to pass the org check.
-    Organisation.create(subdomain=TEST_LOGIN_ORG_SUBDOMAIN)
     # Make the test
     runner = CliRunner()
     with patch.object(ArcsecondAPI, 'list', return_value=([], None)) as mock_method_read:
@@ -63,11 +54,9 @@ def test_cli_upload_missing_org_telescope():
         mock_method_read.assert_called_once()
 
 
-@use_test_database
 def test_cli_upload_with_org_telescope_answer_nope():
     # Prepare
     save_arcsecond_test_credentials()
-    Organisation.create(subdomain=TEST_LOGIN_ORG_SUBDOMAIN)
     runner = CliRunner()
 
     # Run
@@ -84,11 +73,9 @@ def test_cli_upload_with_org_telescope_answer_nope():
         mock_method_read.assert_called_once()
 
 
-@use_test_database
 def test_cli_upload_with_org_telescope_answer_yep():
     # Prepare
     save_arcsecond_test_credentials()
-    Organisation.create(subdomain=TEST_LOGIN_ORG_SUBDOMAIN)
     runner = CliRunner()
 
     with patch.object(ArcsecondAPI, 'read', return_value=(TEL_DETAILS, None)) as mock_method_read, \
