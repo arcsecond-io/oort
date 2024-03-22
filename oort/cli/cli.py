@@ -161,15 +161,12 @@ def datasets(state, organisation=None):
 @click.option('-o', '--organisation',
               required=False, nargs=1,
               help="The subdomain, if uploading for an Observatory Portal.")
-@click.option('-t', '--telescope',
-              required=False, nargs=1, type=click.STRING,
-              help="The UUID or alias of the telescope acquiring the data (mandatory only for Portal uploads).")
 @click.option('-d', '--dataset',
               required=False, nargs=1, type=click.STRING,
               help="The UUID or name of the dataset to put data in.")
-@click.option('-f', '--force',
-              required=False, nargs=1, type=click.BOOL, is_flag=True,
-              help="Force the re-uploading of folder's data, resetting the local Uploads information. Default is False.")
+@click.option('-t', '--telescope',
+              required=False, nargs=1, type=click.STRING,
+              help="The UUID or alias of the telescope acquiring the data (mandatory only for Portal uploads).")
 @basic_options
 @pass_state
 def upload(state, folder, organisation=None, telescope=None, dataset=None, force=False):
