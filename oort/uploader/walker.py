@@ -5,7 +5,7 @@ import click
 
 from oort.common.config import get_oort_logger
 from oort.common.identity import Identity
-from oort.common.utils import is_hidden
+from oort.common.utils import is_file_hidden
 from oort.common.constants import Status
 from .packer import UploadPack
 
@@ -18,13 +18,13 @@ def walk_first_pass(root_path: Path, identity: Identity, force: bool):
     if identity.api != 'dev':
         time.sleep(3)
 
-    total_file_count = sum(1 for f in root_path.glob('**/*') if f.is_file() and not is_hidden(f))
+    total_file_count = sum(1 for f in root_path.glob('**/*') if f.is_file() and not is_file_hidden(f))
 
     index = 0
     unfinished_paths = []
     for file_path in root_path.glob('**/*'):
         # Skipping both hidden files and hidden directories.
-        if is_hidden(file_path) or not file_path.is_file():
+        if is_file_hidden(file_path) or not file_path.is_file():
             continue
 
         index += 1

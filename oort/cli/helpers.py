@@ -7,7 +7,7 @@ import click
 from arcsecond import ArcsecondAPI
 
 from oort.common.identity import Identity
-from oort.common.utils import is_hidden
+from oort.common.utils import is_file_hidden
 
 
 def __get_formatted_time(seconds):
@@ -80,7 +80,7 @@ def display_command_summary(folders: list, identity: Identity):
         if folder_path == pathlib.Path.home():
             click.echo("   >>> Warning: This folder is your HOME folder. <<<")
 
-        size = sum(f.stat().st_size for f in folder_path.glob('**/*') if f.is_file() and not is_hidden(f))
+        size = sum(f.stat().st_size for f in folder_path.glob('**/*') if f.is_file() and not is_file_hidden(f))
         click.echo(f"   > Volume: {__get_formatted_bytes_size(size)} in total in this folder.")
         click.echo(f"   > Estimated upload time: {__get_formatted_size_times(size)}")
 
