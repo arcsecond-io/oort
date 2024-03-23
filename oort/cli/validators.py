@@ -78,7 +78,7 @@ def __validate_dataset_uuid(dataset_uuid_or_name: Union[str, UUID],
         uuid.UUID(dataset_uuid_or_name)
     except ValueError:
         click.echo(f" • Parameter {dataset_uuid_or_name} is not an UUID. Looking for a dataset with that name...")
-        datasets_list, error = ArcsecondAPI.datasets(**kwargs).list({'name': dataset_uuid_or_name})
+        datasets_list, error = ArcsecondAPI.datasets(**kwargs).list(**{'name': dataset_uuid_or_name})
         if len(datasets_list) == 0:
             click.echo(f" • No dataset with name {dataset_uuid_or_name} found. It will be created.")
             dataset = {'name': dataset_uuid_or_name}
