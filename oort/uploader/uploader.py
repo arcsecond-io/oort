@@ -32,7 +32,7 @@ class FileUploader(object):
 
     @property
     def log_prefix(self) -> str:
-        return f'[FileUploader: {str(self._file_path)}]'
+        return f'[FileUploader: {str(self._file_path.relative_to(self._root_path))}]'
 
     def _prepare_dataset(self):
         _api = ArcsecondAPI.datasets(upload_key=self._identity.upload_key,

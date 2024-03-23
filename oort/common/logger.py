@@ -10,7 +10,7 @@ def get_oort_logger(debug=False) -> Logger:
     logger.setLevel(DEBUG if debug else INFO)
 
     if len(logger.handlers) == 0:
-        formatter = Formatter('%(asctime)s - %(name)s[oort] - %(levelname)s - %(message)s')
+        formatter = Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
         if os.environ.get('OORT_TESTS') != '1':
             file_handler = FileHandler(Config.log_file_path())
