@@ -1,12 +1,13 @@
 import click
-from arcsecond import ArcsecondAPI
+from arcsecond import ArcsecondAPI, Config
+from arcsecond.options import State
 
 from oort import __version__
 from oort.common.utils import build_endpoint_kwargs
 from .errors import OortCloudError, InvalidUploadOptionsOortCloudError
 from .helpers import display_command_summary
-from .options import State, basic_options
-from .validators import parse_upload_watch_options
+from .options import basic_options
+from .validators import validate_upload_parameters
 
 pass_state = click.make_pass_decorator(State, ensure=True)
 
@@ -63,7 +64,7 @@ def login(state, username, password):
     This Upload key is not your full API key. When logging in with oort, no fetch
     nor storage of the API key occur (only the Upload one).
     """
-    _, error = ArcsecondAPI.login(username, password, upload_key=True, api=state.api_name)
+    _, error = ArcsecondAPI(Config(state)).login(username, password, upload_key=True)
     if error:
         click.echo(error)
     else:
@@ -152,15 +153,15 @@ def upload(state, folder, organisation=None, dataset=None):
     (hidden and empty files will be skipped).
     """
     try:
-        identity = parse_upload_watch_options(organisation, dataset, state.api_name)
+        values = validate_upload_parameters(organisation, dataset, state)
     except InvalidUploadOptionsOortCloudError as e:
         click.echo(f"\n • ERROR {str(e)} \n")
         return
 
-    display_command_summary([folder, ], identity)
+    display_command_summary([folder, ], Config(state), values)
     ok = input('\n   ----> OK? (Press Enter) ')
 
     if ok.strip() == '':
         from oort.uploader.walker import walk
 
-        walk(folder, identity)
+        walk(folder, context)

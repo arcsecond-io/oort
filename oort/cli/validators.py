@@ -3,11 +3,9 @@ import uuid
 from typing import Optional, Union
 
 import click
-from arcsecond import ArcsecondAPI
+from arcsecond import ArcsecondAPI, Config
 from click import UUID
 
-from oort.common.identity import Identity
-from oort.common.utils import build_endpoint_kwargs
 from .errors import (
     InvalidAstronomerOortCloudError,
     InvalidOrgMembershipOortCloudError,
@@ -16,69 +14,53 @@ from .errors import (
     InvalidOrganisationDatasetOortCloudError,
     InvalidDatasetOortCloudError
 )
+from .options import State
 
 
-def __validate_remote_organisation(org_subdomain: str, api: str = 'main') -> dict:
+def __validate_remote_organisation(state: State, org_subdomain: str):
     click.echo(f" • Fetching details of organisation {org_subdomain}...")
 
     # Do NOT include subdomain since we want to access the public endpoint of the list of organisations here.
     # Including the subdomain kwargs would filter the result for that organisation.
     # Which would make no sense, since there is no list of organisations for a given organisation...
-    kwargs = build_endpoint_kwargs(api)
-    org_details, error = ArcsecondAPI.organisations(**kwargs).read(org_subdomain)
+    config = Config(state, org_subdomain, os.environ.get('OORT_TESTS') == '1')
+    organisation, error = ArcsecondAPI(config).organisations.read(org_subdomain)
     if error is not None:
         raise UnknownOrganisationOortCloudError(org_subdomain, str(error))
 
-    return org_details
+    return organisation
 
 
-def __validate_astronomer_role_in_remote_organisation(org_subdomain: str, api: str = 'main') -> str:
-    # Do NOT include subdomain since we want the global list of memberships of the profile here.
-    # An alternative would be to fetch the list of members of a given organisation and see if the profile
-    # is inside. But there is actually no need to fetch anything since the memberships are included in
-    # the profile of the user logged in.
-    kwargs = build_endpoint_kwargs(api)
-    # Reading local memberships if an org_subdomain is provided.
-    memberships = ArcsecondAPI.memberships(**kwargs) if org_subdomain else None
-
-    # An org_subdomain is provided, but memberships are empty.
-    if org_subdomain and memberships in [None, {}]:
-        raise InvalidOrgMembershipOortCloudError(org_subdomain)
-
-    # Ok, an org_subdomain is provided and memberships are not empty. Checking for membership
-    # of that org_subdomain AND checking it is at least a member (not a visitor).
-    role = memberships.get(org_subdomain, None)
+def __validate_astronomer_role_in_remote_organisation(state: State, org_subdomain: str):
+    config = Config(state, '', os.environ.get('OORT_TESTS') == '1')
+    role = config.read_key(org_subdomain)
     if not role or role not in ['member', 'admin', 'superadmin']:
         raise InvalidOrgMembershipOortCloudError(org_subdomain)
 
-    return role
 
-
-def __print_organisation_telescopes(org_subdomain: str, api: str = 'main') -> None:
-    click.echo(f" • Here is a list of existing telescopes for organisation '{org_subdomain}':")
-    kwargs = build_endpoint_kwargs(api, org_subdomain)
-    telescope_list, error = ArcsecondAPI.telescopes(**kwargs).list()
-    for telescope in telescope_list:
-        s = f" 🔭 {telescope['name']}"
-        if telescope.get('alias', ''):
-            s += f" a.k.a. {telescope['alias']}"
-        s += f" ({telescope['uuid']})"
-        click.echo(s)
+# def __print_organisation_telescopes(org_subdomain: str, api: str = 'main'):
+#     click.echo(f" • Here is a list of existing telescopes for organisation '{org_subdomain}':")
+#     kwargs = build_endpoint_kwargs(api, org_subdomain)
+#     telescope_list, error = ArcsecondAPI.telescopes(**kwargs).list()
+#     for telescope in telescope_list:
+#         s = f" 🔭 {telescope['name']}"
+#         if telescope.get('alias', ''):
+#             s += f" a.k.a. {telescope['alias']}"
+#         s += f" ({telescope['uuid']})"
+#         click.echo(s)
 
 
 # The organisation is actually optional. It allows to check for a dataset
 # also in the case of an individual astronomer.
-def __validate_dataset_uuid(dataset_uuid_or_name: Union[str, UUID],
-                            org_subdomain: Optional[str],
-                            api: str = 'main') -> Optional[dict]:
-    kwargs = build_endpoint_kwargs(api, org_subdomain)
+def __validate_dataset_uuid(state: State, dataset_uuid_or_name: Union[str, UUID], org_subdomain: Optional[str]):
+    config = Config(state, org_subdomain, os.environ.get('OORT_TESTS') == '1')
     dataset = None
 
     try:
         uuid.UUID(dataset_uuid_or_name)
     except ValueError:
         click.echo(f" • Parameter {dataset_uuid_or_name} is not an UUID. Looking for a dataset with that name...")
-        datasets_list, error = ArcsecondAPI.datasets(**kwargs).list(**{'name': dataset_uuid_or_name})
+        datasets_list, error = ArcsecondAPI(config).datasets.list(**{'name': dataset_uuid_or_name})
         if len(datasets_list) == 0:
             click.echo(f" • No dataset with name {dataset_uuid_or_name} found. It will be created.")
             dataset = {'name': dataset_uuid_or_name}
@@ -89,7 +71,7 @@ def __validate_dataset_uuid(dataset_uuid_or_name: Union[str, UUID],
             error = f"Multiple datasets with name containing {dataset_uuid_or_name} found. Be more specific."
     else:
         click.echo(f" • Fetching details of dataset {dataset_uuid_or_name}...")
-        dataset, error = ArcsecondAPI.datasets(**kwargs).read(str(dataset_uuid_or_name))
+        dataset, error = ArcsecondAPI(config).datasets.read(str(dataset_uuid_or_name))
 
     if error is not None:
         if org_subdomain:
@@ -100,34 +82,29 @@ def __validate_dataset_uuid(dataset_uuid_or_name: Union[str, UUID],
     return dataset
 
 
-def ___read_local_astronomer_credentials(api: str):
+def __validate_local_astronomer_credentials(state: State):
     test = os.environ.get('OORT_TESTS') == '1'
 
-    username = ArcsecondAPI.username(test=test, api=api)
+    username = Config(state, test=test).username
     if username is None:
-        raise InvalidAstronomerOortCloudError('')
+        raise InvalidAstronomerOortCloudError('Missing username')
 
-    upload_key = ArcsecondAPI.upload_key(test=test, api=api)
-    return username, upload_key
+    upload_key = Config(state, test=test).upload_key
+    if not upload_key:
+        raise InvalidWatchOptionsOortCloudError('Missing upload_key.')
 
 
-def parse_upload_watch_options(subdomain: str = '',
-                               dataset_uuid_or_name: str = '',
-                               api: str = 'main') -> Identity:
-    assert api != '' and api is not None
+def validate_upload_parameters(state: State, dataset_uuid_or_name: str = '', subdomain: str = ''):
+    values = {}
 
-    username, upload_key = ___read_local_astronomer_credentials(api)
-    if not username or not upload_key:
-        raise InvalidWatchOptionsOortCloudError('Missing username or upload_key.')
+    __validate_local_astronomer_credentials(state)
+    dataset = __validate_dataset_uuid(state, dataset_uuid_or_name, subdomain)
+    values.update(dataset=dataset)
 
-    organisation = None
     if subdomain:
-        __validate_remote_organisation(subdomain, api)
-        role = __validate_astronomer_role_in_remote_organisation(subdomain, api)
-        organisation = {'subdomain': subdomain, 'role': role}
+        organisation = __validate_remote_organisation(state, subdomain)
+        values.update(organisation=organisation)
 
-    dataset = __validate_dataset_uuid(dataset_uuid_or_name, subdomain, api)
+        __validate_astronomer_role_in_remote_organisation(state, subdomain)
 
-    identity = Identity(username, upload_key, organisation, dataset, api)
-
-    return identity
+    return values
