@@ -29,10 +29,10 @@ def __walk_first_pass(identity: Identity, root_path: Path):
             continue
 
         index += 1
-        click.echo(f"\n{log_prefix} File {index} / {total_file_count} ({index / total_file_count * 100:.2f}%)\n")
+        logger.info(f"\n{log_prefix} File {index} / {total_file_count} ({index / total_file_count * 100:.2f}%)\n")
         file_paths.append(file_path)
 
-    logger.info(f"\n{log_prefix} Finished collecting file info inside folder {str(root_path)}.\n")
+    logger.info(f"{log_prefix} Finished collecting file info inside folder {str(root_path)}.\n")
     return file_paths
 
 
@@ -49,7 +49,7 @@ def __walk_second_pass(identity: Identity, root_path: Path, file_paths: list):
     index = 0
     for file_path in file_paths:
         index += 1
-        click.echo(f"\n{log_prefix} File {index} / {total_file_count} ({index / total_file_count * 100:.2f}%)\n")
+        logger.info(f"\n{log_prefix} File {index} / {total_file_count} ({index / total_file_count * 100:.2f}%)\n")
 
         uploader = FileUploader(identity, root_path, file_path, display_progress=True)
         status, substatus, error = uploader.upload_file()
