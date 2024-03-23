@@ -1,4 +1,4 @@
-from common.errors import OortCloudError
+from oort.common.errors import OortCloudError
 
 
 class InvalidUploadOptionsOortCloudError(OortCloudError):

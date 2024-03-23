@@ -1,7 +1,7 @@
 import click
 from arcsecond import config
 
-from common.config import State
+from oort.common.config import State
 
 
 def verbose_option_constructor(f):
