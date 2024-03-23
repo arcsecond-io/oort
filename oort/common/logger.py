@@ -1,7 +1,7 @@
 import os
+from datetime import datetime
 from logging import DEBUG, FileHandler, Formatter, INFO, Logger, StreamHandler, getLogger
-
-from .config import Config
+from pathlib import Path
 
 
 def get_oort_logger(debug=False) -> Logger:
@@ -13,7 +13,8 @@ def get_oort_logger(debug=False) -> Logger:
         formatter = Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
         if os.environ.get('OORT_TESTS') != '1':
-            file_handler = FileHandler(Config.log_file_path())
+            log_file_path = Path(f'oort_{datetime.now().replace(microsecond=0).isoformat()}.log')
+            file_handler = FileHandler(log_file_path)
             file_handler.setLevel(DEBUG if debug else INFO)
             file_handler.setFormatter(formatter)
             logger.addHandler(file_handler)
