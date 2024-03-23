@@ -25,6 +25,7 @@ class FileUploader(object):
         self._started = None
         self._progress = 0
         self._is_test_context = bool(os.environ.get('OORT_TESTS') == '1')
+        self._status = [Status.NEW, Substatus.PENDING, None]
 
         self._dataset = None
         self._api = None
@@ -146,6 +147,7 @@ class FileUploader(object):
             if 'detail' in error_body.keys():
                 detail = error_body['detail']
                 error_content = detail[0] if isinstance(detail, list) and len(detail) > 0 else detail
+                return error_content
 
     def _perform_upload(self):
         file_size = self._file_path.stat().st_size
@@ -158,9 +160,11 @@ class FileUploader(object):
         duration = (ended - self._started).total_seconds()
 
         if upload_error:
+            error_content = self._process_upload_error(upload_error)
+            self._status = [Status.ERROR, Substatus.ERROR, error_content or upload_error]
             self._logger.info(f'{self.log_prefix} {str(upload_error)}')
-            self._process_upload_error(upload_error)
         else:
+            self._status = [Status.OK, Substatus.DONE, None]
             self._logger.info(f'{self.log_prefix} Successfully uploaded {file_size} in {duration} seconds.')
 
     def _update_file_tags(self):
@@ -174,19 +178,29 @@ class FileUploader(object):
         _, error = self._api.update(self._file_path.name, {'tags': tags})
 
         if error is not None:
+            self._status = [Status.ERROR, Substatus.ERROR, error]
             self._logger.error(f'{self.log_prefix} {str(error)}')
+        else:
+            self._status = [Status.OK, Substatus.DONE, None]
 
     def upload_file(self):
+        self._status = [Status.PREPARING, Substatus.CHECKING, None]
         self._logger.info(f'{self.log_prefix} Preparing Dataset...')
         self._prepare_dataset()
 
+        self._status = [Status.UPLOADING, Substatus.CHECKING, None]
         self._logger.info(f'{self.log_prefix} Opening upload sequence.')
         if self._should_perform_upload():
+            self._status = [Status.UPLOADING, Substatus.UPLOADING, None]
             self._perform_upload()
         self._logger.info(f'{self.log_prefix} Closing upload sequence.')
 
-        self._logger.info(f'{self.log_prefix} Updating file tags.')
-        self._update_file_tags()
+        if self._status[0] != Status.ERROR.value:
+            self._status = [Status.FINISHING, Substatus.TAGGING, None]
+            self._logger.info(f'{self.log_prefix} Updating file tags.')
+            self._update_file_tags()
+
+        return self._status
 
 # def test_upload():
 #     root = '/Users/onekiloparsec/code/onekiloparsec/arcsecond-oort/data/test_folder/'

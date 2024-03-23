@@ -48,19 +48,16 @@ class Status(Enum):
     NEW = 'New'
     PREPARING = 'Preparing'
     UPLOADING = 'Uploading'
+    FINISHING = 'Finishing'
     OK = 'OK'
     ERROR = 'Error'
 
 
 class Substatus(Enum):
     PENDING = 'pending'
-    ZIPPING = 'zipping...'
     CHECKING = 'checking remote file...'
-    READY = 'ready'
-    RESTART = 'restart'
-
-    STARTING = 'starting...'
     UPLOADING = 'uploading...'
+    TAGGING = 'tagging...'
 
     DONE = 'done'
     ERROR = 'error'

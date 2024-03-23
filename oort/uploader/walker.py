@@ -7,6 +7,7 @@ from oort.common.constants import Status
 from oort.common.identity import Identity
 from oort.common.logger import get_oort_logger
 from oort.common.utils import is_file_hidden
+from .uploader import FileUploader
 
 logger = get_oort_logger('walker')
 
@@ -50,7 +51,8 @@ def __walk_second_pass(identity: Identity, root_path: Path, file_paths: list):
         index += 1
         click.echo(f"\n{log_prefix} File {index} / {total_file_count} ({index / total_file_count * 100:.2f}%)\n")
 
-        status, substatus, error = pack.prepare_and_upload_file(display_progress=True)
+        uploader = FileUploader(identity, root_path, file_path, display_progress=True)
+        status, substatus, error = uploader.upload_file()
         if status == Status.OK.value:
             success_uploads.append(str(file_path))
         else:
