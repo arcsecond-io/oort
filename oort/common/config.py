@@ -47,6 +47,10 @@ class Config(object):
         return _config_file_path
 
     @classmethod
+    def oort_config_file_path(cls) -> Path:
+        return cls.__config_file_path()
+
+    @classmethod
     def __config_file_exists(cls) -> bool:
         path = Config.__config_file_path()
         return path.exists() and path.is_file()

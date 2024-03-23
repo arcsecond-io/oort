@@ -9,7 +9,7 @@ from arcsecond.config import (config_file_clear_section,
                               config_file_save_organisation_membership,
                               config_file_save_upload_key)
 
-from oort.common.config import get_oort_config_file_path, get_oort_config_upload_folder_sections
+from common.config import Config, State
 
 TEST_LOGIN_USERNAME = 'robot1'
 TEST_LOGIN_PASSWORD = 'robotpass'
@@ -66,20 +66,20 @@ def clear_arcsecond_test_credentials():
     config_file_save_api_server(ARCSECOND_API_URL_DEV, 'test')
 
 
-def clear_oort_test_folders():
-    conf_file_path = get_oort_config_file_path()
-    config = ConfigParser()
-    config.read(str(conf_file_path))
-
-    print(get_oort_config_upload_folder_sections())
-    sections = [s for s in get_oort_config_upload_folder_sections() if s.get('section').endswith('-tests')]
-    for section in sections:
-        if section.get('section') in config.sections():
-            del config[section.get('section')]
-            print(section)
-
-    with conf_file_path.open('w') as f:
-        config.write(f)
+#
+# def clear_oort_test_folders():
+#     conf_file_path = Config(State(api_name='test', verbose=False)).oort_config_file_path()
+#     config = ConfigParser()
+#     config.read(str(conf_file_path))
+#
+#     sections = [s for s in get_oort_config_upload_folder_sections() if s.get('section').endswith('-tests')]
+#     for section in sections:
+#         if section.get('section') in config.sections():
+#             del config[section.get('section')]
+#             print(section)
+#
+#     with conf_file_path.open('w') as f:
+#         config.write(f)
 
 
 def make_profile_json(subdomain, role):
