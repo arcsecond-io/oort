@@ -1,10 +1,7 @@
 import math
-import os
 import pathlib
-from typing import Optional
 
 import click
-from arcsecond import ArcsecondAPI
 
 from oort.common.identity import Identity
 from oort.common.utils import is_file_hidden
@@ -39,7 +36,7 @@ def __get_formatted_bytes_size(size):
 
 
 def display_command_summary(folders: list, identity: Identity):
-    click.echo(f"\n --- Upload summary --- ")
+    click.echo("\n --- Upload summary --- ")
     click.echo(f" • Arcsecond username: @{identity.username} (Upload key: {identity.upload_key[:4]}••••)")
     if identity.subdomain:
         msg = f" • Uploading to Observatory Portal '{identity.subdomain}' (as {identity.role})."
@@ -83,4 +80,3 @@ def display_command_summary(folders: list, identity: Identity):
         size = sum(f.stat().st_size for f in folder_path.glob('**/*') if f.is_file() and not is_file_hidden(f))
         click.echo(f"   > Volume: {__get_formatted_bytes_size(size)} in total in this folder.")
         click.echo(f"   > Estimated upload time: {__get_formatted_size_times(size)}")
-

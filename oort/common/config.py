@@ -1,4 +1,3 @@
-import os
 import shutil
 from configparser import ConfigParser
 from pathlib import Path
@@ -30,15 +29,10 @@ class Config(object):
     @classmethod
     def __config_dir_path(cls):
         _config_root_path = Path.home() / '.config'
-        if 'XDG_CONFIG_HOME' in os.environ.keys():
-            _config_root_path = Path(os.environ['XDG_CONFIG_HOME'])
         return _config_root_path / 'arcsecond'
 
     @classmethod
     def __config_file_path(cls) -> Path:
-        _config_root_path = Path.home() / '.config'
-        if 'XDG_CONFIG_HOME' in os.environ.keys():
-            _config_root_path = Path(os.environ['XDG_CONFIG_HOME'])
         _config_dir_path = Config.__config_dir_path()
         _config_file_path = _config_dir_path / 'config.ini'
         if Config.__old_config_file_path().exists() and not _config_file_path.exists():

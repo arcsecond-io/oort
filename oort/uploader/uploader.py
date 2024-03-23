@@ -8,9 +8,10 @@ from arcsecond import ArcsecondAPI
 from arcsecond.api.endpoints import AsyncFileUploader
 
 from oort import __version__
+from oort.common.constants import Status, Substatus
 from oort.common.identity import Identity
 from oort.common.logger import get_oort_logger
-from .errors import *
+from .errors import UploadRemoteDatasetCheckError, UploadRemoteFileCheckError
 
 
 class FileUploader(object):

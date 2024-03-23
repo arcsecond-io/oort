@@ -1,6 +1,5 @@
 import json
 import uuid
-from configparser import ConfigParser
 
 import httpretty
 from arcsecond.api.constants import API_AUTH_PATH_LOGIN, ARCSECOND_API_URL_DEV
@@ -8,8 +7,6 @@ from arcsecond.config import (config_file_clear_section,
                               config_file_save_api_server,
                               config_file_save_organisation_membership,
                               config_file_save_upload_key)
-
-from common.config import Config, State
 
 TEST_LOGIN_USERNAME = 'robot1'
 TEST_LOGIN_PASSWORD = 'robotpass'

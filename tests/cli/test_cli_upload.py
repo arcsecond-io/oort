@@ -4,11 +4,8 @@ from arcsecond import ArcsecondAPI
 from click.testing import CliRunner
 
 from oort.cli.cli import upload
-from oort.cli.errors import InvalidOrgMembershipOortCloudError, UnknownOrganisationOortCloudError
-from tests.utils import (
-    TEST_LOGIN_ORG_SUBDOMAIN,
-    save_arcsecond_test_credentials,
-)
+from oort.cli.errors import UnknownOrganisationOortCloudError
+from tests.utils import save_arcsecond_test_credentials
 
 
 def test_cli_upload_missing_folders():
