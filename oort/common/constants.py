@@ -70,16 +70,6 @@ class Substatus(Enum):
     # ---
 
 
-FINISHED_SUBSTATUSES = [Substatus.DONE.value,
-                        Substatus.ERROR.value,
-                        Substatus.SKIPPED_NO_DATE_OBS.value,
-                        Substatus.ALREADY_SYNCED.value]
-
-PREPARATION_DONE_SUBSTATUSES = [Substatus.CHECKING.value,
-                                Substatus.READY.value,
-                                Substatus.STARTING.value,
-                                Substatus.UPLOADING.value] + FINISHED_SUBSTATUSES
-
 ARCSECOND_API_URL_DEV = 'http://localhost:8000'
 ARCSECOND_API_URL_PROD = 'https://api.arcsecond.io'
 
