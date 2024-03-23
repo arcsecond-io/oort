@@ -52,23 +52,7 @@ def display_command_summary(folders: list, identity: Identity):
         msg = " • Using folder names for dataset names (one folder = one dataset)."
     click.echo(msg)
 
-    if identity.telescope_uuid:
-        msg = f" • Dataset(s) will be attached to telescope '{identity.telescope_name}' "
-        if identity.telescope_alias:
-            msg += f"a.k.a '{identity.telescope_alias}' "
-        msg += f"({identity.telescope_uuid}))"
-    else:
-        msg = " • No designated telescope."
-    click.echo(msg)
-
     click.echo(f" • Using API server: {identity.api}")
-    click.echo(f" • Zip before upload: {'True' if zip else 'False'}")
-
-    if identity.dataset_uuid:
-        click.echo(f" • Ignoring folder names. Using a single dataset with name|uuid {identity.dataset_uuid}.")
-    else:
-        click.echo(" • Using folder names for dataset names (one folder = one dataset).")
-
     click.echo(f" • Folder{'s' if len(folders) > 1 else ''}:")
     for folder in folders:
         folder_path = pathlib.Path(folder).expanduser().resolve()
