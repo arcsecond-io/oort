@@ -29,7 +29,7 @@ def __walk_first_pass(context: Context, root_path: Path):
             continue
 
         index += 1
-        click.echo(f"\n{log_prefix} File {index} / {total_file_count} ({index / total_file_count * 100:.2f}%)\n")
+        click.echo(f"\n{log_prefix} File {index} / {total_file_count} ({index / total_file_count * 100:.2f}%)")
         file_paths.append(file_path)
 
     logger.info(f"{log_prefix} Finished collecting file info inside folder {str(root_path)}.")
@@ -53,12 +53,12 @@ def __walk_second_pass(context: Context, root_path: Path, file_paths: list):
 
         uploader = FileUploader(context, root_path, file_path, display_progress=True)
         status, substatus, error = uploader.upload_file()
-        if status == Status.OK.value:
+        if status == Status.OK:
             success_uploads.append(str(file_path))
         else:
             failed_uploads.append((str(file_path), substatus, error))
 
-    msg = f"{log_prefix}\n\n\nFinished upload walk inside folder {root_path} "
+    msg = f"{log_prefix}\n\nFinished upload walk inside folder {root_path} "
     logger.info(msg)
 
     return success_uploads, failed_uploads
