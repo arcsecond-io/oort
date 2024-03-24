@@ -2,8 +2,8 @@ import math
 import pathlib
 
 import click
-from arcsecond import Config
 
+from oort.common.context import Context
 from oort.common.utils import is_file_hidden
 
 
@@ -35,27 +35,25 @@ def __get_formatted_bytes_size(size):
     return f"{(size / math.pow(k, i)):.2f} {units[i]}"
 
 
-def display_command_summary(folders: list, config: Config, values: dict):
+def display_command_summary(context: Context, folders: list):
     click.echo("\n --- Upload summary --- ")
-    click.echo(f" • Arcsecond username: @{config.username} (Upload key: {config.upload_key[:4]}••••)")
-    if config.subdomain:
-        msg = f" • Uploading to Observatory Portal '{config.subdomain}' (as {config.read_key(config.subdomain)})."
+    click.echo(f" • Arcsecond username: @{context.config.username} (Upload key: {context.config.upload_key[:4]}••••)")
+    if context.config.subdomain:
+        role = context.config.read_key(context.config.subdomain)
+        msg = f" • Uploading to Observatory Portal '{context.config.subdomain}' (as {role})."
     else:
         msg = " • Uploading to your *personal* account."
     click.echo(msg)
 
-    dataset_uuid = values.get('dataset').get('uuid', '')
-    dataset_name = values.get('dataset').get('name', '')
-
-    if dataset_uuid and dataset_name:
-        msg = f" • Data will be appended to existing dataset '{dataset_name}' ({dataset_uuid})."
-    elif not dataset_uuid and dataset_name:
-        msg = f" • Data will be inserted into a new dataset named '{dataset_name}'."
+    if context.dataset_uuid and context.dataset_name:
+        msg = f" • Data will be appended to existing dataset '{context.dataset_name}' ({context.dataset_uuid})."
+    elif not context.dataset_uuid and context.dataset_name:
+        msg = f" • Data will be inserted into a new dataset named '{context.dataset_name}'."
     else:
         msg = " • Using folder names for dataset names (one folder = one dataset)."
     click.echo(msg)
 
-    click.echo(f" • Using API server: {config.api_name}")
+    click.echo(f" • Using API server: {context.config.api_name}")
     click.echo(f" • Folder{'s' if len(folders) > 1 else ''}:")
     for folder in folders:
         folder_path = pathlib.Path(folder).expanduser().resolve()

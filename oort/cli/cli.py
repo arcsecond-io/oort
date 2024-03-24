@@ -1,13 +1,14 @@
 import click
-from arcsecond import ArcsecondAPI, Config
+from arcsecond import ArcsecondAPI, ArcsecondConfig, cli as ArcsecondCLI
 from arcsecond.options import State
 
 from oort import __version__
+from oort.common.context import Context
 from oort.common.utils import build_endpoint_kwargs
+from oort.uploader.walker import walk
 from .errors import OortCloudError, InvalidUploadOptionsOortCloudError
 from .helpers import display_command_summary
 from .options import basic_options
-from .validators import validate_upload_parameters
 
 pass_state = click.make_pass_decorator(State, ensure=True)
 
@@ -64,35 +65,21 @@ def login(state, username, password):
     This Upload key is not your full API key. When logging in with oort, no fetch
     nor storage of the API key occur (only the Upload one).
     """
-    _, error = ArcsecondAPI(Config(state)).login(username, password, upload_key=True)
+    config = ArcsecondConfig(state)
+    _, error = ArcsecondAPI(config).login(username, password, upload_key=True)
     if error:
         click.echo(error)
     else:
-        username = ArcsecondAPI.username(api=state.api_name)
+        username = config.username
         click.echo(f' • Successfully logged in as @{username} (API: {state.api_name}).')
 
 
-@main.command()
-@click.argument('name', required=True, nargs=1)
-@click.argument('address', required=False, nargs=1)
+@main.command(help='Get or set the API server address (fully qualified domain name).')
+@click.argument('name', required=False, nargs=1)
+@click.argument('fqdn', required=False, nargs=1)
 @pass_state
-def api(state, name=None, address=None):
-    """
-    Configure the API server address.
-
-    For instance:
-
-    • "oort api main" to get the main API server address (default).\n
-    • "oort api dev http://localhost:8000" to configure a dev server.
-
-    You can then use --api <api name> in every command to choose which API
-    server you want to interact with. Hence, "--api dev" will choose the above
-    dev server.
-    """
-    if address is None:
-        print(ArcsecondAPI.get_api_name(api_name=name))
-    else:
-        ArcsecondAPI.set_api_name(address, api_name=name)
+def api(state, name=None, fqdn=None):
+    ArcsecondCLI.api(state, name, fqdn)
 
 
 @main.command(help="Display the list of (organisation) datasets.")
@@ -109,7 +96,7 @@ def datasets(state, organisation=None):
         click.echo(" • Fetching datasets...")
 
     kwargs = build_endpoint_kwargs(state.api_name, subdomain=organisation)
-    dataset_list, error = ArcsecondAPI.datasets(**kwargs).list()
+    dataset_list, error = ArcsecondAPI(ArcsecondConfig(state)).datasets.list()
     if error is not None:
         raise OortCloudError(str(error))
 
@@ -134,7 +121,7 @@ def datasets(state, organisation=None):
               help="The subdomain, if uploading for an Observatory Portal.")
 @basic_options
 @pass_state
-def upload(state, folder, organisation=None, dataset=None):
+def upload(state, folder, dataset=None, organisation=None):
     """
     Upload the content of a folder.
 
@@ -152,16 +139,17 @@ def upload(state, folder, organisation=None, dataset=None):
     Oort will then start walking through the folder tree and uploads regular files
     (hidden and empty files will be skipped).
     """
+    config = ArcsecondConfig(state)
+    context = Context(config, dataset_uuid_or_name=dataset, subdomain=organisation)
+
     try:
-        values = validate_upload_parameters(organisation, dataset, state)
+        context.validate()
     except InvalidUploadOptionsOortCloudError as e:
         click.echo(f"\n • ERROR {str(e)} \n")
         return
 
-    display_command_summary([folder, ], Config(state), values)
+    display_command_summary(context, [folder, ])
     ok = input('\n   ----> OK? (Press Enter) ')
 
     if ok.strip() == '':
-        from oort.uploader.walker import walk
-
-        walk(folder, context)
+        walk(context, folder)

@@ -4,7 +4,7 @@ from pathlib import Path
 import click
 
 from oort.common.constants import Status
-from oort.common.identity import Identity
+from oort.common.context import Context
 from oort.common.logger import get_oort_logger
 from oort.common.utils import is_file_hidden
 from .uploader import FileUploader
@@ -12,10 +12,10 @@ from .uploader import FileUploader
 logger = get_oort_logger('walker')
 
 
-def __walk_first_pass(identity: Identity, root_path: Path):
+def __walk_first_pass(context: Context, root_path: Path):
     log_prefix = '[Walker - 1/2]'
     logger.info(f"{log_prefix} Making a first pass to collect info on files...")
-    if identity.api != 'dev':
+    if context.config.api_name != 'dev':
         # For user experience, and let him/her read the above message.
         time.sleep(3)
 
@@ -32,14 +32,14 @@ def __walk_first_pass(identity: Identity, root_path: Path):
         click.echo(f"\n{log_prefix} File {index} / {total_file_count} ({index / total_file_count * 100:.2f}%)\n")
         file_paths.append(file_path)
 
-    logger.info(f"{log_prefix} Finished collecting file info inside folder {str(root_path)}.\n")
+    logger.info(f"{log_prefix} Finished collecting file info inside folder {str(root_path)}.")
     return file_paths
 
 
-def __walk_second_pass(identity: Identity, root_path: Path, file_paths: list):
+def __walk_second_pass(context: Context, root_path: Path, file_paths: list):
     log_prefix = '[Walker - 2/2]'
     logger.info(f"{log_prefix} Starting second pass to upload files...")
-    if identity.api != 'dev':
+    if context.config.api_name != 'dev':
         time.sleep(3)
 
     failed_uploads = []
@@ -51,7 +51,7 @@ def __walk_second_pass(identity: Identity, root_path: Path, file_paths: list):
         index += 1
         click.echo(f"\n{log_prefix} File {index} / {total_file_count} ({index / total_file_count * 100:.2f}%)\n")
 
-        uploader = FileUploader(identity, root_path, file_path, display_progress=True)
+        uploader = FileUploader(context, root_path, file_path, display_progress=True)
         status, substatus, error = uploader.upload_file()
         if status == Status.OK.value:
             success_uploads.append(str(file_path))
@@ -64,7 +64,7 @@ def __walk_second_pass(identity: Identity, root_path: Path, file_paths: list):
     return success_uploads, failed_uploads
 
 
-def walk(folder_string: str, identity: Identity):
+def walk(context: Context, folder_string: str):
     log_prefix = '[Walker]'
     root_path = Path(folder_string).resolve()
     if root_path.is_file():  # Just in case we pass a file...
@@ -72,9 +72,9 @@ def walk(folder_string: str, identity: Identity):
 
     logger.info(f"{log_prefix} Starting upload walk through {root_path} and its subfolders...")
 
-    file_paths = __walk_first_pass(identity, root_path)
+    file_paths = __walk_first_pass(context, root_path)
     if len(file_paths) > 0:
-        success_uploads, failed_uploads = __walk_second_pass(identity, root_path, file_paths)
+        success_uploads, failed_uploads = __walk_second_pass(context, root_path, file_paths)
         msg = f"{log_prefix} {len(success_uploads)} successful uploads and {len(failed_uploads)} failed.\n\n"
         logger.info(msg)
 
