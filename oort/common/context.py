@@ -93,7 +93,7 @@ class Context(object):
 
     @property
     def organisation_subdomain(self):
-        return self._organisation.get('subdomain', '')
+        return self._organisation.get('subdomain', '') if self._organisation else ''
 
     # def __print_organisation_telescopes(org_subdomain: str, api: str = 'main'):
     #     click.echo(f" • Here is a list of existing telescopes for organisation '{org_subdomain}':")
