@@ -26,7 +26,6 @@ class FileUploader(object):
         self._is_test_context = bool(os.environ.get('OORT_TESTS') == '1')
         self._status = [Status.NEW, Substatus.PENDING, None]
 
-        self._dataset = None
         self._api = ArcsecondAPI(self._context.config, self._context.organisation_subdomain)
 
     @property
@@ -38,7 +37,7 @@ class FileUploader(object):
             response, error = self._api.datasets.read(self._context.dataset_uuid)
             if error:
                 raise UploadRemoteDatasetCheckError(str(error))
-            self._dataset = response
+            self._context.update_dataset(response)
 
         elif self._context.dataset_name:
             # Dataset UUID is empty, and CLI validators have already checked this dataset doesn't exist.
@@ -46,7 +45,7 @@ class FileUploader(object):
             response, error = self._api.datasets.create({'name': self._context.dataset_name})
             if error:
                 raise UploadRemoteDatasetCheckError(str(error))
-            self._dataset = response
+            self._context.update_dataset(response)
 
         else:
             raise UploadRemoteDatasetCheckError('No dataset specified.')
@@ -57,7 +56,7 @@ class FileUploader(object):
         self._logger.info(f'{self.log_prefix} Starting upload to Arcsecond ({file_size} bytes)')
 
         e = MultipartEncoder(
-            fields={'dataset': self._dataset.get('uuid'),
+            fields={'dataset': self._context.dataset_uuid,
                     'file': (self._file_path.name, open(self._file_path, 'rb'))}
         )
 

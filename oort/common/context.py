@@ -75,6 +75,10 @@ class Context(object):
         if not role or role not in ['member', 'admin', 'superadmin']:
             raise InvalidOrgMembershipOortCloudError(self._subdomain)
 
+    def update_dataset(self, dataset: dict):
+        assert dataset != None
+        self._dataset = dataset
+
     @property
     def config(self):
         return self._config
