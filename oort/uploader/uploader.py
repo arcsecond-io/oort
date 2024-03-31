@@ -62,10 +62,11 @@ class FileUploader(object):
 
         def percent_printer(monitor):
             bar_length = 40
-            fraction = max(float(monitor.bytes_read) / file_size, 1.0)
+            self.__bytes_read = monitor.bytes_read
+            fraction = min(float(monitor.bytes_read) / float(file_size), 1.0)
             hashes = '#' * int(round(fraction * bar_length))
             spaces = ' ' * (bar_length - len(hashes))
-            self._logger.info(f'\r[{hashes}{spaces}] {(fraction * 100):.1f}%')
+            print(f'[{hashes}{spaces}] {(fraction * 100):.1f}%', end='\r')
 
         m = MultipartEncoderMonitor(e, percent_printer)
 
