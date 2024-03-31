@@ -4,7 +4,6 @@ from arcsecond.options import State
 
 from oort import __version__
 from oort.common.context import Context
-from oort.common.utils import build_endpoint_kwargs
 from oort.uploader.walker import walk
 from .errors import OortCloudError, InvalidUploadOptionsOortCloudError
 from .helpers import display_command_summary
@@ -48,30 +47,26 @@ def main(ctx, version=False, **kwargs):
 @main.command()
 @click.option('--username', required=True, nargs=1, prompt=True,
               help="Username of the Arcsecond account. Primary email address is also allowed.")
-@click.option('--password', required=True, nargs=1, prompt=True, hide_input=True,
-              help="Password of the Arcsecond account. It will be sent encrypted.")
+@click.option('--upload_key', required=True, nargs=1, prompt=True,
+              help='Your upload key. Visit your settings page to copy and paste it here.')
 @basic_options
 @pass_state
-def login(state, username, password):
+def login(state, username, upload_key):
     """Login to your personal Arcsecond.io account.
 
-    It also fetches your personal Upload key. This Upload key is a secret token
-    which gives just enough permission to perform the upload of files and the
-    minimum of metadata.
-
-    Beware that the Upload key will be stored locally on a file:
+    Beware that the Upload Key will be stored locally on a file:
     ~/.config/arcsecond/config.ini
 
-    This Upload key is not your full API key. When logging in with oort, no fetch
-    nor storage of the API key occur (only the Upload one).
+    This Upload key is safer than the Access Key, since it gives
+    just enough permissions to upload files to your account.
     """
     config = ArcsecondConfig(state)
-    _, error = ArcsecondAPI(config).login(username, password, upload_key=True)
+    _, error = ArcsecondAPI(config).login(username, upload_key=upload_key)
     if error:
         click.echo(error)
     else:
         username = config.username
-        click.echo(f' • Successfully logged in as @{username} (API: {state.api_name}).')
+        click.echo(f' • Successfully logged in as @{username} (APIs : {state.api_name}).')
 
 
 @main.command(help='Get or set the API server address (fully qualified domain name).')
@@ -95,7 +90,6 @@ def datasets(state, organisation=None):
     else:
         click.echo(" • Fetching datasets...")
 
-    kwargs = build_endpoint_kwargs(state.api_name, subdomain=organisation)
     dataset_list, error = ArcsecondAPI(ArcsecondConfig(state)).datasets.list()
     if error is not None:
         raise OortCloudError(str(error))
