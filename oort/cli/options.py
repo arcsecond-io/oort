@@ -1,11 +1,6 @@
 import click
-from arcsecond import config
 
-
-class State(object):
-    def __init__(self, api_name='main', api_server=''):
-        self.api_name = api_name
-        self.api_server = api_server or config.config_file_read_api_server(self.api_name)
+from arcsecond.options import State
 
 
 def verbose_option_constructor(f):
@@ -26,7 +21,6 @@ def api_option_constructor(f):
     def callback(ctx, param, value):
         state = ctx.ensure_object(State)
         state.api_name = value or 'main'
-        state.api_server = config.config_file_read_api_server(state.api_name)
         return value
 
     return click.option('--api',

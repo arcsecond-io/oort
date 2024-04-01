@@ -1,43 +1,67 @@
+import math
 import pathlib
 
 import click
 
-from oort.shared.config import (get_oort_config_upload_folder_sections)
-from oort.shared.utils import get_formatted_bytes_size, get_formatted_size_times, is_hidden
-from oort.shared.identity import Identity
+from oort.common.context import Context
+from oort.common.utils import is_file_hidden
 
 
-def display_command_summary(folders: list, identity: Identity):
-    click.echo(f"\n --- Folder{'s' if len(folders) > 1 else ''} summary --- ")
-    click.echo(f" • Arcsecond username: @{identity.username} (Upload key: {identity.upload_key[:4]}••••)")
-    if not identity.subdomain:
-        click.echo(" • Uploading to your *personal* account.")
+def __get_formatted_time(seconds):
+    if seconds > 86400:
+        return f"{seconds / 86400:.1f}d"
+    elif seconds > 3600:
+        return f"{seconds / 3600:.1f}h"
+    elif seconds > 60:
+        return f"{seconds / 60:.1f}m"
     else:
-        click.echo(f" • Uploading to organisation account '{identity.subdomain}' (as {identity.role}).")
+        return f"{seconds:.1f}s"
 
-    if identity.telescope_details:
-        msg = f" • Datasets will be attached to telescope '{identity.telescope_details.get('name')}' "
-        if identity.telescope_details.get('alias', ''):
-            msg += f"alias \"{identity.telescope_details.get('alias')}\" "
-        msg += f"({identity.telescope_details.get('uuid')}))"
-        click.echo(msg)
+
+def __get_formatted_size_times(size):
+    total = f"{__get_formatted_time(size / pow(10, 4))} on 10 kB/s, "
+    total += f"{__get_formatted_time(size / pow(10, 5))} on 100 kB/s, "
+    total += f"{__get_formatted_time(size / pow(10, 6))} on 1 MB/s, "
+    total += f"{__get_formatted_time(size / pow(10, 7))} on 10 MB/s"
+    return total
+
+
+def __get_formatted_bytes_size(size):
+    if size == 0:
+        return '0 Bytes'
+    k = 1024
+    units = ['Bytes', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
+    i = math.floor(math.log10(1.0 * size) / math.log10(k))
+    return f"{(size / math.pow(k, i)):.2f} {units[i]}"
+
+
+def display_command_summary(context: Context, folders: list):
+    click.echo("\n --- Upload summary --- ")
+    click.echo(f" • Arcsecond username: @{context.config.username} (Upload key: {context.config.upload_key[:4]}••••)")
+    if context.organisation_subdomain:
+        role = context.config.read_key(context.organisation_subdomain)
+        msg = f" • Uploading to Observatory Portal '{context.organisation_subdomain}' (as {role})."
     else:
-        click.echo(" • No designated telescope.")
+        msg = " • Uploading to your *personal* account."
+    click.echo(msg)
 
-    click.echo(f" • Using API server: {identity.api}")
-    click.echo(f" • Zip before upload: {'True' if zip else 'False'}")
+    if context.dataset_uuid and context.dataset_name:
+        msg = f" • Data will be appended to existing dataset '{context.dataset_name}' ({context.dataset_uuid})."
+    elif not context.dataset_uuid and context.dataset_name:
+        msg = f" • Data will be inserted into a new dataset named '{context.dataset_name}'."
+    else:
+        msg = " • Using folder names for dataset names (one folder = one dataset)."
+    click.echo(msg)
 
-    home_path = pathlib.Path.home()
-    existing_folders = [section.get('path') for section in get_oort_config_upload_folder_sections()]
-
+    click.echo(f" • Using API server: {context.config.api_name}")
     click.echo(f" • Folder{'s' if len(folders) > 1 else ''}:")
     for folder in folders:
         folder_path = pathlib.Path(folder).expanduser().resolve()
         click.echo(f"   > Path: {str(folder_path.parent if folder_path.is_file() else folder_path)}")
-        if folder_path == home_path:
+
+        if folder_path == pathlib.Path.home():
             click.echo("   >>> Warning: This folder is your HOME folder. <<<")
-        if str(folder_path) in existing_folders:
-            click.echo("   >>> Warning: This folder is already watched. <<<")
-        size = sum(f.stat().st_size for f in folder_path.glob('**/*') if f.is_file() and not is_hidden(f))
-        click.echo(f"   > Volume: {get_formatted_bytes_size(size)} in total in this folder.")
-        click.echo(f"   > Estimated upload time: {get_formatted_size_times(size)}")
+
+        size = sum(f.stat().st_size for f in folder_path.glob('**/*') if f.is_file() and not is_file_hidden(f))
+        click.echo(f"   > Volume: {__get_formatted_bytes_size(size)} in total in this folder.")
+        click.echo(f"   > Estimated upload time: {__get_formatted_size_times(size)}")

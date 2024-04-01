@@ -1,4 +1,5 @@
 from copy import deepcopy
+from enum import Enum
 
 OORT_FILENAME = '__oort__'
 
@@ -28,8 +29,6 @@ DATA_EXTENSIONS = OORT_FITS_EXTENSIONS + ['.xisf', ]
 
 ZIP_EXTENSIONS = ['.zip', '.gz', '.bz2']
 
-OORT_UPLOADER_FOLDER_DETECTION_TICK_SECONDS = 60
-
 
 def _extend_list(extensions):
     for zip in ZIP_EXTENSIONS:
@@ -43,3 +42,29 @@ def get_all_xisf_extensions():
 
 def get_all_fits_extensions():
     return _extend_list(deepcopy(OORT_FITS_EXTENSIONS))
+
+
+class Status(Enum):
+    NEW = 'New'
+    PREPARING = 'Preparing'
+    UPLOADING = 'Uploading'
+    FINISHING = 'Finishing'
+    OK = 'OK'
+    ERROR = 'Error'
+
+
+class Substatus(Enum):
+    PENDING = 'pending'
+    CHECKING = 'checking remote file...'
+    UPLOADING = 'uploading...'
+    TAGGING = 'tagging...'
+
+    DONE = 'done'
+    ERROR = 'error'
+    ALREADY_SYNCED = 'already synced'
+    IGNORED = 'ignored'
+    # --- SKIPPED: MUST BE STARTED WITH THE SAME 'skipped' LOWERCASE WORD. See Context.py ---
+    SKIPPED_NO_DATE_OBS = 'skipped (no date obs found)'
+    SKIPPED_HIDDEN_FILE = 'skipped (hidden file)'
+    SKIPPED_EMPTY_FILE = 'skipped (empty file)'
+    # ---

@@ -1,21 +1,13 @@
-import importlib
-import os
-import subprocess
-
 import click
-from arcsecond import ArcsecondAPI
+from arcsecond import ArcsecondAPI, ArcsecondConfig, cli as ArcsecondCLI
+from arcsecond.options import State
 
 from oort import __version__
-from oort.cli.folders import (parse_upload_watch_options, save_upload_folders)
-from oort.cli.helpers import display_command_summary
-from oort.cli.options import State, basic_options
-from oort.cli.supervisor import (get_supervisor_processes_status, get_supervisor_config)
-from oort.monitor.errors import InvalidWatchOptionsOortCloudError
-from oort.shared.config import (get_oort_config_upload_folder_sections,
-                                remove_oort_config_folder_section,
-                                update_oort_config_upload_folder_sections_key)
-from oort.shared.constants import OORT_UPLOADER_FOLDER_DETECTION_TICK_SECONDS
-from oort.shared.errors import OortCloudError
+from oort.common.context import Context
+from oort.uploader.walker import walk
+from .errors import OortCloudError, InvalidUploadOptionsOortCloudError
+from .helpers import display_command_summary
+from .options import basic_options
 
 pass_state = click.make_pass_decorator(State, ensure=True)
 
@@ -42,25 +34,9 @@ def main(ctx, version=False, **kwargs):
     local folder structure. Of course, the cleaner the local folders structure,
     the cleaner it will appear in Arcsecond.io.
 
-    Oort-Cloud has 2 modes: direct, and batch. As of now, the two modes are
-    exclusive (because of the access to the small local SQLite database). You
-    must **not** have oort batch mode running if you want to use the direct
-    mode.
-
-    The direct mode (command `oort upload ...`) uploads files immediately, and
-    returns.
-
-    The batch mode (with the command `oort watch...`) watches folders you
-    indicate, and automatically upload all files contained in the folder
-    (and its subfolders). It keeps running in the background, and as soon a
-    new file appears in the folder tree, Oort will upload it.
-
-    The batch mode works by managing 2 processes:\n
-    • An uploader, which takes care of creating/syncing the right Dataset and
-        Datafile objects in Arcsecond.io (either in your personal account, or
-        your Organisation). And then upload the real files.\n
-    • A small web server, which allow you to monitor, control and setup what is
-        happening in the uploader (and also see what happened before).
+    Oort-Cloud v2 works only with one direct mode (a whole new local monitor is
+    in preparation). This direct mode (command `oort upload ...`) uploads files
+    immediately, and returns.
     """
     if version:
         click.echo(__version__)
@@ -71,243 +47,103 @@ def main(ctx, version=False, **kwargs):
 @main.command()
 @click.option('--username', required=True, nargs=1, prompt=True,
               help="Username of the Arcsecond account. Primary email address is also allowed.")
-@click.option('--password', required=True, nargs=1, prompt=True, hide_input=True,
-              help="Password of the Arcsecond account. It will be sent encrypted.")
+@click.option('--upload_key', required=True, nargs=1, prompt=True,
+              help='Your upload key. Visit your settings page to copy and paste it here.')
 @basic_options
 @pass_state
-def login(state, username, password):
+def login(state, username, upload_key):
     """Login to your personal Arcsecond.io account.
 
-    It also fetches your personal Upload key. This Upload key is a secret token
-    which gives just enough permission to perform the upload of files and the
-    minimum of metadata.
-
-    Beware that the Upload key will be stored locally on a file:
+    Beware that the Upload Key will be stored locally on a file:
     ~/.config/arcsecond/config.ini
 
-    This Upload key is not your full API key. When logging in with oort, no fetch
-    nor storage of the API key occur (only the Upload one).
+    This Upload key is safer than the Access Key, since it gives
+    just enough permissions to upload files to your account.
     """
-    _, error = ArcsecondAPI.login(username, password, upload_key=True, api=state.api_name)
+    config = ArcsecondConfig(state)
+    _, error = ArcsecondAPI(config).login(username, upload_key=upload_key)
     if error:
         click.echo(error)
     else:
-        username = ArcsecondAPI.username(api=state.api_name)
-        click.echo(f' • Successfully logged in as @{username} (API: {state.api_name}).')
-        # Update all upload_key stored in the config for all watched folders.
-        update_oort_config_upload_folder_sections_key(ArcsecondAPI.upload_key(api=state.api_name))
+        username = config.username
+        click.echo(f' • Successfully logged in as @{username} (APIs : {state.api_name}).')
 
 
-@main.command()
-@click.argument('name', required=True, nargs=1)
-@click.argument('address', required=False, nargs=1)
+@main.command(help='Get or set the API server address (fully qualified domain name).')
+@click.argument('name', required=False, nargs=1)
+@click.argument('fqdn', required=False, nargs=1)
 @pass_state
-def api(state, name=None, address=None):
-    """
-    Configure the API server address.
-
-    For instance:
-
-    • "oort api main" to get the main API server address (default).\n
-    • "oort api dev http://localhost:8000" to configure a dev server.
-
-    You can then use --api <api name> in every command to choose which API
-    server you want to interact with. Hence, "--api dev" will choose the above
-    dev server.
-    """
-    if address is None:
-        print(ArcsecondAPI.get_api_name(api_name=name))
-    else:
-        ArcsecondAPI.set_api_name(address, api_name=name)
+def api(state, name=None, fqdn=None):
+    ArcsecondCLI.api(state, name, fqdn)
 
 
-@main.command(help='Start one of the Oort service: uploader or monitor.')
-@click.argument('service', required=True, type=click.Choice(['uploader', 'monitor'], case_sensitive=False))
-@basic_options
-@pass_state
-def start(state, service):
-    spec = importlib.util.find_spec('oort')
-    command_path = os.path.join(os.path.dirname(spec.origin), service, 'main.py')
-    # Making sure they are executable
-    os.chmod(command_path, 0o744)
-    subprocess.run(command_path)
-
-
-@main.command(help='Display the supervisord config.')
-@basic_options
-@pass_state
-def config(state):
-    print("\nBelow is the supervisord config you should use if you want supervisor to manage Oort processes:\n")
-    print(get_supervisor_config())
-
-
-@main.command(help="Display the list of all watched folders and their options.")
-@basic_options
-@pass_state
-def folders(state):
-    sections = get_oort_config_upload_folder_sections()
-    if len(sections) == 0:
-        click.echo(" • No folder watched. Use `oort watch` (or `oort watch --help` for more details).")
-    else:
-        for section in sections:
-            section_hash = section.get('section').replace('watch-folder-', '')
-            click.echo(f" • Folder ID \"{section_hash}\"")
-            click.echo(f"   username     = @{section.get('username')}")
-            click.echo(f"   upload_key   = {section.get('upload_key')[0:4]}••••")
-            if section.get('subdomain'):
-                click.echo(f"   organisation = {section.get('subdomain')} (role: {section.get('role')})")
-            else:
-                click.echo("   organisation = (no organisation)")
-            if section.get('telescope'):
-                click.echo(f"   telescope    = {section.get('telescope')}")
-            else:
-                click.echo("   telescope    = (no telescope)")
-            click.echo(f"   path         = {section.get('path')}")
-            click.echo(f"   zip          = {section.get('zip', 'False')}")
-            click.echo()
-
-
-@main.command(help="Display the list of (organisation) telescopes.")
+@main.command(help="Display the list of (organisation) datasets.")
 @click.option('-o', '--organisation',
               required=False, nargs=1,
-              help="The Organisation subdomain, if uploading to an organisation.")
+              help="The subdomain, if uploading to an organisation (Observatory Portal).")
 @basic_options
 @pass_state
-def telescopes(state, organisation=None):
-    test = os.environ.get('OORT_TESTS') == '1'
-    kwargs = {'api': state.api_name, 'test': test, 'upload_key': ArcsecondAPI.upload_key(api=state.api_name)}
-
+def datasets(state, organisation=None):
     org_subdomain = organisation or ''
     if org_subdomain:
-        kwargs.update(organisation=org_subdomain)
-        click.echo(f" • Fetching telescopes for organisation {org_subdomain}...")
+        click.echo(f" • Fetching datasets for organisation '{org_subdomain}'...")
     else:
-        click.echo(" • Fetching telescopes...")
+        click.echo(" • Fetching datasets...")
 
-    telescope_list, error = ArcsecondAPI.telescopes(**kwargs).list()
+    dataset_list, error = ArcsecondAPI(ArcsecondConfig(state)).datasets.list()
     if error is not None:
         raise OortCloudError(str(error))
 
-    click.echo(f" • Found {len(telescope_list)} telescope{'s' if len(telescope_list) > 1 else ''}.")
-    for telescope_dict in telescope_list:
-        s = f" 🔭 \"{telescope_dict['name']}\" "
-        if telescope_dict['alias']:
-            s += f"alias \"{telescope_dict['alias']}\" "
-        s += f"(uuid: {telescope_dict['uuid']}) "
+    if isinstance(dataset_list, dict) and 'results' in dataset_list.keys():
+        dataset_list = dataset_list['results']
+
+    click.echo(f" • Found {len(dataset_list)} dataset{'s' if len(dataset_list) > 1 else ''}.")
+    for dataset_dict in dataset_list:
+        s = f" 💾 \"{dataset_dict['name']}\" "
+        s += f"(uuid: {dataset_dict['uuid']}) "
         # s += f"[ObservingSite UUID: {telescope_dict['observing_site']}]"
         click.echo(s)
 
 
 @main.command(help='Directly upload a folder\'s content.')
 @click.argument('folder', required=True, nargs=1)
+@click.option('-d', '--dataset',
+              required=True, nargs=1, type=click.STRING,
+              help="The UUID or name of the dataset to put data in.")
 @click.option('-o', '--organisation',
               required=False, nargs=1,
-              help="The Organisation subdomain, if uploading to an organisation.")
-@click.option('-t', '--telescope',
-              required=False, nargs=1, type=click.STRING,
-              help="The UUID or the alias of the telescope acquiring the data (mandatory only for organisation "
-                   "uploads).")
-@click.option('-f', '--force',
-              required=False, nargs=1, type=click.BOOL, is_flag=True,
-              help="Force the re-uploading of folder's content, resetting the local Uploads information. Default is "
-                   "False.")
-@click.option('-z', '--zip',
-              required=False, nargs=1, type=click.BOOL, is_flag=True,
-              help="Zip the data files (FITS and XISF) before sending to the cloud. Default is False.")
+              help="The subdomain, if uploading for an Observatory Portal.")
 @basic_options
 @pass_state
-def upload(state, folder, organisation=None, telescope=None, force=False, zip=False):
+def upload(state, folder, dataset=None, organisation=None):
     """
     Upload the content of a folder.
 
-    If an organisation is provided, a telescope UUID must also be provided.
+    You will be prompted for confirmation before the whole walking process actually
+    start.
 
-    Oort will start by walking through the folder tree and uploads files
-    according to the name of the subfolders (see main help). Once done,
-    every new file created in the folder tree will trigger a sync + upload
-    process.
+    Every DataFile must belong to a Dataset. If you provide a Dataset UUID, Oort will
+    append files to the dataset. If you provide a Dataset *name*, Oort will try to find
+    an existing Dataset with that name. If none could be found, Oort will create one,
+    and put files in it.
+
+    You can use `oort datasets [OPTIONS]` to get a list of your existing datasets
+    (with their UUID).
+
+    Oort will then start walking through the folder tree and uploads regular files
+    (hidden and empty files will be skipped).
     """
-    click.echo(f"\n{80 * '*'}")
-    click.echo(" • DIRECT MODE: command will not return until it has completed the upload of folder's files.")
-    click.echo(" • DIRECT MODE: for a folder with a large volume of files, it may take some time to finish.")
-    click.echo(f"{80 * '*'}\n")
+    config = ArcsecondConfig(state)
+    context = Context(config, dataset_uuid_or_name=dataset, subdomain=organisation)
 
     try:
-        identity = parse_upload_watch_options(organisation, telescope, zip, state.api_name)
-    except InvalidWatchOptionsOortCloudError:
+        context.validate()
+    except InvalidUploadOptionsOortCloudError as e:
+        click.echo(f"\n • ERROR {str(e)} \n")
         return
 
-    display_command_summary([folder, ], identity)
+    display_command_summary(context, [folder, ])
     ok = input('\n   ----> OK? (Press Enter) ')
 
     if ok.strip() == '':
-        from oort.uploader.engine.walker import walk
-
-        walk(folder, identity, bool(force))
-
-
-@main.command(help='Start watching a folder content for uploading files in batch/background mode.')
-@click.argument('folders', required=True, nargs=-1)
-@click.option('-o', '--organisation',
-              required=False, nargs=1,
-              help="The Organisation subdomain, if uploading to an organisation.")
-@click.option('-t', '--telescope',
-              required=False, nargs=1, type=click.STRING,
-              help="The UUID or the alias of the telescope acquiring data (in the case of organisation uploads).")
-@click.option('-z', '--zip', is_flag=True,
-              required=False, nargs=1, type=click.BOOL,
-              help="Zip the data files (FITS and XISF) before sending to the cloud. Default is False.")
-@basic_options
-@pass_state
-def watch(state, folders, organisation=None, telescope=None, zip=False):
-    """
-    Indicate a folder (or multiple folders) that Oort should watch. The files of the
-    folder and all of its subfolders will be uploaded (expect hidden files).
-
-    If an organisation is provided, a telescope UUID must also be provided.
-
-    Oort will start by walking through the folder tree and uploads files
-    according to the name of the subfolders (see main help). Once done,
-    every new file created in the folder tree will trigger a sync + upload
-    process.
-    """
-    click.echo(f"\n{80 * '*'}")
-    click.echo(" • BATCH MODE: command will give the prompt back, and uploads will occur in the background.")
-    click.echo(" • BATCH MODE: use the monitor to follow the progress (`oort start monitor`).")
-    click.echo(f"{80 * '*'}\n")
-
-    try:
-        identity = parse_upload_watch_options(organisation, telescope, zip, state.api_name)
-    except InvalidWatchOptionsOortCloudError:
-        return
-
-    display_command_summary(folders, identity)
-    ok = input('\n   ----> OK? (Press Enter) ')
-
-    if ok.strip() == '':
-        save_upload_folders(folders, identity)
-        click.echo("\n • OK.")
-        msg = f" • Oort will start watching within {OORT_UPLOADER_FOLDER_DETECTION_TICK_SECONDS} seconds "
-        msg += "if the uploader process is running.\n • Getting the processes status for you right now:"
-        click.echo(msg)
-        get_supervisor_processes_status()
-
-
-@main.command(help="Remove (a) folder(a) from the watched folder list.")
-@click.argument('folder_id', required=True, type=str, nargs=-1)
-@basic_options
-@pass_state
-def unwatch(state, folder_id):
-    """Print INDEX.
-
-    INDEX is the folder index in the list. Use `oort folders` *every time* to list them all.
-    """
-    sections = get_oort_config_upload_folder_sections()
-    sections_mapping = {section.get('section').replace('watch-folder-', ''): section for section in sections}
-    clean_folder_ids = set(folder_id)
-    for clean_id in clean_folder_ids:
-        if clean_id in sections_mapping.keys():
-            result = remove_oort_config_folder_section(sections_mapping[clean_id]['section'])
-            click.echo(f' • Folder ID {clean_id} removed with success: {result}.')
-        else:
-            click.echo(f' • Folder ID {clean_id} unknown/invalid. Skipped.')
+        walk(context, folder)

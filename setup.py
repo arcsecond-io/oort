@@ -27,19 +27,11 @@ setup(
     long_description=long_description,
     packages=find_packages(),
     include_package_data=True,
-    package_data={
-        '': ['oort/server/app/static/*', 'oort/server/app/templates/*'],
-    },
     zip_safe=False,
     platforms='any',
     install_requires=[
+        'requests-toolbelt==1.0.0',
         'arcsecond>=2.0.4',
-        'astropy>=5',
-        'flask>=2.2',
-        'peewee>=3',
-        'watchdog>=2.2',
-        'supervisor>4.2.2',
-        'dateparser',
         'python-dotenv'
     ],
     entry_points={
@@ -49,7 +41,7 @@ setup(
     },
     classifiers=[
         # As from http://pypi.python.org/pypi?%3Aaction=list_classifiers
-        'Development Status :: 5 - Production/Stable',
+        'Development Status :: 4 - Beta',
         'Environment :: Console',
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: MIT License',
@@ -59,9 +51,9 @@ setup(
         'Operating System :: Microsoft :: Windows',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ]
 )
